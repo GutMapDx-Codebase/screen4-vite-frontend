@@ -1,0 +1,934 @@
+*{
+  /* color: black !important; */
+}
+
+.Practitionermainbody {
+    /* width: 72%; */
+    width: 100%;
+    /* background-color: rgb(250, 161, 60); */
+    height: fit-content;
+    min-height: 500px;
+    /* background-color: #fff; */
+    /* border-radius: 10px;
+    box-shadow: 0 8px 16px 0 rgba(0, 0, 0, .2); */
+    /* padding: 10px 2%; */
+}
+
+.header {
+    display: flex;
+    align-content: center;
+    justify-content: space-between;
+    width: 100%;
+    color: #19b0e6;
+    /* background-color: aqua; */
+}
+
+.header form {
+    display: flex;
+    align-items: center;
+    /* height: 50px; */
+    justify-content: center;
+    /* background-color: yellow; */
+    /* justify-content: space-between; */
+}
+
+.header form AutoComplete {
+
+    width: 80%;
+    height: 10px;
+    padding: 10px 20px;
+    border: 1px solid #dbdbdb;
+    border-radius: 5px 0 0 5px;
+    color: #565d68;
+    transition: all .2s linear;
+    outline: none;
+}
+
+.header form AutoComplete:focus {
+    outline: none;
+    border-color: #19b0e6;
+    box-shadow: 0 0 0 0.2rem #19b0e644;
+}
+
+.header form button {
+
+    background-color: #19b0e6;
+    color: #fff;
+    border: none;
+    border-radius: 0 5px 5px 0;
+    height: 31px;
+}
+
+.header form button:hover {
+
+    cursor: pointer;
+}
+
+.addbutton {
+    /* background-color: #19b0e6; */
+    display: flex;
+    margin-top: 30px;
+    margin-bottom: 10px;
+    justify-content: flex-end;
+
+}
+
+.addbutton button:hover {
+    cursor: pointer;
+}
+
+.addbutton button {
+
+    background-color: #19b0e6;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    height: 31px;
+    display: flex;
+    padding: 0px 20px;
+    align-items: center;
+
+}
+
+.tablep {
+    /* background-color: yellow; */
+    width: 100%;
+    border: 1px solid #19b0e6;
+    text-align: center;
+    border-collapse: collapse;
+    position: relative;
+    /* opacity: 1; */
+    /* border-radius: 10px; */
+}
+
+.tablep td {
+    padding: 10px;
+    border: 1px solid #19b0e6;
+
+    color: #19b0e6;
+
+
+}
+
+.tablep th {
+    padding: 10px;
+    border: 1px solid #19b0e6;
+
+
+
+
+}
+
+
+.tablephead {
+    padding: 10px;
+    /* background-color: #7fa2c4; */
+    background-color: #19afe6;
+    color: white;
+    border: 1px solid #19b0e6;
+    position: sticky;
+    top: 0;
+
+}
+
+
+.addPractitioner {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    justify-content: baseline;
+    align-items: flex-start;
+
+}
+
+.popupbg2 {
+    background-color: rgb(63 60 60 / 23%);
+    width: 100%;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 25;
+}
+
+.completeddiv{
+  width: 200px;
+}
+
+.conpart1{
+  width: 80%;
+}
+.jobrequestcontainer{
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  gap: 120px;
+}
+@media screen and (max-width:700px) {
+
+
+    .Practitionermainbody {
+        width: 96%;
+        /* overflow-x: scroll; */
+        font-size: 75%;
+        /* background-color: rgb(250, 161, 60); */
+        height: 500px;
+        overflow-x: scroll;
+        font-size: smaller;
+    }
+
+    .header {
+
+        flex-direction: column;
+    }
+
+    .bownpopupbutton {
+        /* background-color: #19b0e6; */
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 30px;
+        /* flex-direction: column; */
+    }
+
+}
+
+
+.container {
+    display: flex;
+    justify-content: center; /* Default for desktop */
+    padding: 20px;
+    align-items: center;
+    height: fit-content;
+    color: black;
+    /* background: #80c209; */
+  }
+  
+  /* @media screen and (max-width: 768px) {
+    .container {
+      justify-content: flex-start; 
+      overflow: auto; 
+    }
+  }
+   */
+
+.mybold{
+    font-size: 17px;
+    font-weight: bold;
+    /* color: #f3ffdf; */
+    color: #7fc109;
+}
+.mybold2{
+    font-size: 15px;
+    font-weight: bold;
+    /* color: #f3ffdf; */
+    color: #7fc109;
+}
+.key{
+    font-size: 17px;
+    font-weight: 900;
+    color: rgb(75, 75, 75);
+}
+
+.pad {
+    padding: 20px;
+  }
+  .custom-button {
+    width: 200px;
+    border: none;
+    margin-top: 5px;
+    padding: 8px 30px;
+    border-radius: 20px;
+    background-color: #80c20a;
+    color: white;
+    cursor: pointer;
+  }
+  
+  .jobreq{
+    /* left-top: 20px; */
+  }
+  .jobhead{
+    height: 80px;
+  }
+@media screen and (max-width: 1200px) {
+  .completeddiv{
+    width: 150px;
+  }
+    .pad {
+        padding: 20px;
+        padding-bottom: 40px;
+      }
+      .custom-button{
+        width:150px;
+      }
+  }
+
+@media screen and (max-width: 1015px) {
+  .completeddiv{
+    width: 110px;
+  }
+    .pad {
+        padding: 20px;
+        padding-bottom: 60px;
+      }
+      .custom-button{
+        width:100px;
+        font-size: 11px;
+        padding: 8px;
+        border-radius: 10px;
+      }
+      .mybold{
+        font-size: 15px;
+      }
+      .mybold2{
+        font-size: 13px;
+      }
+      .key{
+        font-size: 15px;
+      }
+      .tablep{
+        font-size: 13px;
+      }
+  }
+@media screen and (max-width: 650px) {
+  
+.completeddiv{
+  width: 80px;
+}
+    .pad {
+        padding: 20px;
+        padding-bottom: 80px;
+      }
+      .custom-button{
+        width:70px;
+        padding: 8px 15px;
+        font-size: 10px;
+      }
+      .mybold{
+        font-size: 13px;
+      }
+      .mybold2{
+        font-size: 11px;
+      }
+      .key{
+        font-size: 13px;
+      }
+      .tablep{
+        font-size: 11px;
+      }
+      .jobreq{
+        /* margin-right: 40px!important; */
+        padding-top: 50px;
+      }
+      .createjob{
+        /* margin-right: 40px!important; */
+        margin-bottom: 80px!important;
+      }
+      .jobhead{
+        height: 120px;
+      }
+      .allclient{
+        font-size: 15px!important;
+      
+      }
+      .clientbtn{
+        font-size: 10px!important;
+        padding: 5px 7px!important;
+        border-radius: 5px!important;
+        margin-left: 5px!important;
+      }
+  }
+  @media screen and (max-width: 420px) {
+    .completeddiv{
+      display: flex;
+      width: auto;
+      gap:10px;
+    }
+    .completeddiv button{
+      padding: 6px 12px;
+      width: auto;
+    }
+    .pad {
+      padding: 20px;
+      /* padding-bottom: 120px; */
+    }
+    .jobrequestcontainer{
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+    .custom-button{
+      width:70px;
+      padding: 8px 15px;
+      font-size: 10px;
+
+    }
+    .conpart1{
+      width: 100%;
+    }
+    .Practitionermainbody{
+      padding-left: 7px!important;
+    }
+    
+
+  }
+
+  .createjob2 {
+    transition: background 0.3s ease, transform 0.2s ease;
+    width: auto;
+  }
+  
+  .createjob2:hover {
+    background: #6ca400; /* slightly darker green */
+    transform: scale(1.03); /* subtle zoom effect */
+    cursor: pointer;
+  }
+  .backbtnimg {
+    width: 20px;
+    transition: transform 0.3s ease;
+  }
+  
+  .backbtnimg:hover {
+    transform: scale(1.2); /* Smoothly enlarges the icon */
+  }
+  
+
+  /* / job request form resposive css/  =-=-=-=-==-=-=-=-=-=-=-       ------------------------------------- */
+  .jobrequestform{
+    /* width: 900px!important; */
+    width: 70%;
+  }
+  .customTable{
+    width: 100%;
+  }
+  /* input{
+   width: 350px;
+   padding: auto;
+  } */
+  
+  @media screen and (max-width: 420px) {
+    .jobrequestform{
+      width: 300px!important;
+      overflow: hidden!important;
+      padding: 20px!important;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+    .customTable{
+      width: 200px!important;
+      font-size: 12px!important;
+    }
+    /* input{
+      width: 135px!important;
+      padding: 0px;
+    } */
+    .facilitiesCheck label{
+      display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    }
+    .donor label{
+      font-size: 12px!important;
+    }
+    ul li{ 
+      font-size: 12px!important;
+    }
+    .jobrequestformtitle{
+      font-size: 16px!important;
+    }
+    .h4{
+      font-size: 12px!important;
+    }
+    .heading{
+      font-size: 12px!important;
+    }
+    td{
+      font-size: 12px!important;
+    }
+    p{
+      font-size: 12px!important;
+    }
+  }
+
+/* ----------------------------------- collector addition form */
+.cardforcollector{
+  width: 600px;
+}
+@media screen and (max-width: 420px) {
+  .cardforcollector{
+    width: 300px;
+  }
+}
+/* =================================== job requests ===========================================*/
+@media screen and (max-width:400px) {
+  .jobreqhead{
+    font-size: 15px!important;
+    z-index: 1!important;
+    margin-top: 40px!important;
+    margin-bottom: 0px!important;
+    padding: 0px!important;
+  }
+  .createjob{
+    z-index: 200!important;
+  }
+  .COCform{
+    padding: 15px 20px 20px;
+    width: 90%;
+  }
+  /* .createjob2{
+    width: auto!important;
+  } */
+}
+
+
+
+/* ========================================== COC Form  ============================================= */
+
+.inputstyle{
+  /* width: 33%; */
+}
+.part1,
+.part2,
+.part3 {
+  padding-left: 5px;
+  width: 100%;
+}
+.donor{
+  width: 100%;
+  display: flex;
+  gap: 60px;
+}
+.label{
+  width: 70%;
+}
+.donorConcentToTest{
+  width: 100%;
+  display: flex;
+  gap: 50px;
+  justify-content: space-between;
+}
+.yesnolabel{
+  width: 100px;
+}
+.COCform{
+  /* width: 900px; */
+     width: 95%;
+}
+.adulteration-body{
+  width: 100%;
+  display: flex;
+}
+.bone{
+  width: 35%;
+}
+.btwo{
+  width: 45%;
+}
+.bthree{
+  width: 20%;
+}
+.second-row{
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+/* @media screen and (max-width:1040px) {
+  .donorConcentToTest{
+    flex-direction: column  ;
+  }
+} */
+@media screen and (max-width:1612px) {
+  .adulteration-body{
+    flex-direction: column;
+  }
+  .bone{
+  width: 100%;
+}
+.btwo{
+  width: 100%;
+}
+.bthree{
+  width: 100%;
+}
+  .second-container{
+    flex-direction: column; 
+  }
+  .second-container-part1{
+    /* width: 100%; */
+  }
+  .second-container-part2{
+    /* width: 100%; */
+  }
+}
+@media screen and (max-width:1140px) {
+  .donorConcentToTest,.second-row{
+    display: flex;
+    flex-direction: column;
+  }
+  .donorConcentToTest{
+    gap: 0px;
+  }
+  .second-row{
+    gap: 0px;
+  }
+  .part2 div,
+  .part3 div {
+  flex-direction: column; 
+  width: 100%;
+  justify-content: flex-start;
+}
+}
+@media screen and (max-width:800px) {
+  .part1,.part2,.part3{
+    /* width: 100%; */
+    padding-left: 30px;
+    width: auto;
+  }
+  .last-row,.lotexprow{
+    flex-direction: column;
+  }
+}
+@media screen and (max-width:400px) {
+  .radioyesno{
+    width: auto!important;
+  }
+  .COCform{
+    /* width: 300px; */
+    width: 90%;
+    overflow: hidden!important;
+    padding: 15px 20px 20px!important;
+  }
+  .yesnolabel{
+    width: 50px;
+  }
+}
+@media screen and (max-width: 400px) {
+  .second-row {
+    flex-direction: column !important;
+    gap: 1rem;
+  }
+
+  .second-row .donor {
+    width: 100%;
+  }
+
+  .second-row .inputstyle {
+    width: 100% !important;
+  }
+}
+.main-container {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 20px;
+  row-gap: 20px;
+  justify-content: space-between;
+}
+
+.inner1,
+.inner2,
+.inner3 {
+  flex: 1;
+  min-width: 250px; /* Ensures items wrap nicely on smaller screens */
+}
+.Flabel{
+  margin-left: 10px;
+}
+/* .second-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.second-container-part1,
+.second-container-part2 {
+  flex: 1 1 48%; 
+} */
+
+/* Responsive on small screens */
+/* @media screen and (max-width: 768px) {
+  .second-container {
+    flex-direction: column;
+  }
+
+  .second-container-part1,
+  .second-container-part2 {
+    width: 100% !important;
+  }
+} */
+
+
+@media screen and (max-width: 400px) {
+  .main-container {
+    flex-direction: column;
+  }
+  .explabel{
+    width: 17% !important;
+  }
+
+  .inner1,
+  .inner2,
+  .inner3 {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+  .inner2 label {
+    font-size: 13px !important;
+    /* width: 10px !important; */
+  }
+  .reasonlabel{
+    width: auto!important;
+  }
+
+  .inputstyle {
+    /* width: 100% !important; */
+  }
+  .Flabel{
+    margin-left: 0px!important;
+  }
+}
+.reason-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reason-radio-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+
+.donor-consent-row {
+  display: flex;
+  gap: 15px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+/* @media screen and (max-width: 768px) {
+  .donor-consent-row {
+    flex-direction: column;
+  }
+
+  .donor-consent-row .donor {
+    width: 100% !important;
+  }
+
+  .donor-consent-row .box {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+
+  .second-row {
+    flex-direction: column !important;
+    gap: 10px;
+  }
+
+  .second-row .donor {
+    width: 100% !important;
+  }
+}
+
+.adulteration-body {
+  display: flex;
+
+} */
+
+/* @media screen and (max-width: 768px) {
+  .adulteration-body {
+    flex-direction: column;
+  }
+
+  .adulteration-body > .bone,
+  .adulteration-body > .btwo,
+  .adulteration-body > .bthree {
+    width: 100% !important;
+    border-left: 1px solid black !important;
+    border-right: 1px solid black !important;
+  }
+
+  .btwo .row1 > div {
+    width: 100% !important;
+    border-right: none !important;
+  }
+
+  .btwo .row1 {
+    flex-direction: column;
+  }
+} */
+
+.donorConcentToTest{
+  display: flex;
+}
+
+/* @media screen and (max-width: 420px) {
+  .explabel{
+    width: 30px !important;
+    margin-left: 5px!important;
+  }
+  .radioinput{
+    width: 15px !important;
+  }
+  .remarksinput{
+    width: 225px !important;
+  }
+  .COCform{
+    padding: 20px 30px 44px!important;
+  }
+  .row2 h5,.row2 h5 label{
+    font-size: 11px !important;
+  }
+  .remarks{
+    font-size: 12px !important;
+  }
+  .donorConcentToTest{
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+  .donorConcentToTest div{
+    margin-left: 0px !important;
+  }
+} */
+
+
+.last-row{
+  display: flex;
+  justify-content: space-between;
+}
+
+/* @media screen and (max-width: 768px) {
+  .last-row {
+    flex-direction: column;
+  }
+
+  .part1,
+  .part2,
+  .part3 {
+    width: 100% !important;
+    border-right: 1px solid black; 
+  }
+
+  .last-row input[type="text"],
+  .last-row input[type="date"] {
+    width: 100% !important;
+    margin-top: 5px;
+  }
+
+  .last-row label {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 13px;
+  }
+
+  .last-row h5 {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  .last-row span {
+    display: block;
+    margin-top: 5px;
+  }
+} */
+
+/* ========================================== COC Form  ============================================= */
+
+.custom-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3ffdf;
+  border-top: 4px solid #80c209;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto;
+}
+.box{
+  width: 100%;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.ellipsis {
+  display: inline-block;
+  max-width: 200px; /* adjust based on your layout */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+/* @media screen and (max-width: 768px) {
+  .ellipsis {
+    max-width: 100px; 
+    }
+} */
+
+
+
+
+
+
+
+
+
+
+/* add client reponsive */
+@media (max-width: 768px) {
+  .drugsselect{
+    width: 150px!important;
+  }
+  .ant-form-item {
+    width: 100% !important;
+  }
+
+  .ant-card {
+    width: 95% !important;
+  }
+
+  .back-btn {
+    margin-bottom: 10px;
+  }
+
+
+  .ant-form-item-control-input-content {
+    display: flex;
+    flex-direction: column;
+  }
+  /* .donor{
+    justify-content: flex-start;
+    align-items: flex-start;
+  } */
+
+  .ant-upload {
+    width: 100% !important;
+  }
+  .my-search-input::placeholder {
+    font-size: 12px; /* adjust as needed */
+    color: #aaa;     /* optional: customize color */
+  }
+
+  /* .createjob2 {
+    width: 100% !important;
+  } */
+}
+
+
+@media (max-width: 340px) {
+  .donor label{
+    width: auto;
+  }
+}
+
+
+

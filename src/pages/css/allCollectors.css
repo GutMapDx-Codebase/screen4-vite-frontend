@@ -1,0 +1,61 @@
+.collector-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.collector-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0;
+}
+
+.count {
+    font-size: 16px;
+}
+
+.addcollector-link {
+    text-decoration: none;
+}
+
+.addcollector-btn {
+    font-size: 14px;
+    background: #80c209;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    text-align: center;
+    transition: background 0.3s ease;
+}
+
+
+@media (max-width: 480px) {
+    .collector-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .addcollector-btn {
+        width: 100%;
+        font-size: 13px;
+    }
+}
+.key.allclient {
+    font-size: 24px;
+    margin: 10px 0;
+    text-align: center;
+    position: relative;
+}
+
+@media (max-width: 480px) {
+    .key.allclient {
+        font-size: 20px;
+        text-align: left;
+        position: static;
+        transform: none;
+    }
+}

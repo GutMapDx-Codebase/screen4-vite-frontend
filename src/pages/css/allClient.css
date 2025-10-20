@@ -1,0 +1,314 @@
+.all-clients-container {
+    min-height: 100vh;
+    
+    padding: 20px;
+  }
+  
+  .all-clients-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 0 20px;
+  }
+  
+  .all-clients-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #ffffff !important; /* White text */
+    margin: 0;
+  }
+  
+  .add-client-btn {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-weight: 600;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+  }
+  
+  .add-client-btn:hover {
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
+    color: white;
+  }
+  
+  .search-container {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto 30px;
+  }
+  
+  .search-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    font-size: 16px;
+  }
+  
+  .search-input {
+    width: 100%;
+    padding: 14px 20px 14px 45px;
+    border: 1px solid #374151;
+    border-radius: 12px;
+    font-size: 16px;
+    background: #1e293b;
+    color: #ffffff !important; /* White text */
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .search-input:focus {
+    outline: none;
+    border-color: #22c55e;
+    box-shadow: 0 4px 16px rgba(34, 197, 94, 0.15);
+    background: #1e293b;
+    color: #ffffff !important;
+  }
+  
+  .search-input::placeholder {
+    color: #94a3b8;
+  }
+  
+  .clients-grid {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 20px;
+    padding: 0 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    margin-top: 20px;
+  }
+  
+  .client-card {
+    background: #1e293b;
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid #374151;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .client-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border-color: #22c55e;
+    background: #1f2937;
+  }
+  
+  .client-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  }
+  
+  .client-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+  
+  .client-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff !important; /* White text for client names */
+    margin: 0 0 4px 0;
+  }
+  
+  .client-email {
+    font-size: 14px;
+    color: #ffffff !important; /* White text for emails */
+    margin: 0;
+    word-break: break-all;
+    opacity: 0.9;
+  }
+  
+  .client-contact {
+    color: #ffffff !important; /* White text for contact numbers */
+    font-size: 14px;
+    margin: 4px 0 0 0;
+    opacity: 0.8;
+  }
+  
+  .delete-btn {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 80px;
+    text-align: center;
+  }
+  
+  .delete-btn:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+  }
+  
+  .delete-btn:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  .loading-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #ffffff !important; /* White text */
+    font-size: 16px;
+  }
+  
+  .error-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #ef4444;
+    font-size: 16px;
+    background: #1e293b;
+    border-radius: 12px;
+    margin: 20px;
+    border: 1px solid #374151;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #ffffff !important; /* White text */
+    font-size: 16px;
+    background: #1e293b;
+    border-radius: 16px;
+    margin: 20px;
+    border: 2px dashed #374151;
+  }
+  
+  .client-count-badge {
+    background: #22c55e;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-left: 12px;
+  }
+  
+  /* Ensure all text inside client cards is white */
+  .client-card * {
+    color: #ffffff !important;
+  }
+  
+  /* Specific styles for different text elements */
+  .client-info-section {
+    color: #ffffff !important;
+  }
+  
+  .client-details {
+    color: #ffffff !important;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .all-clients-container {
+      padding: 15px;
+      background: #0f172a;
+    }
+    
+    .all-clients-header {
+      flex-direction: column;
+      gap: 15px;
+      text-align: center;
+    }
+    
+    .all-clients-title {
+      font-size: 24px;
+      color: #ffffff !important;
+    }
+    
+    .clients-grid {
+      grid-template-columns: 1fr;
+      padding: 0 10px;
+    }
+    
+    .client-card {
+      padding: 20px;
+      background: #1e293b;
+    }
+    
+    .search-container {
+      margin-bottom: 20px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .all-clients-container {
+      padding: 10px;
+      background: #0f172a;
+    }
+    
+    .client-header {
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .delete-btn {
+      align-self: flex-start;
+    }
+    
+    .client-name,
+    .client-email,
+    .client-contact {
+      color: #ffffff !important;
+    }
+  }
+  
+  /* Animation for loading */
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+  }
+  
+  .loading-pulse {
+    animation: pulse 2s infinite;
+    color: #ffffff !important;
+  }
+  
+  /* Global white text enforcement */
+  .all-clients-container,
+  .all-clients-container h1,
+  .all-clients-container h2,
+  .all-clients-container h3,
+  .all-clients-container p,
+  .all-clients-container span,
+  .all-clients-container div {
+    color: #ffffff !important;
+  }
+  
+  /* Specific enforcement for client information */
+  .client-card .client-name,
+  .client-card .client-email,
+  .client-card .client-contact {
+    color: #ffffff !important;
+  }

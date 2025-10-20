@@ -1,0 +1,371 @@
+*{
+  /* color: rgb(255, 255, 255); */
+}
+
+.submit-btn-green {
+  width: 100%;
+  margin: 5px auto 0 auto;
+  display: block;
+  background: #93c90e;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.3rem;
+  font-weight: 400;
+  padding: 10px 0;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.2s;
+  letter-spacing: 0.5px;
+}
+.submit-btn-green:hover {
+  background: #7ab800;
+}
+
+.bullet-point {
+  display: inline-block;
+  font-size: 1.5rem;
+  color: #111;
+  vertical-align: middle;
+  margin-right: 8px;
+  font-weight: bold;
+}
+.signature-pad-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 8px 0;
+}
+.signature-pad {
+  border: 1.5px solid #bbb;
+  border-radius: 4px;
+  background: #fff;
+  width: 100%;
+  max-width: 350px;
+  height: 80px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.clear-btn {
+  margin-top: 2px;
+  background: #f44336;
+  color: #eee8e8;
+  border: none;
+  padding: 4px 14px;
+  border-radius: 3px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.clear-btn:hover {
+  background: #c62828;
+}
+
+
+
+
+.refusal-form {
+  width: 90%;
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 32px 32px 16px 32px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.10);
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.form-header h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.2rem;
+  color: #222;
+  font-weight: 600;
+}
+
+.form-desc {
+  font-size: 1rem;
+  color: #444;
+  margin-bottom: 0;
+}
+
+.logo-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
+}
+.screen4-logo {
+  width: 90px;
+  height: auto;
+  object-fit: contain;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.form-section {
+  margin-bottom: 24px;
+}
+.bold-label {
+  font-weight: 600;
+  color: #222;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.delete-note {
+  font-size: 0.9rem;
+  color: #888;
+  margin-bottom: 6px;
+  margin-left: 24px;
+}
+.large-textarea {
+  width: 90%;
+  min-height: 60px;
+  padding: 8px;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  font-size: 1rem;
+  margin-bottom: 0;
+}
+
+.table-section {
+  margin: 32px 0 16px 0;
+}
+.refusal-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 18px;
+  background: #fafafa;
+}
+.refusal-table th, .refusal-table td {
+  border: 1px solid #bbb;
+  padding: 8px 6px;
+  text-align: left;
+  font-size: 1rem;
+}
+.refusal-table th {
+  background: #f0f0f0;
+  font-weight: 600;
+}
+.refusal-table input[type="text"] {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-size: 1rem;
+  padding: 4px 2px;
+}
+
+/* Make the witness role field visibly editable with a black border */
+.witness-role-input {
+  border: 1px solid #000 !important;
+  background: #fff !important;
+  padding: 6px 8px !important;
+  border-radius: 4px;
+  width: 90% !important;
+}
+
+.signature-pad-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 8px 0;
+}
+.signature-pad {
+  border: 1.5px solid #bbb;
+  border-radius: 4px;
+  background: #fff;
+  width: 100%;
+  max-width: 350px;
+  height: 80px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.clear-btn {
+  margin-top: 2px;
+  background: #f44336;
+  color: #fff;
+  border: none;
+  padding: 4px 14px;
+  border-radius: 3px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.clear-btn:hover {
+  background: #c62828;
+}
+
+.footer-note {
+  font-size: 1rem;
+  color: #222;
+  margin: 18px 0 8px 0;
+}
+.footer-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+.footer-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  margin-top: 4px;
+}
+.footer-table td {
+  border: 1px solid #bbb;
+  padding: 4px 8px;
+  background: #f9f9f9;
+}
+
+.submit-status {
+  margin-top: 12px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+.submit-status.success { background: #e6f7e6; color: #0a6f0a; border: 1px solid #b8e6b8; }
+.submit-status.error { background: #fff0f0; color: #a00; border: 1px solid #f2b8b8; }
+
+@media (max-width: 700px) {
+  .refusal-form {
+    padding: 10px 2vw;
+    width: 98%;
+  }
+  .form-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.form-header h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.2rem;
+  color: #222;
+  font-weight: 600;
+}
+
+.form-desc {
+  font-size: 1rem;
+  color: #444;
+  margin-bottom: 0;
+}
+
+.logo-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #7ac143;
+}
+.logo-text {
+  color: #888;
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+.logo-plus {
+  color: #7ac143;
+  font-size: 2rem;
+  font-weight: bold;
+  margin-top: -8px;
+}
+
+.form-section {
+  margin-bottom: 24px;
+}
+.bold-label {
+  font-weight: 600;
+  color: #222;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.delete-note {
+  font-size: 0.9rem;
+  color: #888;
+  margin-bottom: 6px;
+  margin-left: 24px;
+}
+.large-textarea {
+  width: 98%;
+  min-height: 60px;
+  padding: 8px;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  font-size: 1rem;
+  margin-bottom: 0;
+}
+
+.table-section {
+  margin: 32px 0 16px 0;
+}
+.refusal-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 18px;
+  background: #fafafa;
+}
+.refusal-table th, .refusal-table td {
+  border: 1px solid #bbb;
+  padding: 8px 6px;
+  text-align: left;
+  font-size: 1rem;
+}
+.refusal-table th {
+  background: #f0f0f0;
+  font-weight: 600;
+}
+.refusal-table input[type="text"] {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-size: 1rem;
+  padding: 4px 2px;
+}
+
+.footer-note {
+  font-size: 1rem;
+  color: #222;
+  margin: 18px 0 8px 0;
+}
+.footer-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+.footer-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  margin-top: 4px;
+}
+.footer-table td {
+  border: 1px solid #bbb;
+  padding: 4px 8px;
+  background: #f9f9f9;
+}
+
+@media (max-width: 700px) {
+  .refusal-form {
+    padding: 10px 2vw;
+    width: 98%;
+  }
+  .form-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
