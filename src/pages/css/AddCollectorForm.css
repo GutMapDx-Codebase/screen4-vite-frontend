@@ -1,7 +1,7 @@
 .collector-form-container {
     min-height: 100vh;
     padding: 24px;
-    background: linear-gradient(135deg, #0c1a2b 0%, #0f2c1a 50%, #0c1a2b 100%);
+    /* background: linear-gradient(135deg, #0c1a2b 0%, #0f2c1a 50%, #0c1a2b 100%); */
     display: flex;
     align-items: center;
     justify-content: center;

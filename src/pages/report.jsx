@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./css/report.css";
 import { Box, Card, Typography } from "@mui/material";
 import { BarChart, Bar, XAxis, YAxis, Tooltip as ReTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
@@ -11,6 +11,8 @@ const Report = () => {
   const [reportEndDate, setReportEndDate] = useState("");
   const [reportLocation, setReportLocation] = useState("");
   const [reportTestType, setReportTestType] = useState("");
+  const [jobRequests, setJobRequests] = useState([]);
+  const [collectors, setCollectors] = useState([]);
 
   // Sample data for charts
   const barData = [
@@ -27,22 +29,99 @@ const Report = () => {
 
   // Sample table data
   const tableData = [
-    { date: "2025-12-01", location: "Newcastle", ca: "CA1", dea: 2, aOnly: 1, nonNeg: 0, amp: 3, bar: 0, coc: 1, notes: "All confirmed" },
-    { date: "2025-12-02", location: "London", ca: "CA2", dea: 1, aOnly: 2, nonNeg: 1, amp: 2, bar: 1, coc: 0, notes: "Routine testing" },
-    { date: "2025-12-03", location: "Manchester", ca: "CA3", dea: 3, aOnly: 0, nonNeg: 2, amp: 1, bar: 2, coc: 1, notes: "Follow-up required" }
+    { date: "2025-12-01", location: "Newcastle", testType: "Urine Test", collector: "John Doe", result: "Negative", notes: "Routine testing" },
+    { date: "2025-12-02", location: "London", testType: "Blood Test", collector: "Jane Smith", result: "Positive", notes: "Follow-up required" },
+    { date: "2025-12-03", location: "Manchester", testType: "Oral Fluid Test", collector: "Emily Johnson", result: "Negative", notes: "All confirmed" }
   ];
 
   // Calculate totals
-  const totals = tableData.reduce((acc, curr) => ({
-    dea: acc.dea + curr.dea,
-    aOnly: acc.aOnly + curr.aOnly,
-    nonNeg: acc.nonNeg + curr.nonNeg,
-    amp: acc.amp + curr.amp,
-    bar: acc.bar + curr.bar,
-    coc: acc.coc + curr.coc
-  }), { dea: 0, aOnly: 0, nonNeg: 0, amp: 0, bar: 0, coc: 0 });
+  const totals = tableData.reduce((acc, curr) => {
+    acc.totalTests += 1;
+    acc.positiveTests += curr.result === "Positive" ? 1 : 0;
+    return acc;
+  }, { totalTests: 0, positiveTests: 0 });
 
   const totalTests = Object.values(totals).reduce((sum, val) => sum + val, 0);
+
+  const fetchJobRequests = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getJobRequests`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch job requests data");
+      }
+      const data = await response.json();
+
+      // Ensure the data is an array before setting state
+      if (Array.isArray(data)) {
+        setJobRequests(data);
+      } else {
+        console.error("Unexpected data format for job requests:", data);
+        setJobRequests([]); // Set to an empty array as a fallback
+      }
+    } catch (error) {
+      console.error("Error fetching job requests data:", error);
+      setJobRequests([]); // Set to an empty array in case of error
+    }
+  };
+
+  const fetchCollectors = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getCollectors`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch collectors data");
+      }
+
+      const data = await response.json();
+      setCollectors(data);
+    } catch (error) {
+      console.error("Error fetching collectors data:", error);
+      setCollectors([]); // Fallback to empty array
+    }
+  };
+
+  const fetchDynamicReport = async () => {
+    try {
+      const queryParams = new URLSearchParams({
+        startDate: reportStartDate,
+        endDate: reportEndDate,
+        location: reportLocation,
+        testType: reportTestType,
+      });
+
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getDynamicReport?${queryParams}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch dynamic report data");
+      }
+
+      const data = await response.json();
+      setJobRequests(data);
+    } catch (error) {
+      console.error("Error fetching dynamic report data:", error);
+      setJobRequests([]); // Fallback to empty array
+    }
+  };
+
+  useEffect(() => {
+    fetchJobRequests();
+    fetchCollectors();
+  }, []);
+
+  useEffect(() => {
+    fetchDynamicReport();
+  }, [reportStartDate, reportEndDate, reportLocation, reportTestType]);
+
+  const jobRequestTableData = jobRequests.map((request) => {
+    const collector = collectors.find((col) => col.id === request.collectorId)?.name || "Unknown";
+    return {
+      jobId: request.jobId,
+      date: request.date,
+      location: request.location,
+      testType: request.testType,
+      collector,
+      result: request.result,
+      notes: request.notes,
+    };
+  });
 
   return (
     <Box className="report-main">
@@ -154,13 +233,9 @@ const Report = () => {
             <tr>
               <th>Date</th>
               <th>Location</th>
-              <th>CA</th>
-              <th>D&A</th>
-              <th>A Only</th>
-              <th>Non-Neg Onsite</th>
-              <th>AMP</th>
-              <th>BAR</th>
-              <th>COC</th>
+              <th>Test Type</th>
+              <th>Collector</th>
+              <th>Result</th>
               <th>Notes</th>
             </tr>
           </thead>
@@ -168,30 +243,19 @@ const Report = () => {
             {tableData.map((row, index) => (
               <tr key={index}>
                 <td>{row.date}</td>
-                <td>
-                  <span className="location-badge">{row.location}</span>
-                </td>
-                <td>{row.ca}</td>
-                <td>{row.dea}</td>
-                <td>{row.aOnly}</td>
-                <td>{row.nonNeg}</td>
-                <td>{row.amp}</td>
-                <td>{row.bar}</td>
-                <td>{row.coc}</td>
-                <td className="notes-cell">{row.notes}</td>
+                <td>{row.location}</td>
+                <td>{row.testType}</td>
+                <td>{row.collector}</td>
+                <td>{row.result}</td>
+                <td>{row.notes}</td>
               </tr>
             ))}
           </tbody>
           <tfoot>
-            <tr className="table-totals">
-              <td colSpan={3} className="total-label">Total Tests</td>
-              <td className="total-value">{totals.dea}</td>
-              <td className="total-value">{totals.aOnly}</td>
-              <td className="total-value">{totals.nonNeg}</td>
-              <td className="total-value">{totals.amp}</td>
-              <td className="total-value">{totals.bar}</td>
-              <td className="total-value">{totals.coc}</td>
-              <td className="total-label">-</td>
+            <tr>
+              <td colSpan={4} className="total-label">Total Tests</td>
+              <td className="total-value">{totals.totalTests}</td>
+              <td className="total-value">Positive: {totals.positiveTests}</td>
             </tr>
           </tfoot>
         </table>
@@ -265,6 +329,36 @@ const Report = () => {
             </PieChart>
           </ResponsiveContainer>
         </div>
+      </div>
+
+      {/* Job Requests Table */}
+      <div className="report-table-wrapper">
+        <table className="report-table">
+          <thead>
+            <tr>
+              <th>Job ID</th>
+              <th>Date</th>
+              <th>Location</th>
+              <th>Test Type</th>
+              <th>Collector</th>
+              <th>Result</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {jobRequestTableData.map((row, index) => (
+              <tr key={index}>
+                <td>{row.jobId}</td>
+                <td>{row.date}</td>
+                <td>{row.location}</td>
+                <td>{row.testType}</td>
+                <td>{row.collector}</td>
+                <td>{row.result}</td>
+                <td>{row.notes}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </Box>
   );

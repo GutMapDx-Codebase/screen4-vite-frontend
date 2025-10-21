@@ -17,6 +17,15 @@ const DashboardTable = () => {
   const totalScreen = Object.keys(formData).filter((key) => key.includes("Screen") && formData[key]).length;
   const totalConfirm = Object.keys(formData).filter((key) => key.includes("Confirm") && formData[key]).length;
 
+  const handleRowClick = (rowId) => {
+    if (rowId.completed) {
+      alert("This job request is completed and cannot be edited.");
+      return;
+    }
+    // Navigate to the job request details page
+    navigate(`/jobrequest/${rowId}`);
+  };
+
   return (
     <div>
       <table

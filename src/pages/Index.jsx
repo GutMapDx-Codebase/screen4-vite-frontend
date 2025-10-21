@@ -76,7 +76,7 @@ function Index() {
             Cookies.set("Token", "clientdgf45sdgf@89756dfgdhg&%df", {
               expires: 7,
             });
-            navigate("/client/dashboard");
+            navigate("/dashboard");
           }
           else {
             Cookies.set("email", result.email, { expires: 7 });

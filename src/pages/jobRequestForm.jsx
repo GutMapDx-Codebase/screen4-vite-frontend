@@ -922,24 +922,24 @@ const handleSubmit = async (e) => {
           </div>}
 <hr />
           <div className="donor">
-  <label>Collector</label>
-  <select
-    className="inputstyle"
-    name="collectorid"
-    value={formData.collectorid || ""}
-    onChange={handleChange}
-    required
-  >
-    <option value="" disabled>
-      Select a collector
-    </option>
-    {allCollectors.map((collector) => (
-      <option key={collector.id} value={collector._id}>
-        {collector.name} ({collector.email})
-      </option>
-    ))}
-  </select>
-</div>
+            <label>Collector</label>
+            <select
+              className="inputstyle"
+              name="collectorid"
+              value={formData.collectorid || ""}
+              onChange={handleChange}
+              required
+            >
+              <option value="" disabled>
+                Select a collector
+              </option>
+              {allCollectors.map((collector) => (
+                <option key={collector.id} value={collector._id}>
+                  {collector.name} ({collector.email})
+                </option>
+              ))}
+            </select>
+          </div>
 
 
 

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Modal } from 'antd';
 import ReactSignatureCanvas from 'react-signature-canvas';
@@ -43,6 +43,12 @@ const RefusalForm = () => {
 
   const [submitting, setSubmitting] = useState(false);
   const [statusMsg, setStatusMsg] = useState("");
+
+  useEffect(() => {
+    if (formData.completed) {
+      alert("This Chain of Custody form is completed and cannot be edited.");
+    }
+  }, [formData.completed]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

@@ -35,13 +35,19 @@ function Sidebar({ activeNav, onNav }) {
     ? email.charAt(0).toUpperCase()
     : 'AD';
 
-  const navItems = [
-    { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
-    { id: 'clients', icon: '👥', label: 'Clients' },
-    { id: 'collectors', icon: '✓', label: 'Collectors' },
-    { id: 'jobs', icon: '💼', label: 'Jobs' },
-    { id: 'reports', icon: '📊', label: 'Reports' },
-  ];
+  const navItems = token === 'clientdgf45sdgf@89756dfgdhg&%df' 
+    ? [
+        { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
+        { id: 'jobs', icon: '💼', label: 'Jobs' },
+      ]
+    : [
+        { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
+        { id: 'clients', icon: '👥', label: 'Clients' },
+        { id: 'collectors', icon: '✓', label: 'Collectors' },
+        { id: 'jobs', icon: '💼', label: 'Jobs' },
+        { id: 'reports', icon: '📊', label: 'Reports' },
+      ];
+
 
   return (
     <aside className="sidebar" style={{color: "white"}}>

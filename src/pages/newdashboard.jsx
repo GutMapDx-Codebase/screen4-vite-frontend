@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './css/newdashboard.css';
+import Cookies from 'js-cookie';
 
 const ModernDashboard = () => {
   const [hoveredCard, setHoveredCard] = useState(null);
@@ -15,33 +16,64 @@ const ModernDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const clientId = Cookies.get('id');
+  const token = Cookies.get('Token');
+  const isClientUser = token === 'clientdgf45sdgf@89756dfgdhg&%df';
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetch Screen4 Data
+        let clientFilterName = null;
+        let clientFilterEmail = null;
+
+        if (isClientUser && clientId) {
+          // 1. Fetch logged-in client's details
+          const clientDetailsRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getclientbyid/${clientId}`);
+          if (clientDetailsRes.ok) {
+            const clientDetails = await clientDetailsRes.json();
+            clientFilterName = clientDetails.name || clientDetails.companyName;
+            clientFilterEmail = clientDetails.emails;
+          } else {
+            console.error('Failed to fetch logged-in client details');
+            // If client details can't be fetched, we might want to show an error or restrict data
+            return;
+          }
+        }
+
         const screenRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getscreen4data`);
         if (screenRes.ok) {
           const screenData = await screenRes.json();
-          const clients = screenData.data || [];
-          setTotalTests(clients.length);
+          let filteredScreenData = screenData.data || [];
 
-        const monthlyCounts = {};
-        clients.forEach((client) => {
-          const date = new Date(client.dateoftest);
-          const month = date.toLocaleString("default", { month: "short" });
-          monthlyCounts[month] = (monthlyCounts[month] || 0) + 1;
-        });
+          if (isClientUser && clientFilterName) {
+            // Filter screen data by the logged-in client's name/email
+            // Assuming 'customer' field exists in screen4data items
+            filteredScreenData = filteredScreenData.filter(item =>
+              item.customer?.toLowerCase().includes(clientFilterName.toLowerCase()) ||
+              item.customer?.includes(clientFilterEmail)
+            );
+          }
+
+          setTotalTests(filteredScreenData.length);
+
+          const monthlyCounts = {};
+          filteredScreenData.forEach((item) => { // Changed 'client' to 'item' for clarity
+            const date = new Date(item.dateoftest);
+            const month = date.toLocaleString("default", { month: "short" });
+            monthlyCounts[month] = (monthlyCounts[month] || 0) + 1;
+          });
           const monthlyArray = Object.keys(monthlyCounts).map((month) => ({ 
             month, 
             tests: monthlyCounts[month] 
           }));
           setMonthlyData(monthlyArray);
 
-        const reasonCounts = {};
-        clients.forEach((client) => {
-          const reason = client.reasonForTest || "Unknown";
-          reasonCounts[reason] = (reasonCounts[reason] || 0) + 1;
-        });
+          const reasonCounts = {};
+          filteredScreenData.forEach((item) => { // Changed 'client' to 'item' for clarity
+            const reason = item.reasonForTest || "Unknown";
+            reasonCounts[reason] = (reasonCounts[reason] || 0) + 1;
+          });
           const colors = ['#84cc16', '#3b82f6', '#8b5cf6', '#ec4899', '#f97316'];
           const reasonArray = Object.keys(reasonCounts).map((reason, idx) => ({ 
             name: reason, 
@@ -55,13 +87,26 @@ const ModernDashboard = () => {
         const jobRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getjobrequests?status=all`);
         if (jobRes.ok) {
           const jobData = await jobRes.json();
-        let pending = 0, accepted = 0, completed = 0;
-          (jobData.data || []).forEach((job) => {
-          if (!job.isAccepted && !job.isCompleted) pending++;
-          else if (job.isAccepted && !job.isCompleted) accepted++;
-          else if (job.isAccepted && job.isCompleted) completed++;
-        });
-        setJobStats({ pending, accepted, completed });
+          let filteredJobs = jobData.data || [];
+
+
+          
+
+          if (isClientUser && clientFilterName) {
+            // Filter job requests by the logged-in client's name/email
+            filteredJobs = filteredJobs.filter(job =>
+              job.customer?.toLowerCase().includes(clientFilterName.toLowerCase()) ||
+              job.customer?.includes(clientFilterEmail)
+            );
+          }
+
+          let pending = 0, accepted = 0, completed = 0;
+          filteredJobs.forEach((job) => {
+            if (!job.isAccepted && !job.isCompleted) pending++;
+            else if (job.isAccepted && !job.isCompleted) accepted++;
+            else if (job.isAccepted && job.isCompleted) completed++;
+          });
+          setJobStats({ pending, accepted, completed });
         }
 
         // Fetch Clients
@@ -83,7 +128,19 @@ const ModernDashboard = () => {
     };
 
     fetchData();
-  }, []);
+  }, [isClientUser, clientId]); // Re-run effect if client user status or ID changes
+
+  // Hide stats for specific client
+  useEffect(() => {
+    const clientToken = Cookies.get('Token');
+    console.log('Client Token:', clientToken); // Debug log
+
+    if (clientToken === 'clientdgf45sdgf@89756dfgdhg&%df') {
+      setClientsCount(0);
+      setCollectorsCount(0);
+      console.log('Stats hidden for client'); // Debug log
+    }
+  }, [isClientUser]);
 
   // Sync active item with URL
   useEffect(() => {
@@ -122,13 +179,19 @@ const ModernDashboard = () => {
     }
   };
 
-  const cards = [
-    { id: 1, title: 'Total Tests', value: totalTests, icon: '📄', gradient: 'grad-blue' },
-    { id: 2, title: 'Active Clients', value: clientsCount, icon: '👥', gradient: 'grad-green' },
-    { id: 3, title: 'Collectors', value: collectorsCount, icon: '✓', gradient: 'grad-purple' },
-    { id: 4, title: 'Pending Jobs', value: jobStats.pending, icon: '💼', gradient: 'grad-cyan' },
-    { id: 5, title: 'Completed Jobs', value: jobStats.completed, icon: '✔', gradient: 'grad-pink' }
-  ];
+  const summaryCards = isClientUser
+    ? [
+        { id: 'total-tests', label: 'Total Tests', value: totalTests, trend: '+12% from last month', icon: '🧪', color: '#22c55e' },
+        { id: 'pending-jobs', label: 'Pending Jobs', value: jobStats.pending, trend: '+12% from last month', icon: '💼', color: '#42a791ff' },
+        { id: 'completed-jobs', label: 'Completed Jobs', value: jobStats.completed, trend: '+12% from last month', icon: '✅', color: '#10b981' },
+      ]
+    : [
+        { id: 'total-tests', label: 'Total Tests', value: totalTests, trend: '+12% from last month', icon: '🧪', color: '#22c55e' },
+        { id: 'active-clients', label: 'Active Clients', value: clientsCount, trend: '+12% from last month', icon: '👥', color: '#3b82f6' },
+        { id: 'collectors', label: 'Collectors', value: collectorsCount, trend: '+12% from last month', icon: '✓', color: '#8b5cf6' },
+        { id: 'pending-jobs', label: 'Pending Jobs', value: jobStats.pending, trend: '+12% from last month', icon: '💼', color: '#f59e0b' },
+        { id: 'completed-jobs', label: 'Completed Jobs', value: jobStats.completed, trend: '+12% from last month', icon: '✅', color: '#10b981' },
+      ];
 
   return (
     // Render only the inner content; Layout provides container, header, and scrolling
@@ -137,22 +200,22 @@ const ModernDashboard = () => {
         <div className="dashboard-content">
           {/* Stats Cards */}
           <div className="stats-grid">
-            {cards.map((card) => (
+            {summaryCards.map((card) => (
               <div
                 key={card.id}
                 onMouseEnter={() => setHoveredCard(card.id)}
                 onMouseLeave={() => setHoveredCard(null)}
                 className={`stat-card ${card.gradient} ${hoveredCard === card.id ? 'hovered' : ''}`}
+                style={{ backgroundColor: card.color }}
               >
                 <div className="stat-header">
                   <div className="stat-icon">{card.icon}</div>
                   <div className="stat-arrow">↗</div>
                 </div>
-                <h3 className="stat-title">{card.title}</h3>
+                <h3 className="stat-title">{card.label}</h3>
                 <p className="stat-value">{card.value}</p>
                 <div className="stat-trend">
-                  <span>+12%</span>
-                  <span>from last month</span>
+                  <span>{card.trend}</span>
                 </div>
               </div>
             ))}
