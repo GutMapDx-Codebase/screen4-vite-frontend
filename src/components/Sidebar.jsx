@@ -41,7 +41,6 @@ function Sidebar({ activeNav, onNav }) {
     { id: 'collectors', icon: '✓', label: 'Collectors' },
     { id: 'jobs', icon: '💼', label: 'Jobs' },
     { id: 'reports', icon: '📊', label: 'Reports' },
-    { id: 'Clienthub', icon: '⚙', label: 'Client Hub' },
   ];
 
   return (

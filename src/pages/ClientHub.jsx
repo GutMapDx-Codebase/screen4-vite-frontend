@@ -403,7 +403,11 @@ function ClientHub() {
                       </thead>
                       <tbody>
                         {filteredJobs.map((job) => (
-                          <tr key={job._id}>
+                          <tr
+                            key={job._id}
+                            onClick={() => navigate(`/jobrequest/${job._id}`)}
+                            style={{ cursor: 'pointer' }}
+                          >
                             <td>{job.jobReferenceNo}</td>
                             <td>
                               <span className={`status-badge ${getStatusBadge(job)}`}>
@@ -420,14 +424,26 @@ function ClientHub() {
                             <td>{job.sessionInfo || "-"}</td>
                             <td>
                               {job.cocFormUrl ? (
-                                <a href={job.cocFormUrl} target="_blank" rel="noopener noreferrer" className="table-link">
+                                <a
+                                  href={job.cocFormUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="table-link"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
                                   View
                                 </a>
                               ) : "-"}
                             </td>
                             <td>
                               {job.labResultsUrl ? (
-                                <a href={job.labResultsUrl} target="_blank" rel="noopener noreferrer" className="table-link">
+                                <a
+                                  href={job.labResultsUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="table-link"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
                                   View
                                 </a>
                               ) : "-"}

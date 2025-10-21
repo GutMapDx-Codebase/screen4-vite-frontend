@@ -104,7 +104,8 @@ const AllClients = () => {
   };
 
   const handleClientClick = async (id) => {
-    navigate(`/addclient/${id}`);
+    // Open client in readonly view (ClientHub). Editing should be explicit via an Edit button.
+    navigate(`/clients/${id}`);
   };
 
   return (

@@ -26,6 +26,7 @@ function Index() {
   const [forgetpasswordotp, setforgetpasswordotp] = useState("");
   const [forgetpasswordnewpassword, setforgetpasswordnewpassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // State for password visibility
 
   const formsub = async (e) => {
     e.preventDefault();
@@ -261,16 +262,27 @@ function Index() {
 
                 <div className="input-group">
                   <label htmlFor="password">Password</label>
-                  <input
-                    id="password"
-                    value={password}
-                    onChange={(e) => setpassword(e.target.value)}
-                    placeholder="Enter your password"
-                    required
-                    type="password"
-                    name="password"
-                    className="modern-input"
-                  />
+                  <div className="password-wrapper" style={{ position: 'relative' }}>
+                    <input
+                      id="password"
+                      value={password}
+                      onChange={(e) => setpassword(e.target.value)}
+                      placeholder="Enter your password"
+                      required
+                      type={showPassword ? "text" : "password"}
+                      name="password"
+                      className="modern-input"
+                      style={{ paddingRight: '2.5rem' }}
+                    />
+                    <button
+                      type="button"
+                      className="toggle-password"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}
+                    >
+                      {showPassword ? "👁️" : "🔒"}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="form-options">
