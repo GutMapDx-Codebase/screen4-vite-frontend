@@ -14,13 +14,13 @@ function Sidebar({ activeNav, onNav }) {
   let displayEmail = 'admin@screen14.com';
   if (name) {
     displayName = name;
-  } else if (token === 'clientdgf45sdgf@89756dfgdhg&%df') {
+  } else if (token === 'clientdgf45sdgf89756dfgdhgdf') {
     displayName = 'Client User';
   }
 
   if (email) {
     displayEmail = email;
-  } else if (token === 'clientdgf45sdgf@89756dfgdhg&%df') {
+  } else if (token === 'clientdgf45sdgf89756dfgdhgdf') {
     displayEmail = 'client@screen14.com';
   }
 
@@ -35,7 +35,7 @@ function Sidebar({ activeNav, onNav }) {
     ? email.charAt(0).toUpperCase()
     : 'AD';
 
-  const navItems = token === 'clientdgf45sdgf@89756dfgdhg&%df' 
+  const navItems = token === 'clientdgf45sdgf89756dfgdhgdf' 
     ? [
         { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
         { id: 'jobs', icon: '💼', label: 'Jobs' },

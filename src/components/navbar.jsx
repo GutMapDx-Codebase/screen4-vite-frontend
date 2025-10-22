@@ -72,7 +72,7 @@ function Navbar() {
           />
         </div>
         {(token === "dskgfsdgfkgsdfkjg35464154845674987dsf@53" ||
-          token === "collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg" || token==="clientdgf45sdgf@89756dfgdhg&%df") && (
+          token === "collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg" || token==="clientdgf45sdgf89756dfgdhgdf") && (
           <>
             <div className="navmanu" style={{ display: "flex", gap: "20px" }}>
               <h5
@@ -91,7 +91,7 @@ function Navbar() {
                 <AiOutlineDashboard style={{ width: "35px", height: "35px" }} />
                 Dashboard
               </h5>
-              {token!=="clientdgf45sdgf@89756dfgdhg&%df"&&token!=="collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg"&&<><h5
+              {token!=="clientdgf45sdgf89756dfgdhgdf"&&token!=="collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg"&&<><h5
                 onClick={() => navigate("/clients")}
                 className="hovar"
                 style={{
@@ -106,7 +106,7 @@ function Navbar() {
                  <HiOutlineUsers style={{ width: "35px", height: "35px", color: "4d4b4b" }} />
                 Clients
               </h5></>}
-              {token!=="clientdgf45sdgf@89756dfgdhg&%df"&&token!=="collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg"&&<><h5
+              {token!=="clientdgf45sdgf89756dfgdhgdf"&&token!=="collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg"&&<><h5
                 onClick={() => navigate("/clients/overview")}
                 className="hovar"
                 style={{
@@ -120,7 +120,7 @@ function Navbar() {
                  <HiOutlineUsers style={{ width: "35px", height: "35px", color: "#4d4b4b" }} />
                 Client Hub
               </h5></>}
-              {token!=="clientdgf45sdgf@89756dfgdhg&%df"&&token!=="collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg"&&<>
+              {token!=="clientdgf45sdgf89756dfgdhgdf"&&token!=="collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg"&&<>
                 <div className="hovar">
               <h5
                 onClick={() => navigate("/collectors")}
@@ -139,7 +139,7 @@ function Navbar() {
               </h5>
                 </div>
               </>}
-              {/* {token!=="clientdgf45sdgf@89756dfgdhg&%df"&&<> */}
+              {/* {token!=="clientdgf45sdgf89756dfgdhgdf"&&<> */}
               <h5
                 onClick={() => navigate("/jobrequests")}
                 className="hovar"
@@ -178,7 +178,7 @@ function Navbar() {
          
 
           {(token === "dskgfsdgfkgsdfkjg35464154845674987dsf@53" ||
-            token === "collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg" || token === 'clientdgf45sdgf@89756dfgdhg&%df') && (
+            token === "collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg" || token === 'clientdgf45sdgf89756dfgdhgdf') && (
             <>
               {manuuu === false && (
                 <>
@@ -444,7 +444,7 @@ Dashboard
 
 
 
-{token!=="clientdgf45sdgf@89756dfgdhg&%df"&&token!=="collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg"&&<><h5
+{token!=="clientdgf45sdgf89756dfgdhgdf"&&token!=="collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg"&&<><h5
                 onClick={() => navigate("/clients")}
                 className="hovar"
                 style={{
@@ -462,7 +462,7 @@ Dashboard
 
                 Clients
               </h5></>}
-              {token!=="clientdgf45sdgf@89756dfgdhg&%df"&&token!=="collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg"&&<><h5
+              {token!=="clientdgf45sdgf89756dfgdhgdf"&&token!=="collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg"&&<><h5
                 onClick={() => navigate("/clients/overview")}
                 className="hovar"
                 style={{
@@ -476,7 +476,7 @@ Dashboard
                 <CgProfile style={{ width: "35px", height: "35px", color: "#4180B7" }} />
                 Client Hub
               </h5></>}
-              {token!=="clientdgf45sdgf@89756dfgdhg&%df"&&token!=="collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg"&&<><h5
+              {token!=="clientdgf45sdgf89756dfgdhgdf"&&token!=="collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg"&&<><h5
                 onClick={() => navigate("/collectors")}
                 className="hovar"
                 style={{
@@ -491,7 +491,7 @@ Dashboard
                 <HiOutlineBriefcase style={{ width: "35px", height: "35px", color: "black" }} />
                 Collectors
               </h5></>}
-              {/* {token!=="clientdgf45sdgf@89756dfgdhg&%df"&&<> */}
+              {/* {token!=="clientdgf45sdgf89756dfgdhgdf"&&<> */}
               <h5
                 onClick={() => navigate("/jobrequests")}
                 className="hovar"

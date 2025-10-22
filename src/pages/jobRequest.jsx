@@ -23,7 +23,7 @@ const JobRequests = () => {
   const collectorId = Cookies.get("id");
   const [sendingEmail, setSendingEmail] = useState(false);
   const [emailId, setEmailId] = useState(null);
-
+const isClient = token==='clientdgf45sdgf89756dfgdhgdf'
   // pagination
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -31,7 +31,7 @@ const JobRequests = () => {
   const limit = 10;
 
   useEffect(() => {
-    token === "clientdgf45sdgf@89756dfgdhg&%df" && setSelectedTab("Completed");
+    token === "clientdgf45sdgf89756dfgdhgdf" && setSelectedTab("Completed");
   }, [token]);
 
   useEffect(() => {
@@ -40,7 +40,7 @@ const JobRequests = () => {
       !token ||
       (token !== "dskgfsdgfkgsdfkjg35464154845674987dsf@53" &&
         token !== "collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg" &&
-        token !== "clientdgf45sdgf@89756dfgdhg&%df")
+        token !== "clientdgf45sdgf89756dfgdhgdf")
     ) {
       navigate("/");
       return;
@@ -90,10 +90,13 @@ const JobRequests = () => {
   };
 
   const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query = searchQuery) => {
+    if(isClient){
+      currentTab='Completed'
+    }
     setLoading(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/getjobrequests?status=${currentTab.toLowerCase()}&page=${pageNumber}&limit=${limit}&id=${collectorId}&token=${encodeURIComponent(token.toString())}&search=${encodeURIComponent(query)}`
+        `${import.meta.env.VITE_API_BASE_URL}/getjobrequests?id=${clientId}&status=${currentTab.toLowerCase()}&page=${pageNumber}&limit=${limit}&id=${collectorId}&token=${encodeURIComponent(token.toString())}&search=${encodeURIComponent(query)}`
       );
 
       if (!response.ok) throw new Error("Failed to fetch job requests");
@@ -115,7 +118,7 @@ const JobRequests = () => {
   };
 
   useEffect(() => {
-    if (token !== "clientdgf45sdgf@89756dfgdhg&%df") {
+    if (token !== "clientdgf45sdgf89756dfgdhgdf") {
       fetchScreen4Data(page, selectedTab, searchQuery);
     }
   }, [page, selectedTab]);
@@ -125,34 +128,34 @@ const JobRequests = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const fetchScreen4Databyclients = async () => {
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/getjobrequestsbyclients/${clientId}`
-      );
-      if (!response.ok) {
-        if (response.status === 404) {
-          setError("No job requests found for this client.");
-        } else if (response.status === 500) {
-          throw new Error("Failed to fetch client data");
-        }
-      }
-      const data = await response.json();
-      setClient(data.data || []);
-      setFilteredClients(data.data || []);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const fetchScreen4Databyclients = async () => {
+  //   try {
+  //     const response = await fetch(
+  //       `${import.meta.env.VITE_API_BASE_URL}/getjobrequestsbyclients/${clientId}`
+  //     );
+  //     if (!response.ok) {
+  //       if (response.status === 404) {
+  //         setError("No job requests found for this client.");
+  //       } else if (response.status === 500) {
+  //         throw new Error("Failed to fetch client data");
+  //       }
+  //     }
+  //     const data = await response.json();
+  //     setClient(data.data || []);
+  //     setFilteredClients(data.data || []);
+  //   } catch (err) {
+  //     setError(err.message);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   useEffect(() => {
-    if (token !== "clientdgf45sdgf@89756dfgdhg&%df") {
+    // if (token !== "clientdgf45sdgf89756dfgdhgdf") {
       fetchScreen4Data(page, selectedTab, searchQuery);
-    } else {
-      fetchScreen4Databyclients();
-    }
+    // } else {
+    //   fetchScreen4Databyclients();
+    // }
   }, []);
 
   const filterClients = (tab, query) => {
@@ -276,7 +279,7 @@ const JobRequests = () => {
         </div>
 
         {/* Tabs Section */}
-        {token !== "clientdgf45sdgf@89756dfgdhg&%df" && (
+        {token !== "clientdgf45sdgf89756dfgdhgdf" && (
           <div className="tabs-section">
             <div className="tabs-container">
               {["Pending", "Accepted", "Completed"].map((tab) => (

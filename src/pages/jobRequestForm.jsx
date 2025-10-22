@@ -1,7 +1,7 @@
 import "./css/profile.css";
 import React, { useEffect, useState } from "react";
 import Navbar from "../components/navbar";
-import { message } from "antd";
+import { Checkbox, message, Space } from "antd";
 import { useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
@@ -120,7 +120,7 @@ function JobRequestForm() {
     laboratoryAddress: "",
     sampleDeliveryMethod: "",
     flightVessel: "",
-    collectorid:""
+    collectorid:[]
   });
   const navigate = useNavigate()
   const canvasRef = useRef(null);
@@ -147,7 +147,7 @@ function JobRequestForm() {
        &&
         token !== "collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg"
        &&
-        token !== "clientdgf45sdgf@89756dfgdhg&%df")
+        token !== "clientdgf45sdgf89756dfgdhgdf")
     ) {
       navigate("/");
       return;
@@ -505,32 +505,32 @@ function JobRequestForm() {
   };
 
 
-  const handleChange = async (e) => {
-    const { name, value, type, checked } = e.target;
+  // const handleChange = async (e) => {
+  //   const { name, value, type, checked } = e.target;
 
-    setFormData((prevData) => {
-      let updatedData;
+  //   setFormData((prevData) => {
+  //     let updatedData;
 
-      // Check if the input belongs to facilities (nested object)
-      if (name in prevData.facilities) {
-        updatedData = {
-          ...prevData,
-          facilities: {
-            ...prevData.facilities,
-            [name]: checked, // Update checkbox inside facilities
-          },
-        };
-      } else {
-        updatedData = {
-          ...prevData,
-          [name]: type === "checkbox" ? checked : value.toString(),
-        };
-      }
+  //     // Check if the input belongs to facilities (nested object)
+  //     if (name in prevData.facilities) {
+  //       updatedData = {
+  //         ...prevData,
+  //         facilities: {
+  //           ...prevData.facilities,
+  //           [name]: checked, // Update checkbox inside facilities
+  //         },
+  //       };
+  //     } else {
+  //       updatedData = {
+  //         ...prevData,
+  //         [name]: type === "checkbox" ? checked : value.toString(),
+  //       };
+  //     }
 
-      console.log(updatedData); // Logs the updated state immediately
-      return updatedData;
-    });
-  };
+  //     console.log(updatedData); // Logs the updated state immediately
+  //     return updatedData;
+  //   });
+  // };
 
 
   //   const handleSubmit = async (e) => {
@@ -608,7 +608,72 @@ function JobRequestForm() {
   //   }
 
   // };
-const handleSubmit = async (e) => {
+
+
+  // const handleChange = async (e) => {
+  //   const { name, value, type, checked } = e.target;
+  
+  //   setFormData((prevData) => {
+  //     let updatedData;
+  
+  //     // Handle the case where the input is a checkbox in the facilities object
+  //     if (name in prevData.facilities) {
+  //       updatedData = {
+  //         ...prevData,
+  //         facilities: {
+  //           ...prevData.facilities,
+  //           [name]: checked, // Update checkbox inside facilities
+  //         },
+  //       };
+  //     } 
+  //     // Handle the case for multiple selection (e.g., collectorid)
+  //     else if (name === "collectorid") {
+  //       const selectedCollectors = Array.from(e.target.selectedOptions, (option) => option.value);
+  //       updatedData = {
+  //         ...prevData,
+  //         [name]: selectedCollectors, // Update collectorid as an array of selected values
+  //       };
+  //     }
+  //     else {
+  //       updatedData = {
+  //         ...prevData,
+  //         [name]: type === "checkbox" ? checked : value.toString(),
+  //       };
+  //     }
+  
+  //     console.log(updatedData); // Logs the updated state immediately
+  //     return updatedData;
+  //   });
+  // };
+ 
+  const handleCollectorChange = (selectedCollectorIds) => {
+    handleChange({
+      target: {
+        name: "collectorid",
+        value: selectedCollectorIds,
+      },
+    });
+  };
+  const handleChange = (e) => {
+    const { name, value, type } = e.target;
+
+    if (type === "select-multiple") {
+      // Handle multiple selection for collectorid
+      const selectedCollectors = Array.from(e.target.selectedOptions, (option) => option.value);
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: selectedCollectors, // Update the collectorid array with selected IDs
+      }));
+    } else {
+      // Handle other input types (e.g., text, checkbox, etc.)
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: value,
+      }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
   setIsLoading(true);
     e.preventDefault();
     try {
@@ -655,7 +720,7 @@ const handleSubmit = async (e) => {
         breathAlcoholTestsCompleted: "",
         drugTestsCompleted: "",
         nonZeroBreathAlcoholTests: "",
-        nonNegativeSamples: "",
+        // nonNegativeSamples: "",
         notes: "",
         facilities: {
           privateSecureRoom: false,
@@ -921,7 +986,7 @@ const handleSubmit = async (e) => {
             />
           </div>}
 <hr />
-          <div className="donor">
+          {/* <div className="donor">
             <label>Collector</label>
             <select
               className="inputstyle"
@@ -939,8 +1004,23 @@ const handleSubmit = async (e) => {
                 </option>
               ))}
             </select>
-          </div>
-
+          </div> */}
+<div className="donor">
+      <label>Collectors</label>
+      <Space direction="vertical" style={{ width: "100%" }}>
+        <Checkbox.Group
+          name="collectorid"
+          value={formData.collectorid} // Bind selected collector ids
+          onChange={handleCollectorChange} // Handle changes when checkboxes are selected/deselected
+        >
+          {allCollectors.map((collector) => (
+            <Checkbox key={collector._id} value={collector._id}>
+              {collector.name} ({collector.email})
+            </Checkbox>
+          ))}
+        </Checkbox.Group>
+      </Space>
+    </div>
 
 
           <hr></hr>

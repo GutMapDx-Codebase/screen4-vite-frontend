@@ -21,7 +21,7 @@ const Patients = () => {
        &&
         token !== "collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg"
        &&
-        token !== "clientdgf45sdgf@89756dfgdhg&%df")
+        token !== "clientdgf45sdgf89756dfgdhgdf")
     ) {
       navigate("/");
       return;

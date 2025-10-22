@@ -73,7 +73,7 @@ function Index() {
             Cookies.set("id", result._id, { expires: 7 });
             Cookies.set("Name", result.name, { expires: 7 });
             // Ensure token is set correctly for client users
-            Cookies.set("Token", "clientdgf45sdgf@89756dfgdhg&%df", {
+            Cookies.set("Token", "clientdgf45sdgf89756dfgdhgdf", {
               expires: 7,
             });
             navigate("/dashboard");
@@ -215,7 +215,7 @@ function Index() {
       token &&
       (token === "dskgfsdgfkgsdfkjg35464154845674987dsf@53" ||
         token === "collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg" ||
-        token === "clientdgf45sdgf@89756dfgdhg&%df")
+        token === "clientdgf45sdgf89756dfgdhgdf")
     ) {
       navigate("/dashboard");
     }

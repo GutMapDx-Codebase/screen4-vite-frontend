@@ -71,3 +71,11 @@ button:focus-visible {
   scrollbar-width: thin;
   scrollbar-color: #22c55e rgba(255, 255, 255, 0.05);
 }
+.modern-form .ant-input-affix-wrapper .ant-input {
+  color: black!important;
+}
+.modern-form .ant-input-affix-wrapper {
+  background: white!important;
+  border: none;
+  color: black!important;
+}

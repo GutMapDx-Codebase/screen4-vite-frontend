@@ -7,7 +7,7 @@ const ProtectedRoute = ({ children }) => {
 
     console.log("Token in ProtectedRoute:", token);
 
-    if (!token || (token !== 'clientdgf45sdgf@89756dfgdhg&%df')) {
+    if (!token || (token !== 'clientdgf45sdgf89756dfgdhgdf')) {
         // Redirect to login if not authenticated
         return <Navigate to="/" replace />;
     }
