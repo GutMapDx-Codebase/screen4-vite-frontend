@@ -500,7 +500,7 @@ const isClient = token==='clientdgf45sdgf89756dfgdhgdf'
               <p>
                 {searchQuery
                   ? "No job requests match your search criteria. Try adjusting your search terms."
-                  : `No ${selectedTab.toLowerCase()} job requests found.`}
+                  : `No ${selectedTab.toLowerCase()}  found.`}
               </p>
               {token === "dskgfsdgfkgsdfkjg35464154845674987dsf@53" && !searchQuery && (
                 <Link to="/screen4testform2" className="create-first-btn">

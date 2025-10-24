@@ -715,7 +715,7 @@ const handleDownloadPDF = async () => {
               padding: "10px",
             }}
           >
-            CHAIN of CUSTODY FORM FOR SPECIMEN ANALYSIS
+            CHAIN OF CUSTODY FORM FOR SPECIMEN ANALYSIS
           </h2>
           <hr />
           <div className="donor">

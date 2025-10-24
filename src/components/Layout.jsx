@@ -48,7 +48,7 @@ function Layout({ children }) {
   return (
     <div className="dashboard-container">
       <Sidebar activeNav={activeNav} onNav={handleNav} />
-      <div className="main-content">
+      <div className="main-content" style={{ paddingBottom: 96 }}>
         <header className="header">
           <div className="header-left">
             <h2>Dashboard</h2>
@@ -59,10 +59,10 @@ function Layout({ children }) {
               <span className="search-icon">🔍</span>
               <input type="text" placeholder="Search..." />
             </div>
-            <button className="notification-btn">
+            {/* <button className="notification-btn">
               <span>🔔</span>
               <span className="notification-dot"></span>
-            </button>
+            </button> */}
           </div>
         </header>
         <div className="dashboard-content">
@@ -73,6 +73,4 @@ function Layout({ children }) {
   );
 }
 
-export default Layout;
-
-
+export default Layout;

@@ -194,6 +194,7 @@
 .refusal-table th {
   background: #f0f0f0;
   font-weight: 600;
+  color: #000 !important;
 }
 .refusal-table input[type="text"] {
   width: 100%;
@@ -324,7 +325,6 @@
   font-weight: bold;
   margin-top: -8px;
 }
-
 .form-section {
   margin-bottom: 24px;
 }
@@ -369,6 +369,7 @@
 .refusal-table th {
   background: #f0f0f0;
   font-weight: 600;
+  color: #000 !important;
 }
 .refusal-table input[type="text"] {
   width: 100%;
