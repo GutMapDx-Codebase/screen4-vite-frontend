@@ -41,7 +41,8 @@ function App() {
           <Route path="/addcollector/:id" element={<Layout><AddCollectorForm /></Layout>} />
           <Route path='/data' element={<Layout><Patient /></Layout>} />
           <Route path='/jobrequests' element={<Layout><JobRequests /></Layout>} />
-          <Route path="/refusalform" element={<RefusalForm />} />
+          <Route path="/refusalform" element={<Layout><RefusalForm /></Layout>} />
+          <Route path="/refusalform/:jobId" element={<Layout><RefusalForm /></Layout>} />
          {/* / <Route path='/dashboard/profile' element={<Layout><Profile /></Layout>} /> */}
           <Route path='/screen4testform' element={<Layout><Screen4TestForm /></Layout>} />
           <Route path='/screen4testform2' element={<Layout><JobRequestForm /></Layout>} />

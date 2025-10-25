@@ -128,7 +128,17 @@ const RefusalForm = () => {
           {jobId && <p className="job-info">Job ID: <b>{jobId}</b></p>}
         </div>
         <div className="logo-box">
-          <img src="/Screen4.png" alt="Screen4 Logo" className="screen4-logo" />
+          <img
+            src="https://screen4.org/wp-content/uploads/2023/02/Screen4-RGB.png"
+            alt="Screen4 Logo"
+            className="sidebar-logo-img"
+            style={{
+              width: 150,
+              borderRadius: 8,
+              marginBottom: 6,
+              marginLeft: 50,
+            }}
+          />
         </div>
       </div>
 

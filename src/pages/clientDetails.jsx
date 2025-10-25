@@ -2833,7 +2833,7 @@ const handleDownloadPDF = async () => {
 ) : null}
 
 {/* Abort Test Section */}
-<div style={{ marginTop: "30px", textAlign: "center" }}>
+{/* <div style={{ marginTop: "30px", textAlign: "center" }}>
   <label
     style={{
       fontWeight: "bold",
@@ -2864,7 +2864,7 @@ const handleDownloadPDF = async () => {
     <option value="/shybladder">Shy Bladder Form</option>
     <option value="/shylung">Shy Lung Form</option>
   </select>
-</div>
+</div> */}
 <button type="button" onClick={handleDownloadPDF} style={{ marginTop: "20px" }}>
       Download PDF
     </button>

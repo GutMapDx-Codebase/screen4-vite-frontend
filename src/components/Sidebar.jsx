@@ -8,19 +8,27 @@ function Sidebar({ activeNav, onNav }) {
   const email = Cookies.get('email');
   const token = Cookies.get('Token');
 
+  // role helpers
+  const isClientUser = token === 'clientdgf45sdgf89756dfgdhgdf';
+  const isCollectorUser = token === 'collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg';
+
   // determine display name/email with sensible fallbacks
   let displayName = 'Admin User';
   let displayEmail = 'admin@screen14.com';
   if (name) {
     displayName = name;
-  } else if (token === 'clientdgf45sdgf89756dfgdhgdf') {
+  } else if (isClientUser) {
     displayName = 'Client User';
+  } else if (isCollectorUser) {
+    displayName = 'Collector User';
   }
 
   if (email) {
     displayEmail = email;
-  } else if (token === 'clientdgf45sdgf89756dfgdhgdf') {
+  } else if (isClientUser) {
     displayEmail = 'client@screen14.com';
+  } else if (isCollectorUser) {
+    displayEmail = 'collector@screen14.com';
   }
 
   const initials = name
@@ -34,19 +42,30 @@ function Sidebar({ activeNav, onNav }) {
     ? email.charAt(0).toUpperCase()
     : 'AD';
 
-  const navItems =
-    token === 'clientdgf45sdgf89756dfgdhgdf'
-      ? [
-          { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
-          { id: 'jobs', icon: '💼', label: 'Jobs' },
-        ]
-      : [
-          { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
-          { id: 'clients', icon: '👥', label: 'Clients' },
-          { id: 'collectors', icon: '✓', label: 'Collectors' },
-          { id: 'jobs', icon: '💼', label: 'Jobs' },
-          { id: 'reports', icon: '📊', label: 'Reports' },
-        ];
+  let navItems = [
+    { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
+    { id: 'clients', icon: '👥', label: 'Clients' },
+    { id: 'collectors', icon: '✓', label: 'Collectors' },
+    { id: 'jobs', icon: '💼', label: 'Jobs' },
+    { id: 'reports', icon: '📊', label: 'Reports' },
+  ];
+
+  // clients see only Dashboard + Jobs
+  if (isClientUser) {
+    navItems = [
+      { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
+      { id: 'jobs', icon: '�', label: 'Jobs' },
+    ];
+  }
+
+  // collectors see Dashboard + Collectors + Jobs (hide Clients and Reports)
+  if (isCollectorUser) {
+    navItems = [
+      { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
+      { id: 'collectors', icon: '✓', label: 'Collectors' },
+      { id: 'jobs', icon: '�', label: 'Jobs' },
+    ];
+  }
 
   return (
     <aside className="sidebar" style={{ color: 'white' }}>

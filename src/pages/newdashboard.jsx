@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Modal, List, Spin, Button, Avatar } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './css/newdashboard.css';
 import Cookies from 'js-cookie';
@@ -20,6 +21,59 @@ const ModernDashboard = () => {
   const token = Cookies.get('Token');
   const id = Cookies.get('id');
   const isClientUser = token === 'clientdgf45sdgf89756dfgdhgdf';
+
+  // Modal state for showing lists when clicking cards
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [modalTitle, setModalTitle] = useState('');
+  const [modalItems, setModalItems] = useState([]);
+  const [modalType, setModalType] = useState('');
+
+  const handleCardClick = async (id) => {
+    setModalType(id);
+    setModalTitle(
+      id === 'total-tests' ? 'Total Tests' :
+      id === 'active-clients' ? 'Active Clients' :
+      id === 'collectors' ? 'Collectors' :
+      id === 'pending-jobs' ? 'Pending Jobs' :
+      id === 'completed-jobs' ? 'Completed Jobs' : 'Details'
+    );
+    setModalItems([]);
+    setModalVisible(true);
+    setModalLoading(true);
+
+    try {
+      const base = import.meta.env.VITE_API_BASE_URL || '';
+      let res;
+      if (id === 'active-clients') {
+        res = await fetch(`${base}/getclients`);
+        const data = await res.json();
+        const items = Array.isArray(data) ? data : data.data || [];
+        setModalItems(items);
+      } else if (id === 'collectors') {
+        res = await fetch(`${base}/getcollectors`);
+        const data = await res.json();
+        const items = Array.isArray(data) ? data : data.data || [];
+        setModalItems(items);
+      } else if (id === 'pending-jobs' || id === 'completed-jobs' || id === 'total-tests') {
+        // reuse job requests endpoint - send large limit to fetch items
+        const status = id === 'pending-jobs' ? 'pending' : id === 'completed-jobs' ? 'completed' : '';
+        const tokenParam = token ? `&token=${encodeURIComponent(token.toString())}` : '';
+        res = await fetch(`${base}/getjobrequests?id=${clientId || ''}&status=${status}&page=1&limit=1000${tokenParam}`);
+        const data = await res.json();
+        // endpoint typically returns { data: [...], total, ... }
+        const items = data.data || data || [];
+        setModalItems(items);
+      } else {
+        setModalItems([]);
+      }
+    } catch (err) {
+      console.error('Failed to fetch modal items', err);
+      setModalItems([]);
+    } finally {
+      setModalLoading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -59,18 +113,19 @@ const ModernDashboard = () => {
     else if (path.startsWith('/dashboard')) setActiveNav('dashboard');
   }, [location.pathname]);
 
+  // Only show values, no trend
   const summaryCards = isClientUser
     ? [
-        { id: 'total-tests', label: 'Total Tests', value: totalTests, trend: '+12% from last month', icon: '🧪', color: '#22c55e' },
-        { id: 'pending-jobs', label: 'Pending Jobs', value: jobStats.pending, trend: '+12% from last month', icon: '💼', color: '#f59e0b' },
-        { id: 'completed-jobs', label: 'Completed Jobs', value: jobStats.completed, trend: '+12% from last month', icon: '✅', color: '#10b981' },
+        { id: 'total-tests', label: 'Total Tests', value: totalTests, icon: '🧪', color: '#22c55e' },
+        { id: 'pending-jobs', label: 'Pending Jobs', value: jobStats.pending, icon: '💼', color: '#f59e0b' },
+        { id: 'completed-jobs', label: 'Completed Jobs', value: jobStats.completed, icon: '✅', color: '#10b981' },
       ]
     : [
-        { id: 'total-tests', label: 'Total Tests', value: totalTests, trend: '+12% from last month', icon: '🧪', color: '#22c55e' },
-        { id: 'active-clients', label: 'Active Clients', value: clientsCount, trend: '+12% from last month', icon: '👥', color: '#3b82f6' },
-        { id: 'collectors', label: 'Collectors', value: collectorsCount, trend: '+12% from last month', icon: '✓', color: '#8b5cf6' },
-        { id: 'pending-jobs', label: 'Pending Jobs', value: jobStats.pending, trend: '+12% from last month', icon: '💼', color: '#f59e0b' },
-        { id: 'completed-jobs', label: 'Completed Jobs', value: jobStats.completed, trend: '+12% from last month', icon: '✅', color: '#10b981' },
+        { id: 'total-tests', label: 'Total Tests', value: totalTests, icon: '🧪', color: '#22c55e' },
+        { id: 'active-clients', label: 'Active Clients', value: clientsCount, icon: '👥', color: '#3b82f6' },
+        { id: 'collectors', label: 'Collectors', value: collectorsCount, icon: '✓', color: '#8b5cf6' },
+        { id: 'pending-jobs', label: 'Pending Jobs', value: jobStats.pending, icon: '💼', color: '#f59e0b' },
+        { id: 'completed-jobs', label: 'Completed Jobs', value: jobStats.completed, icon: '✅', color: '#10b981' },
       ];
 
   return (
@@ -82,6 +137,10 @@ const ModernDashboard = () => {
             key={card.id}
             onMouseEnter={() => setHoveredCard(card.id)}
             onMouseLeave={() => setHoveredCard(null)}
+            onClick={() => handleCardClick(card.id)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleCardClick(card.id); }}
             className={`stat-card ${hoveredCard === card.id ? 'hovered' : ''}`}
             style={{ backgroundColor: card.color }}
           >
@@ -91,12 +150,10 @@ const ModernDashboard = () => {
             </div>
             <h3 className="stat-title">{card.label}</h3>
             <p className="stat-value">{card.value}</p>
-            <div className="stat-trend">
-              <span>{card.trend}</span>
-            </div>
           </div>
         ))}
       </div>
+
 
       {/* Charts Grid */}
       <div className="charts-grid">
@@ -222,7 +279,7 @@ const ModernDashboard = () => {
             </div>
           </div>
 
-          <div className="reports-card">
+          {/* <div className="reports-card">
             <h2>Quick Actions</h2>
             <div className="reports-list">
               <div className="report-item">
@@ -248,9 +305,122 @@ const ModernDashboard = () => {
                 </button>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
       )}
+      {/* Modal to show list details when clicking stat cards */}
+      <Modal
+        open={modalVisible}
+        title={modalTitle}
+        onCancel={() => setModalVisible(false)}
+        footer={null}
+        width={800}
+      >
+        {modalLoading ? (
+          <div style={{ textAlign: 'center', padding: 40 }}>
+            <Spin />
+          </div>
+        ) : (
+          <List
+            dataSource={modalItems}
+            renderItem={(item) => {
+              // jobs list
+              if (modalType === 'pending-jobs' || modalType === 'completed-jobs' || modalType === 'total-tests') {
+                const jobRef = item.jobReferenceNo || item.jobReference || item._id;
+                const customer = item.customer || item.name || item.customerName || '';
+                const date = item.dateAndTimeOfCollection || item.date || '';
+                return (
+                  <List.Item className="modal-list-item" key={item._id}
+                    actions={[
+                      <Button
+                        key="open-job"
+                        type="primary"
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setModalVisible(false);
+                          navigate(`/jobrequest/${item._id}`);
+                        }}
+                      >
+                        Open
+                      </Button>,
+                    ]}
+                  >
+                    <List.Item.Meta
+                      avatar={<Avatar style={{ backgroundColor: '#22c55e' }}>{jobRef?.toString().charAt(0)}</Avatar>}
+                      title={<div className="modal-item-title">{jobRef}</div>}
+                      description={<div className="modal-item-meta">{customer} {customer && date ? ' — ' : ''} <span className="modal-item-date">{date}</span></div>}
+                    />
+                  </List.Item>
+                );
+              }
+
+              // clients
+              if (modalType === 'active-clients') {
+                const name = item.name || item.clientName || item.company || item.customer || 'Client';
+                const email = item.email || item.contact || '';
+                return (
+                  <List.Item className="modal-list-item" key={item._id}
+                    actions={[
+                      <Button
+                        key="open-client"
+                        type="default"
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setModalVisible(false);
+                          navigate(`/clients/${item._id}`);
+                        }}
+                      >
+                        Open
+                      </Button>,
+                    ]}
+                  >
+                    <List.Item.Meta
+                      avatar={<Avatar style={{ backgroundColor: '#3b82f6' }}>{name?.toString().charAt(0)}</Avatar>}
+                      title={<div className="modal-item-title">{name}</div>}
+                      description={<div className="modal-item-meta">{email}</div>}
+                    />
+                  </List.Item>
+                );
+              }
+
+              // collectors
+              if (modalType === 'collectors') {
+                const name = item.name || item.collectorName || item.fullName || 'Collector';
+                const email = item.email || item.contact || '';
+                return (
+                  <List.Item className="modal-list-item" key={item._id}
+                    actions={[
+                      <Button
+                        key="open-collector"
+                        type="default"
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setModalVisible(false);
+                          navigate(`/addcollector/${item._id}`);
+                        }}
+                      >
+                        Open
+                      </Button>,
+                    ]}
+                  >
+                    <List.Item.Meta
+                      avatar={<Avatar style={{ backgroundColor: '#8b5cf6' }}>{name?.toString().charAt(0)}</Avatar>}
+                      title={<div className="modal-item-title">{name}</div>}
+                      description={<div className="modal-item-meta">{email}</div>}
+                    />
+                  </List.Item>
+                );
+              }
+
+              return <List.Item>{JSON.stringify(item)}</List.Item>;
+            }}
+          />
+        )}
+      </Modal>
+
     </div>
   );
 };
