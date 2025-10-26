@@ -375,49 +375,46 @@ function Screen4Details() {
       setFormData((prev) => ({ ...prev, [field]: comment })); // Save the comment for the field
     }
   };
+
+  // ✅ UPDATED: Data fetching with collectorId
   useEffect(() => {
     const fetchScreen4Data = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getscreen4data/${id}`);
+        // ✅ CHANGE: Get collectorId from URL params
+        const urlParams = new URLSearchParams(window.location.search);
+        const collectorId = urlParams.get('collectorId');
+        
+        // ✅ CHANGE: Use new API endpoint
+        const response = await fetch(
+          `${import.meta.env.VITE_API_BASE_URL}/getcollectorcocform/${id}/${collectorId}`
+        );
+        
         if (!response.ok) {
-          throw new Error("Failed to fetch client data");
+          throw new Error("Failed to fetch COC form data");
         }
         const data = await response.json();
-
-
-        // setFormData(data.data); // Set the form data with the found object
-        // setFormData((prevData) => ({
-        //   ...prevData,
-        //   companyName: data.data.companyName,
-        //   flight: data.data.flight,
-        //   location: data.data.location,
-        //   refno: data.data.refno,
-        //   dateoftest: new Date(data.data.dateoftest),
-        //   reasonForTest: data.data.reasonForTest,
-        // }))
-        setFormData((prevData) => ({
-          ...prevData,
-          ...data.data, // base: set all fields from API
-          companyName: data.data.companyName,
-          flight: data.data.flight,
-          location: data.data.location,
-          refno: data.data.refno,
-          dateoftest: data.data.dateoftest
-            ? new Date(data.data.dateoftest).toISOString().slice(0, 16)
-            : '',
-          reasonForTest: data.data.reasonForTest,
-        }));
-
-
-
+        
+        if (data.data) {
+          setFormData((prevData) => ({
+            ...prevData,
+            ...data.data,
+            companyName: data.data.companyName,
+            flight: data.data.flight,
+            location: data.data.location,
+            refno: data.data.refno,
+            dateoftest: data.data.dateoftest
+              ? new Date(data.data.dateoftest).toISOString().slice(0, 16)
+              : '',
+            reasonForTest: data.data.reasonForTest,
+          }));
+        }
       } catch (error) {
-        setError(error.message); // Handle error if something goes wrong
-        console.log(error.message);
+        setError(error.message);
       }
     };
 
     fetchScreen4Data();
-  }, [id]); // Dependency on id ensures the effect runs when the id changes
+  }, [id]);
 
   if (!formData && !error) {
     return <div>Loading...</div>; // Display a loading message
@@ -449,34 +446,6 @@ function Screen4Details() {
     });
   };
 
-  // const handleChange = async (e) => {
-  //   const { name, value, type, checked } = e.target;
-  //   console.log(e.target)
-  //   // console.log(checked)
-  //   await setFormData((prevData) => ({
-  //     ...prevData,
-  //     [name]: type === "checkbox" ? checked : value.toString(),
-  //   }));
-  // };
-  // const handleChange = async (e) => {
-  //   const { name, value, type, checked } = e.target;
-  //   console.log(e.target)
-  //   // console.log(checked)
-  //   await setFormData((prevData) => ({
-  //     ...prevData,
-  //     [name]: value.toString(),
-  //   }));
-  // };
-
-  //   const handleChange = async (e) => {
-  //     const { name, value, type, checked } = e.target;
-  //     setFormData((prevData) => ({
-  //         ...prevData,
-  //         [name]: type === "checkbox" ? checked : value.toString(),
-  //     }));
-  //     console.log(formData.BloodConfirm)
-  // };
-
   const handleChange = async (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prevData) => {
@@ -487,79 +456,33 @@ function Screen4Details() {
       return updatedData;
     });
   };
-  //   const handleChange = async (e) => {
-  //     const { name, value, type, checked } = e.target;
 
-  //     await setFormData((prevData) => ({
-  //         ...prevData,
-  //         [name]: type === "checkbox" ? checked : 
-  //                 type === "number" ? value.toString() ://Number(value) : 
-  //                 type === "date" ? value.toString() : value.toString()//new Date(value) : value,
-  //     }));
-  // };
-
-
-
-
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   console.log("Form Data Submitted: ", formData);
-  //   try {
-  //     const response = await fetch(
-  //       // `${import.meta.env.VITE_API_BASE_URL}/addscreen4data`,
-  //       `${import.meta.env.VITE_API_BASE_URL}/addscreen4data`,
-  //       {
-  //         method: "POST",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //         body: JSON.stringify(formData),
-  //       }
-  //     );
-
-  //     const result = await response.json();
-
-  //     if (response.ok) {
-  //       message.success("Form submitted successfully!");
-  //     } else {
-  //       message.error(result.message || "Failed to submit form.");
-  //     }
-
-  //     // Reset form
-  //     setFormData({
-  //       donorName: "",
-  //       dob: "",
-  //       companyName: "",
-  //       reasonForTest: "Pre-Employment",
-  //       location: "",
-  //       sampleDate: "",
-  //       adulterationCheck: false,
-  //       drugTests: [],
-  //       consent: false,
-  //     });
-  //   } catch (error) {
-  //     console.error("Error: ", error);
-  //     message.error("Submission failed due to server error.");
-  //   }
-  // };
-
-
+  // ✅ UPDATED: Form submission with collectorId
   const handleSubmit = async (e) => {
     setIsLoading(true)
     e.preventDefault();
-    console.log("Form Data Submitted: ", formData);
-
-    const apiUrl = id//formData._id
-      ? `${import.meta.env.VITE_API_BASE_URL}/updatescreen4data/${id}`//formData._id}` // Update endpoint
-      : `${import.meta.env.VITE_API_BASE_URL}/addscreen4data`; // Add endpoint
+    
+    // ✅ ADD: Get collectorId from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const collectorId = urlParams.get('collectorId');
+    
+    const apiUrl = id
+      ? `${import.meta.env.VITE_API_BASE_URL}/updatescreen4data/${id}`
+      : `${import.meta.env.VITE_API_BASE_URL}/addscreen4data`;
 
     try {
+      // ✅ ADD: Include collectorId in form data
+      const dataToSubmit = {
+        ...formData,
+        collectorId: collectorId // Add collector ID
+      };
+
       const response = await fetch(apiUrl, {
-        method: id ? "PUT" : "POST", // PUT for update, POST for add
+        method: id ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(dataToSubmit),
       });
 
       const result = await response.json();
@@ -587,7 +510,6 @@ function Screen4Details() {
         });
       }
       navigate('/jobrequests')
-      // window.close()
     } catch (error) {
       console.error("Error: ", error);
       message.error("Submission failed due to server error.");
@@ -600,73 +522,49 @@ function Screen4Details() {
     setFormData(dataToEdit);
   };
 
-  // const handleDownloadPDF = async () => {
-  //   const element = document.querySelector(".COCform"); // Target the form container
+  const handleDownloadPDF = async () => {
+    const element = document.querySelector(".COCform"); // Target the form container
 
-  //   if (!element) {
-  //     console.error("Form element not found");
-  //     return;
-  //   }
-
-  //   const canvas = await html2canvas(element, {
-  //     scale: 2, // Increase resolution
-  //     backgroundColor: null, // Remove background shadow
-  //     logging: true, // Enable logging for debugging
-  //     useCORS: true, // Enable cross-origin resource sharing
-  //   });
-
-  //   const imgData = canvas.toDataURL("image/png");
-  //   const pdf = new jsPDF("p", "mm", "a4");
-
-  //   const pdfWidth = pdf.internal.pageSize.getWidth();
-  //   const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-  //   pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-  //   pdf.save("ClientDetails.pdf");
-  // };
-const handleDownloadPDF = async () => {
-  const element = document.querySelector(".COCform"); // Target the form container
-
-  if (!element) {
-    console.error("Form element not found");
-    return;
-  }
-
-  const canvas = await html2canvas(element, {
-    scale: 2, // Increase resolution
-    backgroundColor: null, // Remove background shadow
-    logging: true, // Enable logging for debugging
-    useCORS: true, // Enable cross-origin resource sharing
-  });
-
-  const imgData = canvas.toDataURL("image/png");
-  const pdf = new jsPDF("p", "mm", "a4");
-
-  const pdfWidth = pdf.internal.pageSize.getWidth();
-  const pdfHeight = pdf.internal.pageSize.getHeight();
-  const imgHeight = (canvas.height * pdfWidth) / canvas.width; // Height of the image
-
-  let yOffset = 0; // Initial Y offset for the first page
-
-  // Check if the image height exceeds the page height
-  if (imgHeight > pdfHeight) {
-    const numPages = Math.ceil(imgHeight / pdfHeight); // Number of pages needed
-
-    for (let i = 0; i < numPages; i++) {
-      if (i > 0) {
-        pdf.addPage(); // Add a new page if it's not the first one
-      }
-
-      pdf.addImage(imgData, "PNG", 0, -yOffset, pdfWidth, imgHeight);
-      yOffset += pdfHeight; // Increment Y offset for the next page
+    if (!element) {
+      console.error("Form element not found");
+      return;
     }
-  } else {
-    // If content fits in one page
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, imgHeight);
-  }
 
-  pdf.save("ClientDetails.pdf");
-};
+    const canvas = await html2canvas(element, {
+      scale: 2, // Increase resolution
+      backgroundColor: null, // Remove background shadow
+      logging: true, // Enable logging for debugging
+      useCORS: true, // Enable cross-origin resource sharing
+    });
+
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "mm", "a4");
+
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    const imgHeight = (canvas.height * pdfWidth) / canvas.width; // Height of the image
+
+    let yOffset = 0; // Initial Y offset for the first page
+
+    // Check if the image height exceeds the page height
+    if (imgHeight > pdfHeight) {
+      const numPages = Math.ceil(imgHeight / pdfHeight); // Number of pages needed
+
+      for (let i = 0; i < numPages; i++) {
+        if (i > 0) {
+          pdf.addPage(); // Add a new page if it's not the first one
+        }
+
+        pdf.addImage(imgData, "PNG", 0, -yOffset, pdfWidth, imgHeight);
+        yOffset += pdfHeight; // Increment Y offset for the next page
+      }
+    } else {
+      // If content fits in one page
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, imgHeight);
+    }
+
+    pdf.save("ClientDetails.pdf");
+  };
 
   return (
     <>
@@ -834,7 +732,7 @@ const handleDownloadPDF = async () => {
                   placeholder="Enter Flight / Vessel"
                 />
               </div>
-              {/* <span style={{ fontSize: "6px" }}>Check donor identity and record ID source here, e.g. passport (with number) OR supervisor’s signature and PRINTED name.</span> */}
+              {/* <span style={{ fontSize: "6px" }}>Check donor identity and record ID source here, e.g. passport (with number) OR supervisor's signature and PRINTED name.</span> */}
               <div className="donor">
                 {/* ID Source */}
                 <label>ID Source/No</label>
@@ -847,26 +745,6 @@ const handleDownloadPDF = async () => {
                   placeholder="Enter ID Source"
                 />
               </div>
-              {/* <label style={{ marginLeft: "0px" }}>
-                <input
-                  type="checkbox"
-                  name="gender"
-                  value="M"
-                  checked={formData.gender}
-                  onChange={handleChange}
-                />
-                M
-              </label>
-              <label style={{ marginLeft: "10px" }}>
-                <input
-                  type="checkbox"
-                  name="gender"
-                  value="F"
-                  checked={!formData.gender}
-                  onChange={handleChange}
-                />
-                F
-              </label> */}
               <label style={{ marginLeft: "0px" }}>
                 <input
                   className="radioinput"
@@ -890,62 +768,6 @@ const handleDownloadPDF = async () => {
                 F
               </label>
             </div>
-            {/* Reason for Test */}
-            {/* <div className="inner2" style={{ marginLeft: "45px" }}>
-              <label style={{ marginBottom: "20px", display: "block" }}>
-                Reason for Test
-              </label>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "flex-start",
-                  alignItems: "flex-start",
-                  gap: "9px",
-                }}
-              >
-                <label style={{ margin: "0" }}>
-                  <input
-                    type="radio"
-                    name="reasonForTest"
-                    value="Pre-Employment"
-                    checked={formData.reasonForTest === "Pre-Employment"}
-                    onChange={handleChange}
-                  />
-                  Pre-Employment
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="reasonForTest"
-                    value="Random"
-                    checked={formData.reasonForTest === "Random"}
-                    onChange={handleChange}
-                  />
-                  Random
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="reasonForTest"
-                    value="For Cause"
-                    checked={formData.reasonForTest === "For Cause"}
-                    onChange={handleChange}
-                  />
-                  For Cause
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="reasonForTest"
-                    value="Follow-up"
-                    checked={formData.reasonForTest === "Follow-up"}
-                    onChange={handleChange}
-                  />
-                  Follow-up
-                </label>
-              </div>
-            </div> */}
             <div className="inner2" style={{ marginLeft: "45px" }}>
               <label className="reasonlabel" style={{ marginBottom: "10px", display: "block", fontWeight: "bold" }}>
                 Reason for Test
@@ -1008,15 +830,6 @@ const handleDownloadPDF = async () => {
                 <label
                 // style={{ width: "180px" }}
                 >DATE OF TEST:</label>
-                {/* <input
-                  className="inputstyle"
-                  style={{ width: "36%", marginLeft: "0px" }}
-                  type="date"
-                  name="dateoftest"
-                  value={formData.dateoftest}
-                  onChange={handleChange}
-                  required
-                /> */}
                 <input
                   className="inputstyle"
                   // style={{ width: "36%", marginLeft: "0px" }}
@@ -1117,26 +930,6 @@ const handleDownloadPDF = async () => {
                 <label style={{ fontSize: "11px", fontWeight: "bold" }}>
                   Donor's Signature{" "}
                 </label>
-                {/* <input
-                  className="inputstyle"
-                  type="image"
-                  name="donorSignature"
-                  value=''
-                  placeholder=""
-                  onChange={handleChange}
-                  style={{
-                    width: "156px",
-                   margin: "0px",
-                   cursor: "pointer",
-                   backgroundImage: `url(${formData.donorSignature})`,
-                   backgroundSize: "contain",
-                   backgroundRepeat: "no-repeat",
-                   backgroundPosition: "center",
-                   height: "30px", // Adjust height to fit the signature image
-                 }}
-                  required
-                />
-              </div> */}
                 <input
                   className="inputstyle"
                   type="text"
@@ -1436,25 +1229,6 @@ const handleDownloadPDF = async () => {
                   >
                     Collector Signature:{" "}
                   </label>
-                  {/* <input
-                    className="inputstyle"
-                    type="image"
-                    name="collectorSignature"
-                    value=""
-                    placeholder=""
-                    onChange={handleChange}
-                    style={{
-                      width: "156px",
-                     margin: "0px",
-                     cursor: "pointer",
-                     backgroundImage: `url(${formData.collectorSignature})`,
-                     backgroundSize: "contain",
-                     backgroundRepeat: "no-repeat",
-                     backgroundPosition: "center",
-                     height: "30px", // Adjust height to fit the signature image
-                   }}
-                    required
-                  /> */}
                   <input
                     className="inputstyle"
                     type="text"
@@ -1535,16 +1309,6 @@ const handleDownloadPDF = async () => {
                 >
                   Donor Consent{" "}
                 </label>
-                {/* <input
-                  className="inputstyle"
-                  type="text"
-                  name="donorConcent"
-                  value={formData.donorConcent}
-                  placeholder=""
-                  onChange={handleChange}
-                  style={{ margin: "0px", width: "150px" }}
-                  required
-                /> */}
                 <input
                   className="inputstyle"
                   type="text"
@@ -1611,16 +1375,6 @@ const handleDownloadPDF = async () => {
                     >
                       Donor Declaration:{" "}
                     </label>
-                    {/* <input
-                      className="inputstyle"
-                      type="text"
-                      name="donorDeclaration"
-                      value={formData.donorDeclaration}
-                      placeholder=""
-                      onChange={handleChange}
-                      style={{ width: "152px", margin: "0px", height: "5px" }}
-                      required
-                    /> */}
                     <input
                       className="inputstyle"
                       type="text"
@@ -1682,193 +1436,6 @@ const handleDownloadPDF = async () => {
             </div>
           </div>
           <table className="table-one">
-            {/* <tr>
-              <hr style={{ marginTop: "25px" }} />
-              <table className="table-one" style={{ marginTop: "0px" }}>
-                <tr>
-                  <table style={{ borderCollapse: "collapse", width: "100%" }}>
-                    <thead>
-                      <h4>What test type is required?</h4>
-                      <tr>
-                        <th>Test Name</th>
-                        <th>Include</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {specificFields.map((field, index) => (
-                        <tr key={index}>
-                          <td style={{ border: "1px solid black", padding: "8px" }}>{field === 'DrugsandAlcoholUrineTest' ? ' Drugs and Alcohol (Urine & Breath)' : field === 'DrugsandAlcoholOralTest' ? 'Drugs and Alcohol (Oral Fl & Breath)' : field === 'BreathAlcoholOnlyTest' ? 'Breath Alcohol Only' : field === 'DrugsOnlyTest' ? 'Drugs Only ' : field}</td>
-                          <td style={{ border: "1px solid black", padding: "8px" }}>
-
-                            <input
-                              type="checkbox"
-                              name={field}
-                              checked={formData[field]}
-                              onChange={handleChange}
-                            />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </tr>
-                <tr>
-                  <td colspan="3" className="form-description">
-                    <caption>Medication</caption>
-                    Give details of any medication, nutritional or fitness
-                    supplements taken within the last 14 days. If none, write
-                    'NONE'.
-                  </td>
-                </tr>
-                <tr>
-                <th>
-                    Date Taken
-                    {formData.DrugsandAlcoholUrineTest === true || formData.DrugsandAlcoholOralTest === true
-                      // ? (
-                      //   <span style={{ color: "red" }}>*</span>
-                      // ) : null
-                    }
-                  </th>
-                  <th>
-                    Type/Description
-                    {
-                      formData.DrugsandAlcoholUrineTest === true || formData.DrugsandAlcoholOralTest === true
-                      //  ? (
-                      //   <span style={{ color: "red" }}>*</span>
-                      // ) : null
-                    }
-                  </th>
-                  <th>
-                    Dosage
-                    {formData.DrugsandAlcoholUrineTest === true || formData.DrugsandAlcoholOralTest === true
-                      // ? (
-                      //   <span style={{ color: "red" }}>*</span>
-                      // ) : null
-                    }
-                  </th>
-
-                </tr>
-                <tr>
-                  <td>
-                    <input
-                      className="noborder"
-                      type="date"
-                      name="medicationDate1"
-                      value={formData.medicationDate1}
-                      onChange={handleChange}
-                    />
-                  </td>
-                  <td>
-                    <input
-                      className="noborder"
-                      type="text"
-                      name="medicationType1"
-                      value={formData.medicationType1}
-                      onChange={handleChange}
-                    // required={formData.DrugsandAlcoholUrineTest !== "" || formData.DrugsandAlcoholOralTest !== ""}
-                    />
-                  </td>
-                  <td>
-                    <input
-                      className="noborder"
-                      type="text"
-                      name="medicationDosage1"
-                      value={formData.medicationDosage1}
-                      onChange={handleChange}
-                    // required={formData.DrugsandAlcoholUrineTest !== "" || formData.DrugsandAlcoholOralTest !== ""}
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <input
-                      className="noborder"
-                      type="date"
-                      name="medicationDate2"
-                      value={formData.medicationDate2}
-                      onChange={handleChange}
-                    />
-                  </td>
-                  <td>
-                    <input
-                      className="noborder"
-                      type="text"
-                      name="medicationType2"
-                      value={formData.medicationType2}
-                      onChange={handleChange}
-                    />
-                  </td>
-                  <td>
-                    <input
-                      className="noborder"
-                      type="text"
-                      name="medicationDosage2"
-                      value={formData.medicationDosage2}
-                      onChange={handleChange}
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <input
-                      className="noborder"
-                      type="date"
-                      name="medicationDate3"
-                      value={formData.medicationDate3}
-                      onChange={handleChange}
-                    />
-                  </td>
-                  <td>
-                    <input
-                      className="noborder"
-                      type="text"
-                      name="medicationType3"
-                      value={formData.medicationType3}
-                      onChange={handleChange}
-                    />
-                  </td>
-                  <td>
-                    <input
-                      className="noborder"
-                      type="text"
-                      name="medicationDosage3"
-                      value={formData.medicationDosage3}
-                      onChange={handleChange}
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <input
-                      className="noborder"
-                      type="date"
-                      name="medicationDate4"
-                      value={formData.medicationDate4}
-                      onChange={handleChange}
-                    />
-                  </td>
-                  <td>
-                    <input
-                      className="noborder"
-                      type="text"
-                      name="medicationType4"
-                      value={formData.medicationType4}
-                      onChange={handleChange}
-                    />
-                  </td>
-                  <td>
-                    <input
-                      className="noborder"
-                      type="text"
-                      name="medicationDosage4"
-                      value={formData.medicationDosage4}
-                      onChange={handleChange}
-                    />
-                  </td>
-                </tr>
-              </table>
-            </tr> */}
-
             <thead>
               <h4>Test Details</h4>
               <tr>
@@ -2327,16 +1894,6 @@ const handleDownloadPDF = async () => {
                   >
                     Name{" "}
                   </label>
-                  {/* <input
-                    className="inputstyle"
-                    type="text"
-                    name="donorCertificationName"
-                    value={formData.donorCertificationName}
-                    placeholder=""
-                    onChange={handleChange}
-                    style={{ margin: "0px", width: "150px" }}
-                    required
-                  /> */}
                   <input
                     className="inputstyle"
                     type="text"
@@ -2358,31 +1915,11 @@ const handleDownloadPDF = async () => {
                   >
                     Signature{" "}
                   </label>
-                  {/* <input
-                    className="inputstyle"
-                    type="image"
-                    name="donorCertificationSignature"
-                    value=''
-                    placeholder=""
-                    onChange={handleChange}
-                    style={{
-                      width: "156px",
-                     margin: "0px",
-                     cursor: "pointer",
-                     backgroundImage: `url(${formData.donorCertificationSignature})`,
-                     backgroundSize: "contain",
-                     backgroundRepeat: "no-repeat",
-                     backgroundPosition: "center",
-                     height: "30px", // Adjust height to fit the signature image
-                   }}
-                    required
-                  />
-                </div> */}
                   <input
                     className="inputstyle"
                     type="text"
                     name="donorCertificationSignature"
-                    value=""//{formData.donorCertificationSignature}
+                    value=""
                     placeholder=""
                     onChange={handleChange}
                     onClick={() => { openSignaturePad(); setIsDonorConcentOpen(true) }}
@@ -2485,30 +2022,11 @@ const handleDownloadPDF = async () => {
                   >
                     Signature{" "}
                   </label>
-                  {/* <input
-                    className="inputstyle"
-                    type="image"
-                    name="collectorCertificationSignature"
-                    value=""
-                    placeholder=""
-                    onChange={handleChange}
-                    style={{
-                      width: "156px",
-                     margin: "0px",
-                     cursor: "pointer",
-                     backgroundImage: `url(${formData.collectorCertificationSignature})`,
-                     backgroundSize: "contain",
-                     backgroundRepeat: "no-repeat",
-                     backgroundPosition: "center",
-                     height: "30px", // Adjust height to fit the signature image
-                   }}
-                    required
-                  /> */}
                   <input
                     className="inputstyle"
                     type="text"
                     name="collectorCertificationSignature"
-                    value=""//{formData.collectorCertificationSignature}
+                    value=""
                     placeholder=""
                     onClick={() => { openSignaturePad(); setIsCollectorCerificationOpen(true) }}
                     onChange={handleChange}
@@ -2770,104 +2288,33 @@ const handleDownloadPDF = async () => {
             </div>
           </div>
 
-
           {/* Submit Button */}
-          {/* {formData.isUpdated !== true ?
-            (!isloading ? <button
-              className="createjob2"
-              type="submit"
-              style={{
-                width: "100%",
-                padding: "10px",
-                background: "#80c209",
-                color: "#fff",
-                border: "none",
-                borderRadius: "5px",
-                cursor: "pointer",
-                fontSize: "16px",
-              }}
-            >
-              Update
-            </button> : <div style={{width:"100%",display: "flex",justifyContent:"center"}}><img src="/empty.gif" style={{width:"130px",}}/></div>) : null}
-          <div style={{ marginTop: "20px", textAlign: "center" }}>
-            <button
-              onClick={() => navigate('/refusalform')}
-              style={{
-                padding: "10px 20px",
-                backgroundColor: "#f44336",
-                color: "white",
-                border: "none",
-                borderRadius: "5px",
-                cursor: "pointer",
-                fontSize: "16px",
-                marginTop: "10px",
-              }}
-            >
-              Go to Refusal Form
-            </button>
-          </div> */}
-          {/* Submit Button */}
-{formData.isUpdated !== true ? (
-  !isloading ? (
-    <button
-      className="createjob2"
-      type="submit"
-      style={{
-        width: "100%",
-        padding: "10px",
-        background: "#80c209",
-        color: "#fff",
-        border: "none",
-        borderRadius: "5px",
-        cursor: "pointer",
-        fontSize: "16px",
-      }}
-    >
-      Update
-    </button>
-  ) : (
-    <div style={{ width: "100%", display: "flex", justifyContent: "center" }}>
-      <img src="/empty.gif" style={{ width: "130px" }} />
-    </div>
-  )
-) : null}
+          {formData.isUpdated !== true ? (
+            !isloading ? (
+              <button
+                className="createjob2"
+                type="submit"
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  background: "#80c209",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "5px",
+                  cursor: "pointer",
+                  fontSize: "16px",
+                }}
+              >
+                Update
+              </button>
+            ) : (
+              <div style={{width:"100%",display: "flex",justifyContent:"center"}}><img src="/empty.gif" style={{width:"130px",}}/></div>
+            )
+          ) : null}
 
-{/* Abort Test Section */}
-{/* <div style={{ marginTop: "30px", textAlign: "center" }}>
-  <label
-    style={{
-      fontWeight: "bold",
-      fontSize: "16px",
-      marginRight: "10px",
-      color: "#333",
-    }}
-  >
-    Abort Test:
-  </label>
-
-  <select
-    onChange={(e) => {
-      if (e.target.value) navigate(e.target.value);
-    }}
-    style={{
-      padding: "10px 15px",
-      borderRadius: "8px",
-      border: "1px solid #ccc",
-      fontSize: "16px",
-      cursor: "pointer",
-      backgroundColor: "#f9f9f9",
-      color: "#333",
-    }}
-  >
-    <option value="">Select Form</option>
-    <option value="/refusalform">Donor Refusal Form</option>
-    <option value="/shybladder">Shy Bladder Form</option>
-    <option value="/shylung">Shy Lung Form</option>
-  </select>
-</div> */}
-<button type="button" onClick={handleDownloadPDF} style={{ marginTop: "20px" }}>
-      Download PDF
-    </button>
+          <button type="button" onClick={handleDownloadPDF} style={{ marginTop: "20px" }}>
+            Download PDF
+          </button>
 
         </form>
       </div>

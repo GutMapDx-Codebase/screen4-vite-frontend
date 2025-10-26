@@ -203,8 +203,57 @@ const isClient = token==='clientdgf45sdgf89756dfgdhgdf'
     fetchScreen4Data(1, selectedTab, query);
   };
 
+  // Function to view COC forms
+  const viewCOCForms = async (jobId) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/getcocforms/${jobId}`
+      );
+      const result = await response.json();
+      
+      if (result.data && result.data.length > 0) {
+        navigate(`/job-coc-forms/${jobId}`);
+      } else {
+        message.info("No COC forms found for this job");
+      }
+    } catch (error) {
+      console.error("Error fetching COC forms:", error);
+      message.error("Failed to fetch COC forms");
+    }
+  };
+
+  const showFormSelectionModal = async (id) => {
+    const modal = Modal.confirm({
+      title: 'Select Form Type',
+      content: 'Please select which form you want to fill:',
+      okText: 'COC Form',
+      cancelText: 'Refusal Form',
+      onOk: () => {
+        // Redirect to COC form
+        navigate(`/job-coc-forms/${id}`);
+      },
+      onCancel: () => {
+        // Redirect to Refusal form
+        navigate(`/refusalform/${id}`);
+      }
+    });
+  };
+
   const handleClientClick = async (id) => {
-    if (selectedTab === 'Pending') {
+    if (selectedTab === 'Pending' && token === 'collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg') {
+      try {
+        const collectorFormId = await fetchAcceptedById(id);
+        if (collectorFormId) {
+          // Show modal to choose between COC and Refusal form
+          showFormSelectionModal(id);
+        } else {
+          navigate(`/jobrequest/${id}`);
+        }
+      } catch (error) {
+        console.error("Error navigating:", error);
+        navigate(`/jobrequest/${id}`);
+      }
+    } else if (selectedTab === 'Pending') {
       navigate(`/jobrequest/${id}`);
     } else if (selectedTab === 'Accepted') {
       try {
@@ -362,6 +411,14 @@ const isClient = token==='clientdgf45sdgf89756dfgdhgdf'
                             })}
                           </span>
                         </div>
+                        {token === "dskgfsdgfkgsdfkjg35464154845674987dsf@53" && (
+                          <div className="info-row">
+                            <span className="info-label">Form Status:</span>
+                            <span className="info-value" style={{ color: client.refusalForm ? 'red' : client.cocForm ? 'green' : 'orange' }}>
+                              {client.refusalForm ? 'Refusal Form Filled' : client.cocForm ? 'COC Form Filled' : 'No Form Filled'}
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       <div className="card-actions">

@@ -751,38 +751,70 @@ function JobRequestForm() {
 
     
   };
+  // const handleAccept = async (e) => {
+  //   setIsLoading(true);
+  //   e.preventDefault();
+    
+  //   console.log("Sending data:", { practitionerId }); // Debugging
+    
+  //   try {
+  //     const url = `${import.meta.env.VITE_API_BASE_URL}/jobrequestAccept/${id}`;
+      
+  //     const response = await fetch(url, {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({acceptedBy: practitionerId }) // ✅ Ensure correct JSON structure
+  //     });
+      
+  //     const result = await response.json();
+      
+  //     if (response.ok) {
+  //       message.success("Form Accepted!");
+  //     } else {
+  //       message.error(result.message || "Failed to process form.");
+  //     }
+  //     navigate("/jobrequests")
+  //     // window.close();
+  //   } catch (error) {
+  //     console.error("Error: ", error);
+  //     message.error("Unable to accept due to server error.");
+  //   }
+  //   setIsLoading(false);
+  // };
   
-
-  const handleAccept = async (e) => {
-    setIsLoading(true);
-    e.preventDefault();
+const handleAccept = async (e) => {
+  setIsLoading(true);
+  e.preventDefault();
+  
+  try {
+    const url = `${import.meta.env.VITE_API_BASE_URL}/jobrequestAccept/${id}`;
     
-    console.log("Sending data:", { practitionerId }); // Debugging
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ acceptedBy: practitionerId })
+    });
     
-    try {
-      const url = `${import.meta.env.VITE_API_BASE_URL}/jobrequestAccept/${id}`;
+    const result = await response.json();
+    
+    if (response.ok) {
+      message.success("Job Accepted Successfully!");
       
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({acceptedBy: practitionerId }) // ✅ Ensure correct JSON structure
-      });
+      // ✅ CHANGE: Redirect to COC form with collector ID
+      setTimeout(() => {
+        navigate(`/coc-form/${id}?collectorId=${practitionerId}`);
+      }, 1000);
       
-      const result = await response.json();
-      
-      if (response.ok) {
-        message.success("Form Accepted!");
-      } else {
-        message.error(result.message || "Failed to process form.");
-      }
-      navigate("/jobrequests")
-      // window.close();
-    } catch (error) {
-      console.error("Error: ", error);
-      message.error("Unable to accept due to server error.");
+    } else {
+      message.error(result.message || "Failed to accept job.");
     }
-    setIsLoading(false);
-  };
+  } catch (error) {
+    console.error("Error: ", error);
+    message.error("Unable to accept due to server error.");
+  }
+  setIsLoading(false);
+};
+  
 
 
   // const handleCustomerChange = async (e) => {

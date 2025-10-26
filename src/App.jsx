@@ -19,9 +19,6 @@ import JobRequests from './pages/jobRequest';
 // import BarcodeImageScanner from './components/test';
 import RefusalForm from './pages/refusalform/RefusalForm';
 
-
-
-
 function App() {
   return (
     <div className="App">
@@ -46,11 +43,14 @@ function App() {
          {/* / <Route path='/dashboard/profile' element={<Layout><Profile /></Layout>} /> */}
           <Route path='/screen4testform' element={<Layout><Screen4TestForm /></Layout>} />
           <Route path='/screen4testform2' element={<Layout><JobRequestForm /></Layout>} />
-          <Route path="/dashboard/:id" element={<Layout><Screen4Details /></Layout>} />
+          
+          {/* ✅ UPDATED: COC Form Route - Now accepts query params */}
+          <Route path="/coc-form/:id" element={<Layout><Screen4Details /></Layout>} />
+          
           <Route path="/jobrequest/:id" element={<Layout><JobRequestForm /></Layout>} />
           <Route path="/report" element={<Layout><Report /></Layout>} />
           {/* <Route path="/test" element={<BarcodeImageScanner />} /> */}
-           <Route path="/coc-form" element={<JobRequestForm />} />
+          <Route path="/coc-form" element={<JobRequestForm />} />
 
           {/* Fallback - catch-all to avoid 'No routes matched' messages */}
           <Route path="*" element={<Index />} />
@@ -61,4 +61,4 @@ function App() {
   );
 }
 
-export default App;
+export default App;
