@@ -258,13 +258,26 @@ const isClient = token==='clientdgf45sdgf89756dfgdhgdf'
     } else if (selectedTab === 'Accepted') {
       try {
         const collectorFormId = await fetchAcceptedById(id);
+        console.log('fetchAcceptedById for job', id, 'returned', collectorFormId);
         if (collectorFormId) {
           navigate(`/dashboard/${collectorFormId}`);
         } else {
-          console.error("Collector Form ID not found");
+          // If no collector-specific form id is returned, fall back to opening
+          // the COC form route directly for collectors (helps when backend
+          // doesn't return the expected id).
+          if (token === 'collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg') {
+            console.warn('No collectorFormId returned — falling back to COC form route');
+            navigate(`/coc-form/${id}?collectorId=${collectorId}`);
+          } else {
+            console.error('Collector Form ID not found');
+          }
         }
       } catch (error) {
         console.error("Error navigating:", error);
+        // On error, allow collectors to still open the COC form directly
+        if (token === 'collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg') {
+          navigate(`/coc-form/${id}?collectorId=${collectorId}`);
+        }
       }
     }
   };

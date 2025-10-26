@@ -376,40 +376,165 @@ function Screen4Details() {
     }
   };
 
-  // ✅ UPDATED: Data fetching with collectorId
+  // ✅ UPDATED: Data fetching with collectorId and fallback handling
   useEffect(() => {
     const fetchScreen4Data = async () => {
       try {
-        // ✅ CHANGE: Get collectorId from URL params
         const urlParams = new URLSearchParams(window.location.search);
         const collectorId = urlParams.get('collectorId');
         
-        // ✅ CHANGE: Use new API endpoint
-        const response = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/getcollectorcocform/${id}/${collectorId}`
-        );
-        
-        if (!response.ok) {
-          throw new Error("Failed to fetch COC form data");
+        if (!collectorId) {
+          throw new Error("Collector ID is missing from URL");
         }
-        const data = await response.json();
+
+        console.log('🔄 Fetching COC data for:', { jobId: id, collectorId });
+
+        // ✅ TRY 1: New API endpoint
+        const primaryUrl = `${import.meta.env.VITE_API_BASE_URL}/getcollectorcocform/${id}/${collectorId}`;
+        console.log('🔗 Trying primary API:', primaryUrl);
         
+        let response = await fetch(primaryUrl);
+
+        if (response.status === 404) {
+          // ✅ TRY 2: Existing working API as fallback
+          console.log('🔄 Primary API returned 404, trying fallback...');
+          const fallbackUrl = `${import.meta.env.VITE_API_BASE_URL}/getcollectorformbyjob/${id}?collectorId=${collectorId}`;
+          console.log('🔗 Trying fallback API:', fallbackUrl);
+          
+          response = await fetch(fallbackUrl);
+        }
+
+        if (!response.ok) {
+          // ✅ If both APIs fail, create empty form for user to fill
+          console.log('📝 No existing COC form found - creating empty form');
+          setFormData({
+            companyName: '',
+            flight: '',
+            location: '',
+            refno: '',
+            dateoftest: '',
+            reasonForTest: '',
+            donorName: '',
+            donorEmail: '',
+            gender: '',
+            barcodeno: '',
+            AlcoholScreen: '',
+            AlcoholConfirm: '',
+            AmphetamineScreen: '',
+            AmphetamineConfirm: '',
+            BenzodiazepineScreen: '',
+            BenzodiazepineConfirm: '',
+            CocaineScreen: '',
+            CocaineConfirm: '',
+            MethamphetamineScreen: '',
+            MethamphetamineConfirm: '',
+            MorphineScreen: '',
+            MorphineConfirm: '',
+            NetworkScreen: '',
+            NetworkConfirm: '',
+            OpiatesScreen: '',
+            OpiatesConfirm: '',
+            SSRIScreen: '',
+            SSRIConfirm: '',
+            TCAScreen: '',
+            TCAConfirm: '',
+            THCScreen: '',
+            THCConfirm: '',
+            donorCertificationName: '',
+            donorCertificationSignature: '',
+            donorCertificationDate: '',
+            collectorCertificationName: '',
+            collectorCertificationSignature: '',
+            collectorCertificationDate: '',
+            recieveInitial: '',
+            recieveName: '',
+            recieveDate: '',
+            specimenBottle: '',
+            fatalFlaws: '',
+            specimenBottleComment: '',
+            fatalFlawsComment: '',
+            DrugsandAlcoholUrineTest: false,
+            DrugsandAlcoholOralTest: false,
+            BreathAlcoholOnlyTest: false,
+            DrugsOnlyTest: false
+          });
+          setError('No existing COC form found. Please fill out the form below.');
+          return;
+        }
+
+        const data = await response.json();
+        console.log('✅ API Success:', data);
+
         if (data.data) {
           setFormData((prevData) => ({
             ...prevData,
             ...data.data,
-            companyName: data.data.companyName,
-            flight: data.data.flight,
-            location: data.data.location,
-            refno: data.data.refno,
-            dateoftest: data.data.dateoftest
-              ? new Date(data.data.dateoftest).toISOString().slice(0, 16)
-              : '',
-            reasonForTest: data.data.reasonForTest,
+            companyName: data.data.companyName || '',
+            flight: data.data.flight || '',
+            location: data.data.location || '',
+            refno: data.data.refno || '',
+            dateoftest: data.data.dateoftest ? 
+              new Date(data.data.dateoftest).toISOString().slice(0, 16) : '',
+            reasonForTest: data.data.reasonForTest || '',
           }));
         }
+
       } catch (error) {
+        console.error('💥 Fetch error:', error);
         setError(error.message);
+        
+        // ✅ Even on error, show empty form
+        setFormData({
+          companyName: '',
+          flight: '',
+          location: '',
+          refno: '',
+          dateoftest: '',
+          reasonForTest: '',
+          donorName: '',
+          donorEmail: '',
+          gender: '',
+          barcodeno: '',
+          AlcoholScreen: '',
+          AlcoholConfirm: '',
+          AmphetamineScreen: '',
+          AmphetamineConfirm: '',
+          BenzodiazepineScreen: '',
+          BenzodiazepineConfirm: '',
+          CocaineScreen: '',
+          CocaineConfirm: '',
+          MethamphetamineScreen: '',
+          MethamphetamineConfirm: '',
+          MorphineScreen: '',
+          MorphineConfirm: '',
+          NetworkScreen: '',
+          NetworkConfirm: '',
+          OpiatesScreen: '',
+          OpiatesConfirm: '',
+          SSRIScreen: '',
+          SSRIConfirm: '',
+          TCAScreen: '',
+          TCAConfirm: '',
+          THCScreen: '',
+          THCConfirm: '',
+          donorCertificationName: '',
+          donorCertificationSignature: '',
+          donorCertificationDate: '',
+          collectorCertificationName: '',
+          collectorCertificationSignature: '',
+          collectorCertificationDate: '',
+          recieveInitial: '',
+          recieveName: '',
+          recieveDate: '',
+          specimenBottle: '',
+          fatalFlaws: '',
+          specimenBottleComment: '',
+          fatalFlawsComment: '',
+          DrugsandAlcoholUrineTest: false,
+          DrugsandAlcoholOralTest: false,
+          BreathAlcoholOnlyTest: false,
+          DrugsOnlyTest: false
+        });
       }
     };
 
