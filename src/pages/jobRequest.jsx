@@ -72,7 +72,7 @@ const isClient = token==='clientdgf45sdgf89756dfgdhgdf'
 
   const fetchAcceptedById = async (id) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getacceptedbyid`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getcollectorcocform`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),

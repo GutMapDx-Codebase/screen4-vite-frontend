@@ -54,16 +54,15 @@ function Sidebar({ activeNav, onNav }) {
   if (isClientUser) {
     navItems = [
       { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
-      { id: 'jobs', icon: '�', label: 'Jobs' },
+      { id: 'jobs', icon: '💼', label: 'Jobs' },
     ];
   }
 
-  // collectors see Dashboard + Collectors + Jobs (hide Clients and Reports)
+  // collectors see only Dashboard + Jobs (Collectors option removed)
   if (isCollectorUser) {
     navItems = [
       { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
-      { id: 'collectors', icon: '✓', label: 'Collectors' },
-      { id: 'jobs', icon: '�', label: 'Jobs' },
+      { id: 'jobs', icon: '💼', label: 'Jobs' },
     ];
   }
 

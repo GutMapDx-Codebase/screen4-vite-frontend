@@ -45,6 +45,9 @@ function Layout({ children }) {
     }
   };
 
+  // Check if current page is dashboard
+  const isDashboard = location.pathname === '/dashboard';
+
   return (
     <div className="dashboard-container">
       <Sidebar activeNav={activeNav} onNav={handleNav} />
@@ -55,10 +58,13 @@ function Layout({ children }) {
             <p>Unified experience across pages</p>
           </div>
           <div className="header-right">
-            <div className="search-bar">
-              <span className="search-icon">🔍</span>
-              <input type="text" placeholder="Search..." />
-            </div>
+            {/* Search bar only show on dashboard */}
+            {isDashboard && (
+              <div className="search-bar">
+                <span className="search-icon">🔍</span>
+                <input type="text" placeholder="Search..." />
+              </div>
+            )}
             {/* <button className="notification-btn">
               <span>🔔</span>
               <span className="notification-dot"></span>
@@ -73,4 +79,4 @@ function Layout({ children }) {
   );
 }
 
-export default Layout;
+export default Layout;

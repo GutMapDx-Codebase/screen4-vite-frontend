@@ -548,6 +548,7 @@ function Screen4Details() {
   if (error) {
     return <div>Error: {error}</div>; // Display an error message
   }
+  
 
   const handleCheckboxChange = (e) => {
     const { value, checked } = e.target;
@@ -647,49 +648,102 @@ function Screen4Details() {
     setFormData(dataToEdit);
   };
 
-  const handleDownloadPDF = async () => {
-    const element = document.querySelector(".COCform"); // Target the form container
+  // const handleDownloadPDF = async () => {
+  //   const element = document.querySelector(".COCform"); // Target the form container
 
-    if (!element) {
-      console.error("Form element not found");
-      return;
-    }
+  //   if (!element) {
+  //     console.error("Form element not found");
+  //     return;
+  //   }
+
+  //   const canvas = await html2canvas(element, {
+  //     scale: 2, // Increase resolution
+  //     backgroundColor: null, // Remove background shadow
+  //     logging: true, // Enable logging for debugging
+  //     useCORS: true, // Enable cross-origin resource sharing
+  //   });
+
+  //   const imgData = canvas.toDataURL("image/png");
+  //   const pdf = new jsPDF("p", "mm", "a4");
+
+  //   const pdfWidth = pdf.internal.pageSize.getWidth();
+  //   const pdfHeight = pdf.internal.pageSize.getHeight();
+  //   const imgHeight = (canvas.height * pdfWidth) / canvas.width; // Height of the image
+
+  //   let yOffset = 0; // Initial Y offset for the first page
+
+  //   // Check if the image height exceeds the page height
+  //   if (imgHeight > pdfHeight) {
+  //     const numPages = Math.ceil(imgHeight / pdfHeight); // Number of pages needed
+
+  //     for (let i = 0; i < numPages; i++) {
+  //       if (i > 0) {
+  //         pdf.addPage(); // Add a new page if it's not the first one
+  //       }
+
+  //       pdf.addImage(imgData, "PNG", 0, -yOffset, pdfWidth, imgHeight);
+  //       yOffset += pdfHeight; // Increment Y offset for the next page
+  //     }
+  //   } else {
+  //     // If content fits in one page
+  //     pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, imgHeight);
+  //   }
+
+  //   pdf.save("ClientDetails.pdf");
+  // };
+
+
+
+const handleDownloadPDF = async () => {
+  const element = document.querySelector(".COCform");
+
+  if (!element) {
+    console.error("Form element not found");
+    return;
+  }
+
+  try {
+    // Generate password
+    const password = "screen4@2024";
 
     const canvas = await html2canvas(element, {
-      scale: 2, // Increase resolution
-      backgroundColor: null, // Remove background shadow
-      logging: true, // Enable logging for debugging
-      useCORS: true, // Enable cross-origin resource sharing
+      scale: 2,
+      backgroundColor: "#ffffff",
+      useCORS: true,
     });
 
     const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("p", "mm", "a4");
+    
+    // Create PDF with encryption options
+    const pdf = new jsPDF({
+      orientation: 'p',
+      unit: 'mm',
+      format: 'a4',
+      encryption: {
+        userPassword: password,
+        ownerPassword: 'Screen4Admin2024',
+        userPermissions: ['print', 'copy']
+      }
+    });
 
     const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
-    const imgHeight = (canvas.height * pdfWidth) / canvas.width; // Height of the image
+    const imgHeight = (canvas.height * pdfWidth) / canvas.width;
 
-    let yOffset = 0; // Initial Y offset for the first page
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, imgHeight);
+    
+    // Save with encryption
+    pdf.save("Secure_ClientDetails.pdf");
+    
+    // Show password
+    alert(`✅ PDF Downloaded Successfully!\n\n📄 File: Secure_ClientDetails.pdf\n🔐 Password: ${password}\n\nUse this password to open the PDF.`);
 
-    // Check if the image height exceeds the page height
-    if (imgHeight > pdfHeight) {
-      const numPages = Math.ceil(imgHeight / pdfHeight); // Number of pages needed
+  } catch (error) {
+    console.error("PDF Error:", error);
+    alert("❌ Failed to generate PDF. Please try again.");
+  }
+};
 
-      for (let i = 0; i < numPages; i++) {
-        if (i > 0) {
-          pdf.addPage(); // Add a new page if it's not the first one
-        }
 
-        pdf.addImage(imgData, "PNG", 0, -yOffset, pdfWidth, imgHeight);
-        yOffset += pdfHeight; // Increment Y offset for the next page
-      }
-    } else {
-      // If content fits in one page
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, imgHeight);
-    }
-
-    pdf.save("ClientDetails.pdf");
-  };
 
   return (
     <>
@@ -2090,7 +2144,7 @@ function Screen4Details() {
           </div>
           <div
             class="myb eightth-row"
-            style={{ marginTop: "70px", marginBottom: "20px" }}
+            style={{ marginTop: "15px", marginBottom: "20px" }}
           >
             <div
               class="third-row"
@@ -2437,9 +2491,42 @@ function Screen4Details() {
             )
           ) : null}
 
-          <button type="button" onClick={handleDownloadPDF} style={{ marginTop: "20px" }}>
-            Download PDF
-          </button>
+         <button 
+  type="button" 
+  onClick={handleDownloadPDF}
+  style={{
+    marginTop: "20px",
+    padding: "12px 24px",
+    backgroundColor: "#28a745",
+    color: "white",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontSize: "16px",
+    fontWeight: "600",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "8px",
+    width: "100%",
+    boxShadow: "0 4px 6px rgba(40, 167, 69, 0.3)",
+    transition: "all 0.3s ease",
+    marginBottom: "10px"
+  }}
+  onMouseOver={(e) => {
+    e.target.style.backgroundColor = "#218838";
+    e.target.style.transform = "translateY(-2px)";
+    e.target.style.boxShadow = "0 6px 8px rgba(40, 167, 69, 0.4)";
+  }}
+  onMouseOut={(e) => {
+    e.target.style.backgroundColor = "#28a745";
+    e.target.style.transform = "translateY(0)";
+    e.target.style.boxShadow = "0 4px 6px rgba(40, 167, 69, 0.3)";
+  }}
+>
+  <span>🔒</span>
+  Download Secure PDF
+</button>
 
         </form>
       </div>
