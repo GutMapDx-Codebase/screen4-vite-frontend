@@ -238,7 +238,7 @@ const ModernDashboard = () => {
           </div>
 
           {/* Reports */}
-          <div className="reports-card">
+          {/* <div className="reports-card">
             <h2>Recent Reports</h2>
             <div className="reports-list">
               {['August Report', 'July Report'].map((report, index) => (
@@ -255,7 +255,7 @@ const ModernDashboard = () => {
                 </div>
               ))}
             </div>
-          </div>
+          </div> */}
         </div>
       )}
 

@@ -8,6 +8,9 @@ function Layout({ children }) {
   const location = useLocation();
   
   const [activeNav, setActiveNav] = useState('dashboard');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [searchResult, setSearchResult] = useState();
 
   useEffect(() => {
     const path = location.pathname || '';
@@ -45,6 +48,68 @@ function Layout({ children }) {
     }
   };
 
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleKeyPress = async (e) => {
+  if (e.key === 'Enter') {
+    console.log('Search Query (on Enter):', searchQuery);
+
+    if (!searchQuery.trim()) {
+      alert('Please enter a search term');
+      return;
+    }
+
+    if (searchQuery.trim().length < 2) {
+      alert('Please enter at least 2 characters');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const API_URL = import.meta.env.VITE_API_BASE_URL;
+
+      const response = await fetch(
+        `${API_URL}/search-job-requests?searchTerm=${encodeURIComponent(
+          searchQuery.trim()
+        )}&page=1&limit=20`
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.message === "Search completed successfully") {
+        console.log('✅ Search successful:', data.data.results.length, 'results found');
+
+        if (data.data.results.length > 0) {
+          navigate('/jobrequests', {
+            state: {
+              searchResults: data.data.results,
+              searchQuery: searchQuery,
+              fromSearch: true,
+            },
+          });
+        } else {
+          alert(`No results found for "${searchQuery}"`);
+        }
+      } else {
+        throw new Error(data.message || "Search failed");
+      }
+    } catch (error) {
+      console.error("❌ Search error:", error);
+      alert("Search failed: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+};
+
+
   // Check if current page is dashboard
   const isDashboard = location.pathname === '/dashboard';
 
@@ -58,21 +123,30 @@ function Layout({ children }) {
             <p>Unified experience across pages</p>
           </div>
           <div className="header-right">
-            {/* Search bar only show on dashboard */}
             {isDashboard && (
               <div className="search-bar">
-                <span className="search-icon">🔍</span>
-                <input type="text" placeholder="Search..." />
+                <span className="search-icon">
+                  {loading ? '⏳' : '🔍'}
+                </span>
+                <input 
+                  type="text" 
+                  placeholder={loading ? "Searching..." : "Search job requests... (Press Enter)"} 
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  onKeyPress={handleKeyPress}
+                  disabled={loading}
+                />
               </div>
             )}
-            {/* <button className="notification-btn">
-              <span>🔔</span>
-              <span className="notification-dot"></span>
-            </button> */}
           </div>
         </header>
         <div className="dashboard-content">
-          {children}
+          {/* ✅ Pass navigation state to children */}
+          {React.cloneElement(children, { 
+            searchResults: location.state?.searchResults || [],
+            searchQuery: location.state?.searchQuery || '',
+            fromSearch: location.state?.fromSearch || false
+          })}
         </div>
       </div>
     </div>

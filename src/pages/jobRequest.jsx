@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../components/navbar";
 import Cookies from "js-cookie";
 import { message, Pagination, Popconfirm, Spin } from "antd";
@@ -18,6 +18,7 @@ const JobRequests = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deletedId, setDeletedId] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation(); // added
   const token = Cookies.get("Token");
   const clientId = Cookies.get("id");
   const collectorId = Cookies.get("id");
@@ -157,6 +158,36 @@ const isClient = token==='clientdgf45sdgf89756dfgdhgdf'
     //   fetchScreen4Databyclients();
     // }
   }, []);
+
+  // If Layout navigates here with results or a query, use them
+  useEffect(() => {
+    // If navigate() passed state with searchResults, use them directly
+    const state = location.state || {};
+    const qFromState = (state.q || "")?.toString();
+    const results = Array.isArray(state.searchResults) ? state.searchResults : null;
+
+    // Also check URL query param ?q=...
+    const params = new URLSearchParams(location.search);
+    const qFromUrl = params.get("q") || "";
+
+    const incomingQuery = (qFromState || qFromUrl).toString().trim().toLowerCase();
+
+    if (results) {
+      // Use provided results and pagination if any
+      setClient(results);
+      setFilteredClients(results);
+      setTotalItems(state.pagination?.totalItems ?? results.length);
+      setTotalPages(state.pagination?.totalPages ?? 1);
+      setPage(state.pagination?.currentPage ?? 1);
+      setSearchQuery(incomingQuery);
+    } else if (incomingQuery) {
+      // If only a query was provided, run the existing fetch with that query
+      setSearchQuery(incomingQuery);
+      setPage(1);
+      fetchScreen4Data(1, selectedTab, incomingQuery);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location]); // run whenever navigation provides different state or search params
 
   const filterClients = (tab, query) => {
     let filtered = client;
