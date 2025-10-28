@@ -90,34 +90,89 @@ const isClient = token==='clientdgf45sdgf89756dfgdhgdf'
     }
   };
 
-  const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query = searchQuery) => {
-    if(isClient){
-      currentTab='Completed'
+  // const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query = searchQuery) => {
+  //   if(isClient){
+  //     currentTab='Completed'
+  //   }
+  //   setLoading(true);
+  //   try {
+  //     const response = await fetch(
+  //       `${import.meta.env.VITE_API_BASE_URL}/getjobrequests?id=${clientId}&status=${currentTab.toLowerCase()}&page=${pageNumber}&limit=${limit}&id=${collectorId}&token=${encodeURIComponent(token.toString())}&search=${encodeURIComponent(query)}`
+  //     );
+
+  //     if (!response.ok) throw new Error("Failed to fetch job requests");
+
+  //     const data = await response.json();
+  //     setClient(data.data || []);
+  //     setFilteredClients(data.data || []);
+  //     setTotalPages(data.totalPages);
+  //     setTotalItems(data.total);
+  //     setPage(data.currentPage);
+  //     if (token === "collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg") {
+  //       filterClients();
+  //     }
+  //   } catch (err) {
+  //     setError(err.message);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query = searchQuery) => {
+  if (isClient) currentTab = "Completed";
+  setLoading(true);
+
+  try {
+    let url = "";
+    const baseUrl = import.meta.env.VITE_API_BASE_URL;
+
+    // ✅ Collector portal
+    if (token === "collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg") {
+      // Map UI tabs to API query params
+      const statusParam =
+        currentTab.toLowerCase() === "pending"
+          ? "pending"
+          : currentTab.toLowerCase() === "accepted"
+          ? "accepted"
+          : undefined; // Completed not yet implemented in backend
+
+      url = `${baseUrl}/getjobsbycollector/${collectorId}`;
+      if (statusParam) url += `?status=${statusParam}`;
     }
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/getjobrequests?id=${clientId}&status=${currentTab.toLowerCase()}&page=${pageNumber}&limit=${limit}&id=${collectorId}&token=${encodeURIComponent(token.toString())}&search=${encodeURIComponent(query)}`
-      );
 
-      if (!response.ok) throw new Error("Failed to fetch job requests");
+    // ✅ Admin / Client
+    else {
+      url = `${baseUrl}/getjobrequests?id=${clientId}&status=${currentTab.toLowerCase()}&page=${pageNumber}&limit=${limit}&token=${encodeURIComponent(token.toString())}&search=${encodeURIComponent(query)}`;
+    }
 
-      const data = await response.json();
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Failed to fetch job requests");
+
+    const data = await response.json();
+
+    // ✅ Handle collector response
+    if (token === "collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg") {
+      setClient(data.data || []);
+      setFilteredClients(data.data || []);
+      setTotalItems(data.count || data.data?.length || 0);
+      setTotalPages(1);
+      setPage(1);
+    } else {
       setClient(data.data || []);
       setFilteredClients(data.data || []);
       setTotalPages(data.totalPages);
       setTotalItems(data.total);
       setPage(data.currentPage);
-      if (token === "collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg") {
-        filterClients();
-      }
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch (err) {
+    console.error("Error fetching job requests:", err);
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
+  
   useEffect(() => {
     if (token !== "clientdgf45sdgf89756dfgdhgdf") {
       fetchScreen4Data(page, selectedTab, searchQuery);

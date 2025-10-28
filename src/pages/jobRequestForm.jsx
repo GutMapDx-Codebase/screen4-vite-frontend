@@ -257,21 +257,44 @@ function JobRequestForm() {
       });
     }
   };
-  const generateUniqueJobRef = async () => {
+  // const generateUniqueJobRef = async () => {
+  //   const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getreferenceno`);
+  //   const existingRefs = await response.json();
+
+  //   const existingSet = new Set(existingRefs.map(ref => ref.jobReferenceNo));
+
+  //   // 2. Generate until we get a unique one
+  //   let uniqueRef = "";
+  //   do {
+  //     const number = Math.floor(10000 + Math.random() * 900); // e.g. 3-digit for S4/123
+  //     uniqueRef = `S4/${number}`;
+  //   } while (existingSet.has(uniqueRef));
+
+  //   return uniqueRef;
+  // };
+
+  // ✅ Generate Unique Job Reference Number (S4/xxxx format)
+const generateUniqueJobRef = async () => {
+  try {
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getreferenceno`);
     const existingRefs = await response.json();
 
     const existingSet = new Set(existingRefs.map(ref => ref.jobReferenceNo));
 
-    // 2. Generate until we get a unique one
-    let uniqueRef = "";
+    // keep generating until unique
+    let uniqueRef;
     do {
-      const number = Math.floor(10000 + Math.random() * 900); // e.g. 3-digit for S4/123
-      uniqueRef = `S4/${number}`;
+      const randomNumber = Math.floor(10000 + Math.random() * 90000); // 5-digit code
+      uniqueRef = `S4/${randomNumber}`;
     } while (existingSet.has(uniqueRef));
 
     return uniqueRef;
-  };
+  } catch (error) {
+    console.error("Error generating job reference:", error);
+    return `S4/${Math.floor(10000 + Math.random() * 90000)}`; // fallback
+  }
+};
+
 
 
   const fetchjobreferenceno = async () =>{

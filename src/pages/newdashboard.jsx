@@ -14,6 +14,8 @@ const ModernDashboard = () => {
   const [clientsCount, setClientsCount] = useState(0);
   const [collectorsCount, setCollectorsCount] = useState(0);
   const [totalTests, setTotalTests] = useState(0);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -21,6 +23,19 @@ const ModernDashboard = () => {
   const token = Cookies.get('Token');
   const id = Cookies.get('id');
   const isClientUser = token === 'clientdgf45sdgf89756dfgdhgdf';
+  const isCollectorUser = token === 'collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg';
+  const isAdminUser = token === 'dskgfsdgfkgsdfkjg35464154845674987dsf@53';
+
+  // Authentication check function
+  const checkAuthentication = () => {
+    const validTokens = [
+      'dskgfsdgfkgsdfkjg35464154845674987dsf@53',
+      'collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg', 
+      'clientdgf45sdgf89756dfgdhgdf'
+    ];
+    
+    return token && validTokens.includes(token);
+  };
 
   // Modal state for showing lists when clicking cards
   const [modalVisible, setModalVisible] = useState(false);
@@ -29,7 +44,25 @@ const ModernDashboard = () => {
   const [modalItems, setModalItems] = useState([]);
   const [modalType, setModalType] = useState('');
 
+  // Check authentication on component mount
+  useEffect(() => {
+    const authStatus = checkAuthentication();
+    setIsAuthenticated(authStatus);
+    setIsLoading(false);
+
+    if (!authStatus) {
+      // Redirect to login if not authenticated
+      navigate('/');
+      return;
+    }
+  }, [navigate]);
+
   const handleCardClick = async (id) => {
+    if (!isAuthenticated) {
+      navigate('/');
+      return;
+    }
+
     setModalType(id);
     setModalTitle(
       id === 'total-tests' ? 'Total Tests' :
@@ -76,6 +109,8 @@ const ModernDashboard = () => {
   };
 
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     const fetchData = async () => {
       try {
         // Fetch data from your new API
@@ -100,10 +135,12 @@ const ModernDashboard = () => {
     };
   
     fetchData();
-  }, []);
+  }, [isAuthenticated, token, id]);
 
   // Sync active item with URL
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     const path = location.pathname || '';
     if (path.startsWith('/clients')) setActiveNav('clients');
     else if (path.startsWith('/collectors')) setActiveNav('collectors');
@@ -111,22 +148,45 @@ const ModernDashboard = () => {
     else if (path.startsWith('/report')) setActiveNav('reports');
     else if (path.startsWith('/dashboard/profile')) setActiveNav('settings');
     else if (path.startsWith('/dashboard')) setActiveNav('dashboard');
-  }, [location.pathname]);
+  }, [location.pathname, isAuthenticated]);
 
-  // Only show values, no trend
+  // Only show values, no trend - Updated for collectors
   const summaryCards = isClientUser
     ? [
         { id: 'total-tests', label: 'Total Tests', value: totalTests, icon: '🧪', color: '#22c55e' },
         { id: 'pending-jobs', label: 'Pending Jobs', value: jobStats.pending, icon: '💼', color: '#f59e0b' },
         { id: 'completed-jobs', label: 'Completed Jobs', value: jobStats.completed, icon: '✅', color: '#10b981' },
       ]
+    : isCollectorUser
+    ? [
+        // Collector view - hide Active Clients
+        { id: 'total-tests', label: 'Total Tests', value: totalTests, icon: '🧪', color: '#22c55e' },
+        { id: 'collectors', label: 'Collectors', value: collectorsCount, icon: '✓', color: '#8b5cf6' },
+        { id: 'pending-jobs', label: 'Pending Jobs', value: jobStats.pending, icon: '💼', color: '#f59e0b' },
+        { id: 'completed-jobs', label: 'Completed Jobs', value: jobStats.completed, icon: '✅', color: '#10b981' },
+      ]
     : [
+        // Admin/other users view
         { id: 'total-tests', label: 'Total Tests', value: totalTests, icon: '🧪', color: '#22c55e' },
         { id: 'active-clients', label: 'Active Clients', value: clientsCount, icon: '👥', color: '#3b82f6' },
         { id: 'collectors', label: 'Collectors', value: collectorsCount, icon: '✓', color: '#8b5cf6' },
         { id: 'pending-jobs', label: 'Pending Jobs', value: jobStats.pending, icon: '💼', color: '#f59e0b' },
         { id: 'completed-jobs', label: 'Completed Jobs', value: jobStats.completed, icon: '✅', color: '#10b981' },
       ];
+
+  // Show loading spinner while checking authentication
+  if (isLoading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  // Don't render anything if not authenticated (will redirect)
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="dashboard-content">
@@ -153,7 +213,6 @@ const ModernDashboard = () => {
           </div>
         ))}
       </div>
-
 
       {/* Charts Grid */}
       <div className="charts-grid">
@@ -212,8 +271,8 @@ const ModernDashboard = () => {
         </div>
       </div>
 
-      {/* Bottom Section - Only show for non-client users */}
-      {!isClientUser && (
+      {/* Bottom Section - Updated for collectors */}
+      {!isClientUser && !isCollectorUser && (
         <div className="bottom-grid">
           {/* Job Status */}
           <div className="status-card">
@@ -236,33 +295,12 @@ const ModernDashboard = () => {
               </div>
             </div>
           </div>
-
-          {/* Reports */}
-          {/* <div className="reports-card">
-            <h2>Recent Reports</h2>
-            <div className="reports-list">
-              {['August Report', 'July Report'].map((report, index) => (
-                <div key={report} className="report-item">
-                  <div className="report-icon">📄</div>
-                  <div className="report-info">
-                    <span className="report-name">{report}</span>
-                    <span className="report-date">Generated on {index === 0 ? 'Sep 1' : 'Aug 1'}, 2024</span>
-                  </div>
-                  <button className="download-btn">
-                    <span className="download-text">Download</span>
-                    <span>⬇</span>
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div> */}
         </div>
       )}
 
-      {/* Client User ke liye alternative content (optional) */}
+      {/* Client User ke liye alternative content */}
       {isClientUser && (
         <div className="bottom-grid">
-          {/* Client-specific content yahan add kar sakte ho */}
           <div className="status-card">
             <h2>My Test Summary</h2>
             <div className="status-grid">
@@ -278,36 +316,30 @@ const ModernDashboard = () => {
               </div>
             </div>
           </div>
-
-          {/* <div className="reports-card">
-            <h2>Quick Actions</h2>
-            <div className="reports-list">
-              <div className="report-item">
-                <div className="report-icon">📋</div>
-                <div className="report-info">
-                  <span className="report-name">Request New Test</span>
-                  <span className="report-date">Schedule a new screening</span>
-                </div>
-                <button className="download-btn">
-                  <span className="download-text">Create</span>
-                  <span>➕</span>
-                </button>
-              </div>
-              <div className="report-item">
-                <div className="report-icon">📊</div>
-                <div className="report-info">
-                  <span className="report-name">View Test History</span>
-                  <span className="report-date">All previous results</span>
-                </div>
-                <button className="download-btn">
-                  <span className="download-text">View</span>
-                  <span>👁️</span>
-                </button>
-              </div>
-            </div>
-          </div> */}
         </div>
       )}
+
+      {/* Collector User ke liye alternative content */}
+      {isCollectorUser && (
+        <div className="bottom-grid">
+          <div className="status-card">
+            <h2>My Collection Summary</h2>
+            <div className="status-grid">
+              <div className="status-item pending">
+                <p className="status-label">Pending Collections</p>
+                <p className="status-value">{jobStats.pending}</p>
+                <p className="status-desc">Awaiting collection</p>
+              </div>
+              <div className="status-item completed">
+                <p className="status-label">Completed Collections</p>
+                <p className="status-value">{jobStats.completed}</p>
+                <p className="status-desc">Samples collected</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal to show list details when clicking stat cards */}
       <Modal
         open={modalVisible}
@@ -420,7 +452,6 @@ const ModernDashboard = () => {
           />
         )}
       </Modal>
-
     </div>
   );
 };
