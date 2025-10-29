@@ -45,31 +45,97 @@ function JobRequestForm() {
         console.error("Failed to fetch customer details:", err);
       }
     };
-  const fetchScreen4Data = async () => {
-    try {
-      if(!id){
-        return null;
-      }
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getjobrequest/${id}`);
-      
-      if (!response.ok) {
-        throw new Error("Failed to fetch job request data");
-      }
-      
-      const data = await response.json();
-      // setAccepted(data.isAccepted)
-      
-      if (data.data) {
-        setFormData(data.data); // ✅ Set form data directly from API response
-        console.log(data.data)
-        await fetchCustomerDetails(data.data.customer)
-      } else {
-        throw new Error("Job request not found");
-      }
-    } catch (error) {
-      console.log(error.message);
+  // Modify fetchScreen4Data to properly handle populated data
+
+
+  // Modify fetchScreen4Data to properly handle populated data
+// ✅ Modified fetchScreen4Data function
+const fetchScreen4Data = async () => {
+  try {
+    if (!id) return null;
+    
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getjobrequest/${id}`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch job request data");
     }
-  };
+    
+    const result = await response.json();
+    console.log("Fetched data:", result); // Debug log
+    
+    if (result.success && result.data) {
+      const jobData = result.data;
+      
+      // ✅ Check if customerId is populated or just ID
+      const customerName = jobData.customerId && typeof jobData.customerId === 'object' 
+        ? jobData.customerId.name 
+        : "Customer";
+      
+      const customerEmail = jobData.customerId && typeof jobData.customerId === 'object' 
+        ? jobData.customerId.email 
+        : "";
+
+      // Set form data with all fields from backend
+      setFormData({
+        ...jobData,
+        _id: jobData._id,
+        jobReferenceNo: jobData.jobReferenceNo || "",
+        dateAndTimeOfCollection: jobData.dateAndTimeOfCollection || "",
+        location: jobData.location || "",
+        customer: customerName, // ✅ Use extracted customer name
+        customerEmail: customerEmail,
+        customerId: jobData.customerId?._id || jobData.customerId || "", // Handle both populated and ID
+        nameOfOnsiteContact: jobData.nameOfOnsiteContact || "",
+        contactOfTelephoneNo: jobData.contactOfTelephoneNo || "",
+        numberOfDonors: jobData.numberOfDonors || "",
+        TypeOfTest: jobData.TypeOfTest || "",
+        callOutType: jobData.callOutType || "",
+        reasonForTest: jobData.reasonForTest || "",
+        collectorid: jobData.collectors?.map(c => c.collectorsId?._id || c.collectorsId) || [],
+        date: jobData.date || "",
+        collectionOfficerName: jobData.collectionOfficerName || "",
+        arrivalTime: jobData.arrivalTime || "",
+        departureTime: jobData.departureTime || "",
+        waitingTime: jobData.waitingTime || "",
+        mileage: jobData.mileage || "",
+        samplesMailed: jobData.samplesMailed || "",
+        breathAlcoholTestsCompleted: jobData.breathAlcoholTestsCompleted || "",
+        drugTestsCompleted: jobData.drugTestsCompleted || "",
+        nonZeroBreathAlcoholTests: jobData.nonZeroBreathAlcoholTests || "",
+        nonNegativeSamples: jobData.nonNegativeSamples || "",
+        notes: jobData.notes || "",
+        facilities: {
+          privateSecureRoom: jobData.facilities?.privateSecureRoom || false,
+          wcFacilities: jobData.facilities?.wcFacilities || false,
+          handWashing: jobData.facilities?.handWashing || false,
+          securedWindows: jobData.facilities?.securedWindows || false,
+          emergencyExits: jobData.facilities?.emergencyExits || false,
+          translatorRequired: jobData.facilities?.translatorRequired || false,
+        },
+        onsiteSignature: jobData.onsiteSignature || "",
+        officerSignature: jobData.officerSignature || "",
+        isAccepted: jobData.isAccepted || false
+      });
+
+      // ✅ Set client details if customer data exists and is populated
+      if (jobData.customerId && typeof jobData.customerId === 'object') {
+        setClientDetails({
+          ...jobData.customerId,
+          cutOffLevels: jobData.customerId.cutOffLevels || "",
+          drugKitType: jobData.customerId.drugKitType || "",
+          secondBreathTestRequired: jobData.customerId.secondBreathTestRequired || "No",
+          nonNegativeSamplesToLab: jobData.customerId.nonNegativeSamplesToLab || "Yes",
+          laboratoryAddress: jobData.customerId.laboratoryAddress || "",
+          sampleDeliveryMethod: jobData.customerId.sampleDeliveryMethod || "Courier"
+        });
+      }
+    } else {
+      throw new Error("Invalid data received from server");
+    }
+  } catch (error) {
+    console.error("Error fetching job request:", error);
+    message.error("Failed to load job request details");
+  }
+};
       useEffect(() => {
         fetchScreen4Data();
       }, [id]);
@@ -83,13 +149,15 @@ function JobRequestForm() {
     location: "",
     customer: "",
     customerEmail: "",
+    customerId: "", // Add customerId field
     nameOfOnsiteContact: "",
     contactOfTelephoneNo: "",
     numberOfDonors: "",
     TypeOfTest: "",
     callOutType: "",
     reasonForTest: "",
-
+    collectorid: [], // Array of collector IDs
+    collectors: [], // Array for populated collector data
     date: "",
     collectionOfficerName: "",
     arrivalTime: "",

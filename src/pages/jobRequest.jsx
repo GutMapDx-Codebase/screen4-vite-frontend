@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../components/navbar";
 import Cookies from "js-cookie";
-import { message, Pagination, Popconfirm, Spin } from "antd";
-import './css/JobRequests.css'; // New CSS file
+import { message, Pagination, Popconfirm, Spin, Modal } from "antd";
+import './css/JobRequests.css';
 
 const JobRequests = () => {
   const [client, setClient] = useState([]);
@@ -12,19 +12,21 @@ const JobRequests = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedTab, setSelectedTab] = useState("Pending");
-  const [acceptedById, setAcceptedById] = useState();
-  const [jobRequesId, setJobRequestId] = useState();
-  const [cocId, setCocId] = useState();
   const [isDeleting, setIsDeleting] = useState(false);
   const [deletedId, setDeletedId] = useState(null);
   const navigate = useNavigate();
-  const location = useLocation(); // added
+  const location = useLocation();
   const token = Cookies.get("Token");
   const clientId = Cookies.get("id");
   const collectorId = Cookies.get("id");
   const [sendingEmail, setSendingEmail] = useState(false);
   const [emailId, setEmailId] = useState(null);
-const isClient = token==='clientdgf45sdgf89756dfgdhgdf'
+  const [collectorDetailsModal, setCollectorDetailsModal] = useState(false);
+  const [selectedJobDetails, setSelectedJobDetails] = useState(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+
+  const isClient = token === 'clientdgf45sdgf89756dfgdhgdf';
+  
   // pagination
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -48,11 +50,12 @@ const isClient = token==='clientdgf45sdgf89756dfgdhgdf'
     }
   }, [navigate]);
 
-  const deleteJobRequest = async (collectorId) => {
+  // ✅ Delete Job Request
+  const deleteJobRequest = async (jobId) => {
     setIsDeleting(true);
-    setDeletedId(collectorId);
+    setDeletedId(jobId);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/deletejobrequest/${collectorId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/deletejobrequest/${jobId}`, {
         method: "DELETE",
       });
 
@@ -71,108 +74,104 @@ const isClient = token==='clientdgf45sdgf89756dfgdhgdf'
     setIsDeleting(false);
   };
 
-  const fetchAcceptedById = async (id) => {
+  // ✅ Fetch Collector COC Form
+  const fetchAcceptedById = async (jobId) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getcollectorcocform`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/getcollectorcocform/${jobId}/${collectorId}`
+      );
 
       if (!response.ok) {
-        throw new Error("Failed to fetch acceptedBy ID");
+        throw new Error("Failed to fetch collector COC form");
       }
 
       const data = await response.json();
-      return data._id;
+      return data.data?._id;
     } catch (error) {
-      console.error("Error fetching acceptedBy ID:", error);
+      console.error("Error fetching collector COC form:", error);
+      return null;
     }
   };
 
-  // const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query = searchQuery) => {
-  //   if(isClient){
-  //     currentTab='Completed'
-  //   }
-  //   setLoading(true);
-  //   try {
-  //     const response = await fetch(
-  //       `${import.meta.env.VITE_API_BASE_URL}/getjobrequests?id=${clientId}&status=${currentTab.toLowerCase()}&page=${pageNumber}&limit=${limit}&id=${collectorId}&token=${encodeURIComponent(token.toString())}&search=${encodeURIComponent(query)}`
-  //     );
-
-  //     if (!response.ok) throw new Error("Failed to fetch job requests");
-
-  //     const data = await response.json();
-  //     setClient(data.data || []);
-  //     setFilteredClients(data.data || []);
-  //     setTotalPages(data.totalPages);
-  //     setTotalItems(data.total);
-  //     setPage(data.currentPage);
-  //     if (token === "collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg") {
-  //       filterClients();
-  //     }
-  //   } catch (err) {
-  //     setError(err.message);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query = searchQuery) => {
-  if (isClient) currentTab = "Completed";
-  setLoading(true);
-
-  try {
-    let url = "";
-    const baseUrl = import.meta.env.VITE_API_BASE_URL;
-
-    // ✅ Collector portal
-    if (token === "collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg") {
-      // Map UI tabs to API query params
-      const statusParam =
-        currentTab.toLowerCase() === "pending"
-          ? "pending"
-          : currentTab.toLowerCase() === "accepted"
-          ? "accepted"
-          : undefined; // Completed not yet implemented in backend
-
-      url = `${baseUrl}/getjobsbycollector/${collectorId}`;
-      if (statusParam) url += `?status=${statusParam}`;
+  // ✅ Fetch Job Details with Collectors
+  const fetchJobDetailsWithCollectors = async (jobId) => {
+    setLoadingDetails(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/getjobrequestwithcollectors/${jobId}`
+      );
+      
+      if (!response.ok) throw new Error("Failed to fetch job details");
+      
+      const result = await response.json();
+      return result.data;
+    } catch (error) {
+      console.error("Error fetching job details:", error);
+      message.error("Failed to load job details");
+      return null;
+    } finally {
+      setLoadingDetails(false);
     }
+  };
 
-    // ✅ Admin / Client
-    else {
-      url = `${baseUrl}/getjobrequests?id=${clientId}&status=${currentTab.toLowerCase()}&page=${pageNumber}&limit=${limit}&token=${encodeURIComponent(token.toString())}&search=${encodeURIComponent(query)}`;
+  // ✅ Handle View Details Click
+  const handleViewDetails = async (jobId, event) => {
+    event.stopPropagation();
+    
+    const jobDetails = await fetchJobDetailsWithCollectors(jobId);
+    if (jobDetails) {
+      setSelectedJobDetails(jobDetails);
+      setCollectorDetailsModal(true);
     }
+  };
 
-    const response = await fetch(url);
-    if (!response.ok) throw new Error("Failed to fetch job requests");
+  // ✅ Main Data Fetch Function
+  const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query = searchQuery) => {
+    if (isClient) currentTab = "Completed";
+    setLoading(true);
 
-    const data = await response.json();
+    try {
+      let url = "";
+      const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
-    // ✅ Handle collector response
-    if (token === "collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg") {
-      setClient(data.data || []);
-      setFilteredClients(data.data || []);
-      setTotalItems(data.count || data.data?.length || 0);
-      setTotalPages(1);
-      setPage(1);
-    } else {
-      setClient(data.data || []);
-      setFilteredClients(data.data || []);
-      setTotalPages(data.totalPages);
-      setTotalItems(data.total);
-      setPage(data.currentPage);
+      // ✅ Collector portal
+      if (token === "collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg") {
+        const statusParam = currentTab.toLowerCase();
+        url = `${baseUrl}/getjobsbycollector/${collectorId}?status=${statusParam}`;
+        
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Failed to fetch collector jobs");
+        
+        const data = await response.json();
+        
+        setClient(data.data || []);
+        setFilteredClients(data.data || []);
+        setTotalItems(data.count || data.data?.length || 0);
+        setTotalPages(1);
+        setPage(1);
+        
+      } else {
+        // ✅ Admin/Client flow
+        url = `${baseUrl}/getjobrequests?id=${clientId}&status=${currentTab.toLowerCase()}&page=${pageNumber}&limit=${limit}&token=${encodeURIComponent(token.toString())}&search=${encodeURIComponent(query)}`;
+        
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Failed to fetch job requests");
+        
+        const data = await response.json();
+        setClient(data.data || []);
+        setFilteredClients(data.data || []);
+        setTotalPages(data.totalPages);
+        setTotalItems(data.total);
+        setPage(data.currentPage);
+      }
+    } catch (err) {
+      console.error("Error fetching job requests:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error("Error fetching job requests:", err);
-    setError(err.message);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
-  
   useEffect(() => {
     if (token !== "clientdgf45sdgf89756dfgdhgdf") {
       fetchScreen4Data(page, selectedTab, searchQuery);
@@ -184,51 +183,22 @@ const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query 
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // const fetchScreen4Databyclients = async () => {
-  //   try {
-  //     const response = await fetch(
-  //       `${import.meta.env.VITE_API_BASE_URL}/getjobrequestsbyclients/${clientId}`
-  //     );
-  //     if (!response.ok) {
-  //       if (response.status === 404) {
-  //         setError("No job requests found for this client.");
-  //       } else if (response.status === 500) {
-  //         throw new Error("Failed to fetch client data");
-  //       }
-  //     }
-  //     const data = await response.json();
-  //     setClient(data.data || []);
-  //     setFilteredClients(data.data || []);
-  //   } catch (err) {
-  //     setError(err.message);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
   useEffect(() => {
-    // if (token !== "clientdgf45sdgf89756dfgdhgdf") {
-      fetchScreen4Data(page, selectedTab, searchQuery);
-    // } else {
-    //   fetchScreen4Databyclients();
-    // }
+    fetchScreen4Data(page, selectedTab, searchQuery);
   }, []);
 
   // If Layout navigates here with results or a query, use them
   useEffect(() => {
-    // If navigate() passed state with searchResults, use them directly
     const state = location.state || {};
     const qFromState = (state.q || "")?.toString();
     const results = Array.isArray(state.searchResults) ? state.searchResults : null;
 
-    // Also check URL query param ?q=...
     const params = new URLSearchParams(location.search);
     const qFromUrl = params.get("q") || "";
 
     const incomingQuery = (qFromState || qFromUrl).toString().trim().toLowerCase();
 
     if (results) {
-      // Use provided results and pagination if any
       setClient(results);
       setFilteredClients(results);
       setTotalItems(state.pagination?.totalItems ?? results.length);
@@ -236,45 +206,11 @@ const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query 
       setPage(state.pagination?.currentPage ?? 1);
       setSearchQuery(incomingQuery);
     } else if (incomingQuery) {
-      // If only a query was provided, run the existing fetch with that query
       setSearchQuery(incomingQuery);
       setPage(1);
       fetchScreen4Data(1, selectedTab, incomingQuery);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location]); // run whenever navigation provides different state or search params
-
-  const filterClients = (tab, query) => {
-    let filtered = client;
-    if (tab === "Accepted") {
-      filtered = client.filter((c) => {
-        if (token === "collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg") {
-          return String(c?.acceptedBy) === String(collectorId);
-        }
-        return c?.isAccepted && !c?.isCompleted;
-      });
-    } else if (tab === "Completed") {
-      filtered = client.filter((c) => {
-        if (token === "collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg") {
-          return c?.isCompleted && String(c?.acceptedBy) === String(collectorId);
-        }
-        return c?.isAccepted && c?.isCompleted;
-      });
-    }
-
-    filtered = filtered.filter(
-      (c) =>
-        c.customer?.toLowerCase().includes(query) ||
-        c.jobReferenceNo?.toLowerCase().includes(query) ||
-        c.location?.toLowerCase().includes(query) ||
-        c.dateAndTimeOfCollection?.toLowerCase().includes(query)
-    );
-    setFilteredClients(filtered);
-  };
-
-  useEffect(() => {
-    filterClients(selectedTab, searchQuery);
-  }, [client, selectedTab, searchQuery]);
+  }, [location]);
 
   const handleTabChange = (tab) => {
     setSelectedTab(tab);
@@ -289,7 +225,7 @@ const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query 
     fetchScreen4Data(1, selectedTab, query);
   };
 
-  // Function to view COC forms
+  // ✅ View COC Forms
   const viewCOCForms = async (jobId) => {
     try {
       const response = await fetch(
@@ -308,66 +244,33 @@ const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query 
     }
   };
 
-  const showFormSelectionModal = async (id) => {
-    const modal = Modal.confirm({
-      title: 'Select Form Type',
-      content: 'Please select which form you want to fill:',
-      okText: 'COC Form',
-      cancelText: 'Refusal Form',
-      onOk: () => {
-        // Redirect to COC form
-        navigate(`/job-coc-forms/${id}`);
-      },
-      onCancel: () => {
-        // Redirect to Refusal form
-        navigate(`/refusalform/${id}`);
-      }
-    });
-  };
-
+  // ✅ Handle Client Click
   const handleClientClick = async (id) => {
+    // ✅ Collector - Pending Jobs
     if (selectedTab === 'Pending' && token === 'collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg') {
-      try {
-        const collectorFormId = await fetchAcceptedById(id);
-        if (collectorFormId) {
-          // Show modal to choose between COC and Refusal form
-          showFormSelectionModal(id);
-        } else {
-          navigate(`/jobrequest/${id}`);
-        }
-      } catch (error) {
-        console.error("Error navigating:", error);
-        navigate(`/jobrequest/${id}`);
-      }
-    } else if (selectedTab === 'Pending') {
       navigate(`/jobrequest/${id}`);
-    } else if (selectedTab === 'Accepted') {
+    }
+    // ✅ Collector - Accepted Jobs  
+    else if (selectedTab === 'Accepted' && token === 'collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg') {
       try {
-        const collectorFormId = await fetchAcceptedById(id);
-        console.log('fetchAcceptedById for job', id, 'returned', collectorFormId);
-        if (collectorFormId) {
-          navigate(`/dashboard/${collectorFormId}`);
+        const cocFormId = await fetchAcceptedById(id);
+        if (cocFormId) {
+          navigate(`/dashboard/${cocFormId}`);
         } else {
-          // If no collector-specific form id is returned, fall back to opening
-          // the COC form route directly for collectors (helps when backend
-          // doesn't return the expected id).
-          if (token === 'collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg') {
-            console.warn('No collectorFormId returned — falling back to COC form route');
-            navigate(`/coc-form/${id}?collectorId=${collectorId}`);
-          } else {
-            console.error('Collector Form ID not found');
-          }
-        }
-      } catch (error) {
-        console.error("Error navigating:", error);
-        // On error, allow collectors to still open the COC form directly
-        if (token === 'collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg') {
           navigate(`/coc-form/${id}?collectorId=${collectorId}`);
         }
+      } catch (error) {
+        console.error("Error navigating:", error);
+        navigate(`/coc-form/${id}?collectorId=${collectorId}`);
       }
+    }
+    // ✅ Admin/Client
+    else {
+      navigate(`/jobrequest/${id}`);
     }
   };
 
+  // ✅ Send Email
   const handleSendEmail = async (client, event) => {
     setSendingEmail(true);
     setEmailId(client._id);
@@ -396,6 +299,104 @@ const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query 
       console.error(err.message);
     }
     setSendingEmail(false);
+  };
+
+  // ✅ Collector Details Modal Component
+  const CollectorDetailsModal = () => {
+    if (!selectedJobDetails) return null;
+
+    return (
+      <Modal
+        title={
+          <div className="modal-header">
+            <h3>Job Request Details</h3>
+            <div className="job-ref">Ref: {selectedJobDetails.jobReferenceNo}</div>
+          </div>
+        }
+        open={collectorDetailsModal}
+        onCancel={() => setCollectorDetailsModal(false)}
+        footer={[
+          <button 
+            key="close" 
+            className="modal-close-btn"
+            onClick={() => setCollectorDetailsModal(false)}
+          >
+            Close
+          </button>
+        ]}
+        width={600}
+        className="collector-details-modal"
+      >
+        <div className="job-details-content">
+          {/* Job Basic Info */}
+          <div className="job-basic-info">
+            <div className="info-item">
+              <label>Customer:</label>
+              <span>{selectedJobDetails.customer}</span>
+            </div>
+            <div className="info-item">
+              <label>Location:</label>
+              <span>{selectedJobDetails.location}</span>
+            </div>
+            <div className="info-item">
+              <label>Collection Time:</label>
+              <span>
+                {new Date(selectedJobDetails.dateAndTimeOfCollection).toLocaleString()}
+              </span>
+            </div>
+          </div>
+
+          {/* Collectors Status */}
+          <div className="collectors-section">
+            <h4>Collectors Status</h4>
+            <div className="collectors-list">
+              {selectedJobDetails.collectors?.map((collector, index) => (
+                <div key={index} className={`collector-item ${collector.status ? 'accepted' : 'pending'}`}>
+                  <div className="collector-info">
+                    <div className="collector-name">
+                      {collector.collectorsId?.name || 'Unknown Collector'}
+                    </div>
+                    <div className="collector-email">
+                      {collector.collectorsId?.email || 'No email'}
+                    </div>
+                  </div>
+                  <div className="collector-status">
+                    <span className={`status-badge ${collector.status ? 'accepted' : 'pending'}`}>
+                      {collector.status ? '✅ Accepted' : '⏳ Pending'}
+                    </span>
+                    {collector.status && (
+                      <div className="accepted-time">
+                        Accepted
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Summary */}
+          <div className="status-summary">
+            <div className="summary-item">
+              <span className="label">Total Collectors:</span>
+              <span className="value">{selectedJobDetails.collectors?.length || 0}</span>
+            </div>
+            <div className="summary-item">
+              <span className="label">Accepted:</span>
+              <span className="value accepted-count">
+                {selectedJobDetails.collectors?.filter(c => c.status).length || 0}
+              </span>
+            </div>
+            <div className="summary-item">
+              <span className="label">Pending:</span>
+              <span className="value pending-count">
+                {selectedJobDetails.collectors?.filter(c => !c.status).length || 0}
+              </span>
+            </div>
+          </div>
+        </div>
+      </Modal>
+    );
   };
 
   return (
@@ -493,8 +494,8 @@ const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query 
                           <span className="info-value">{client.customer}</span>
                         </div>
                         <div className="info-row">
-                          <span className="info-label">Collector:</span>
-                          <span className="info-value">{client.collector?.email}</span>
+                          <span className="info-label">Location:</span>
+                          <span className="info-value">{client.location}</span>
                         </div>
                         <div className="info-row">
                           <span className="info-label">Collection Time:</span>
@@ -536,6 +537,14 @@ const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query 
                             >
                               Refusal Form
                             </button>
+                            {/* {token === "dskgfsdgfkgsdfkjg35464154845674987dsf@53" && (
+                              <button
+                               
+                                className="action-btn info"
+                              >
+                                View COC Forms
+                              </button>
+                            )} */}
                           </div>
                         )}
 
@@ -629,13 +638,21 @@ const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query 
                         </span>
                       </div>
                       <div className="view-details">
-                        <span className="view-text">Click to view details</span>
+                        <span 
+                          className="view-text"
+                          onClick={(e) => handleViewDetails(client._id, e)}
+                        >
+                          Click to view collector status
+                        </span>
                         <span className="arrow-icon">→</span>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
+
+              {/* Collector Details Modal */}
+              <CollectorDetailsModal />
 
               {/* Pagination */}
               <div className="pagination-section">
@@ -656,7 +673,7 @@ const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query 
               <p>
                 {searchQuery
                   ? "No job requests match your search criteria. Try adjusting your search terms."
-                  : `No ${selectedTab.toLowerCase()}  found.`}
+                  : `No ${selectedTab.toLowerCase()} found.`}
               </p>
               {token === "dskgfsdgfkgsdfkjg35464154845674987dsf@53" && !searchQuery && (
                 <Link to="/screen4testform2" className="create-first-btn">
