@@ -643,6 +643,10 @@ function Screen4Details() {
     setIsLoading(false)
   };
 
+ 
+
+  
+
   // Example of populating form data for update
   const handleEdit = (dataToEdit) => {
     setFormData(dataToEdit);

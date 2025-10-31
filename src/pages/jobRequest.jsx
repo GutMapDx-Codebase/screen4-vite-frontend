@@ -249,9 +249,11 @@ const JobRequests = () => {
     // ✅ Collector - Pending Jobs
     if (selectedTab === 'Pending' && token === 'collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg') {
       navigate(`/jobrequest/${id}`);
+      return;
     }
-    // ✅ Collector - Accepted Jobs  
-    else if (selectedTab === 'Accepted' && token === 'collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg') {
+
+    // ✅ Collector - Accepted Jobs
+    if (selectedTab === 'Accepted' && token === 'collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg') {
       try {
         const cocFormId = await fetchAcceptedById(id);
         if (cocFormId) {
@@ -263,11 +265,18 @@ const JobRequests = () => {
         console.error("Error navigating:", error);
         navigate(`/coc-form/${id}?collectorId=${collectorId}`);
       }
+      return;
     }
-    // ✅ Admin/Client
-    else {
-      navigate(`/jobrequest/${id}`);
+
+    // ✅ Admin / Client: open CHAIN OF CUSTODY form directly when clicking the card
+    if (token === "dskgfsdgfkgsdfkjg35464154845674987dsf@53" || token === "clientdgf45sdgf89756dfgdhgdf") {
+      // include collectorId query if available (collectorId may be same as clientId)
+      navigate(`/coc-form/${id}?collectorId=${collectorId}`);
+      return;
     }
+
+    // Fallback: open job request edit/view
+    navigate(`/jobrequest/${id}`);
   };
 
   // ✅ Send Email
