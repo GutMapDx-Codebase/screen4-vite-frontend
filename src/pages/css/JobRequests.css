@@ -633,29 +633,37 @@
   }
 }
 
-/* Global white text override */
-.job-requests-container * {
+/* Scoped white text for dark themed sections only (avoid affecting modals) */
+.requests-header *,
+.tabs-section *,
+.search-section *,
+.content-section .request-card *,
+.empty-state *,
+.loading-state *,
+.error-state *,
+.pagination-section * {
   color: #ffffff !important;
 }
 
 
 /* Collector Details Modal Styles */
 .collector-details-modal .ant-modal-content {
-  border-radius: 15px;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+  background: #ffffff;
 }
 
 .collector-details-modal .ant-modal-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #16a34a 100%);
   border-bottom: none;
   padding: 20px 24px;
 }
 
 .collector-details-modal .ant-modal-title {
-  color: white;
+  color: #ffffff !important;
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .modal-header {
@@ -667,18 +675,23 @@
 
 .modal-header h3 {
   margin: 0;
-  color: white;
+  color: #ffffff !important;
   font-size: 1.5rem;
 }
 
 .job-ref {
   background: rgba(255, 255, 255, 0.2);
-  color: white;
+  color: #ffffff !important;
   padding: 6px 12px;
   border-radius: 20px;
   font-size: 0.9rem;
   font-weight: 600;
   backdrop-filter: blur(10px);
+}
+
+.collector-details-modal .ant-modal-body {
+  background: #f7fafc;
+  padding: 20px 0px;
 }
 
 .job-details-content {
@@ -689,10 +702,11 @@
 
 /* Job Basic Info */
 .job-basic-info {
-  background: #f8f9fa;
+  background: #ffffff;
   padding: 20px;
   border-radius: 10px;
   margin-bottom: 25px;
+  border: 1px solid #e9ecef;
 }
 
 .info-item {
@@ -712,12 +726,12 @@
 
 .info-item label {
   font-weight: 600;
-  color: #495057;
+  color: #334155 !important;
   min-width: 120px;
 }
 
 .info-item span {
-  color: #6c757d;
+  color: #475569 !important;
   text-align: right;
   flex: 1;
 }
@@ -729,7 +743,7 @@
 
 .collectors-section h4 {
   margin: 0 0 20px 0;
-  color: #495057;
+  color: #334155 !important;
   font-size: 1.2rem;
   font-weight: 600;
   border-bottom: 2px solid #e9ecef;
@@ -753,8 +767,8 @@
 }
 
 .collector-item.accepted {
-  background: #f0f9ff;
-  border-color: #b3e0ff;
+  background: #ecfdf5;
+  border-color: #bbf7d0;
 }
 
 .collector-item.pending {
@@ -768,14 +782,14 @@
 
 .collector-name {
   font-weight: 600;
-  color: #333;
+  color: #0f172a !important;
   margin-bottom: 4px;
   font-size: 1rem;
 }
 
 .collector-email {
   font-size: 0.85rem;
-  color: #666;
+  color: #475569 !important;
 }
 
 .collector-status {
@@ -791,18 +805,18 @@
 }
 
 .status-badge.accepted {
-  background: #d4edda;
-  color: #155724;
+  background: #d1fae5;
+  color: #065f46;
 }
 
 .status-badge.pending {
-  background: #fff3cd;
-  color: #856404;
+  background: #fef3c7;
+  color: #92400e;
 }
 
 .accepted-time {
   font-size: 0.75rem;
-  color: #666;
+  color: #64748b !important;
   margin-top: 4px;
 }
 
@@ -810,22 +824,25 @@
 .status-summary {
   display: flex;
   justify-content: space-around;
-  background: #e9ecef;
+  background: #ffffff;
   padding: 20px;
   border-radius: 10px;
   margin-top: 25px;
+  border: 1px solid #e9ecef;
 }
 
 .summary-item {
   text-align: center;
+  min-width: 140px;
 }
 
 .summary-item .label {
   display: block;
   font-size: 0.85rem;
-  color: #666;
+  color: #475569 !important;
   margin-bottom: 6px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .summary-item .value {

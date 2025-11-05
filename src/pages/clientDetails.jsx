@@ -15,6 +15,7 @@ function Screen4Details() {
   const navigate = useNavigate()
   const [error, setError] = useState(null);
   const { id } = useParams();
+  
 
   const [isloading, setIsLoading] = useState(false);
   const canvasRef = useRef(null);
@@ -608,10 +609,19 @@ useEffect(() => {
       let apiUrl = '';
       
       // ✅ ALL USERS USE SAME API - Get COC forms by job ID
-      apiUrl = `${import.meta.env.VITE_API_BASE_URL}/getcocforms/${id}`;
+      // Build URL conditionally - if collectorId exists, include it, otherwise use jobId only
+      if (collectorId && collectorId !== 'null' && collectorId !== 'undefined') {
+        apiUrl = `${import.meta.env.VITE_API_BASE_URL}/getcocforms/${id}/${collectorId}`;
+      } else {
+        apiUrl = `${import.meta.env.VITE_API_BASE_URL}/getcocforms/${id}`;
+      }
       console.log('🔗 API for all users:', apiUrl);
 
       const response = await fetch(apiUrl);
+
+
+
+
 
       if (response.ok) {
         const data = await response.json();
@@ -619,28 +629,77 @@ useEffect(() => {
 
         let cocData = null;
 
-        // ✅ GET FIRST COC FORM FROM ARRAY
-        if (data.data && Array.isArray(data.data) && data.data.length > 0) {
-          cocData = data.data[0]; // Take first COC form
-          console.log('✅ Found COC form for all users:', cocData._id);
+        // Accept a variety of shapes from API
+        if (data && typeof data === 'object' && !Array.isArray(data) && data.data && Array.isArray(data.data) && data.data.length > 0) {
+          // API returned { data: [...] } - take first item
+          cocData = data.data[0];
+        } else if (Array.isArray(data?.data) && data.data.length > 0) {
+          // data.data is array - take first item
+          cocData = data.data[0];
+        } else if (Array.isArray(data) && data.length > 0) {
+          // data itself is array - take first item
+          cocData = data[0];
+        } else if (data && typeof data === 'object' && Object.keys(data).length > 0 && !data.success) {
+          // some APIs may return the document directly
+          cocData = data;
         }
 
-        if (cocData) {
-          // ✅ POPULATE FORM WITH EXISTING DATA
+        // ✅ Fallback to collector-specific fetch if nothing found
+        if (!cocData && collectorId) {
+          try {
+            const byCollectorUrl = `${import.meta.env.VITE_API_BASE_URL}/getcollectorcocform/${id}/${collectorId}`;
+            console.log('🔎 Trying collector-specific endpoint:', byCollectorUrl);
+            const resp2 = await fetch(byCollectorUrl);
+            if (resp2.ok) {
+              const data2 = await resp2.json();
+              const maybeData = data2?.data || data2 || null;
+              // Handle array case
+              if (Array.isArray(maybeData) && maybeData.length > 0) {
+                cocData = maybeData[0];
+              } else if (maybeData && typeof maybeData === 'object') {
+                cocData = maybeData;
+              }
+            }
+          } catch (e) {
+            console.warn('Collector-specific fetch failed', e);
+          }
+        }
+
+        // ✅ Extra fallback some backends expose
+        if (!cocData && collectorId) {
+          try {
+            const altUrl = `${import.meta.env.VITE_API_BASE_URL}/getcollectorformbyjob/${id}?collectorId=${collectorId}`;
+            console.log('🔎 Trying alternative endpoint:', altUrl);
+            const resp3 = await fetch(altUrl);
+            if (resp3.ok) {
+              const data3 = await resp3.json();
+              const maybe = data3?.data || data3 || null;
+              if (maybe) {
+                cocData = Array.isArray(maybe) ? maybe[0] : maybe;
+              }
+            }
+          } catch (e) {
+            console.warn('Alternative endpoint fetch failed', e);
+          }
+        }
+
+        // ✅ POPULATE FORM WITH EXISTING DATA - Only if we have valid data
+        if (cocData && typeof cocData === 'object' && !Array.isArray(cocData)) {
+          console.log('📦 Setting form data:', cocData);
           setFormData((prevData) => ({
             ...prevData,
             ...cocData,
-            companyName: cocData.companyName || cocData.company || '',
-            flight: cocData.flight || cocData.flightVessel || '',
-            location: cocData.location || '',
-            refno: cocData.refno || cocData.cocRefNo || '',
-            dateoftest: cocData.dateoftest ? new Date(cocData.dateoftest).toISOString().slice(0, 16) : (cocData.dateoftestRaw || ''),
-            reasonForTest: cocData.reasonForTest || '',
+            companyName: cocData.companyName || cocData.company || prevData.companyName || '',
+            flight: cocData.flight || cocData.flightVessel || prevData.flight || '',
+            location: cocData.location || prevData.location || '',
+            refno: cocData.refno || cocData.cocRefNo || prevData.refno || '',
+            dateoftest: cocData.dateoftest ? new Date(cocData.dateoftest).toISOString().slice(0, 16) : (cocData.dateoftestRaw || prevData.dateoftest || ''),
+            reasonForTest: (Array.isArray(cocData.reasonForTest) ? cocData.reasonForTest[0] : cocData.reasonForTest) || prevData.reasonForTest || '',
           }));
           console.log('✅ Form populated with existing data for:', userType);
         } else {
           // ✅ NO EXISTING FORM
-          console.log('📝 No existing COC form found');
+          console.log('📝 No existing COC form found or invalid data format');
           setError('No COC form has been submitted for this job yet.');
         }
       } else {
@@ -655,6 +714,8 @@ useEffect(() => {
   };
 
   fetchScreen4Data();
+
+
 }, [id]);
 
 
@@ -868,6 +929,19 @@ const handleSubmit = async (e) => {
 
 
 const handleDownloadPDF = async () => {
+  // Block downloads on mobile/touch devices or small screens
+  const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent || ""
+  );
+  const isSmallScreen = typeof window !== 'undefined' && window.innerWidth < 992; // treat <992px as non-desktop
+  if (isMobileUA || isSmallScreen) {
+    try {
+      message.warning("COC form download is only available on desktop/laptop.");
+    } catch (e) {
+      alert("COC form download is only available on desktop/laptop.");
+    }
+    return;
+  }
   const element = document.querySelector(".COCform");
 
   if (!element) {
@@ -915,6 +989,12 @@ const handleDownloadPDF = async () => {
     alert("❌ Failed to generate PDF. Please try again.");
   }
 };
+
+// Determine if current viewer can edit: collectors (with collectorId in URL) can edit; others read-only
+const canEdit = Boolean(new URLSearchParams(window.location.search).get('collectorId'));
+const isMobileOrSmall = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+  navigator.userAgent || ""
+) || (typeof window !== 'undefined' && window.innerWidth < 992);
 
 // ✅ READ-Only fields for Client/Admin
 const getFieldProps = (fieldName) => {
@@ -2689,7 +2769,8 @@ const getFieldProps = (fieldName) => {
             )
           ) : null}
 
-         <button 
+         {!isMobileOrSmall && (
+           <button 
   type="button" 
   onClick={handleDownloadPDF}
   style={{
@@ -2724,7 +2805,8 @@ const getFieldProps = (fieldName) => {
 >
   <span>🔒</span>
   Download Secure PDF
-</button>
+           </button>
+         )}
 
         </form>
       </div>

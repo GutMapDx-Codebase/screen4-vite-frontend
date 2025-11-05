@@ -495,11 +495,10 @@ const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query 
     if (selectedTab === 'Accepted' && currentToken === 'collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg') {
       try {
         const cocFormId = await fetchAcceptedById(id);
-        if (cocFormId) {
-          navigate(`/dashboard/${cocFormId}`);
-        } else {
-          navigate(`/coc-form/${id}?collectorId=${collectorId}`);
-        }
+        // Route to the COC form view for this job. The app does not have
+        // a /dashboard/:id route, so always open the COC form route.
+        // We keep collectorId in query to ensure correct context.
+        navigate(`/coc-form/${id}?collectorId=${collectorId}`);
       } catch (error) {
         console.error("Error navigating:", error);
         navigate(`/coc-form/${id}?collectorId=${collectorId}`);
@@ -663,7 +662,7 @@ const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query 
                     </span>
                     {collector.status && (
                       <div className="accepted-time">
-                        Accepted
+                        
                       </div>
                     )}
                   </div>
