@@ -7,6 +7,7 @@ import './css/JobRequests.css';
 
 const JobRequests = () => {
   const [client, setClient] = useState([]);
+  const [totalTabs, setTotalTabs] = useState(["Completed"]);
   const [filteredClients, setFilteredClients] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -27,15 +28,24 @@ const JobRequests = () => {
 
   const isClient = token === 'clientdgf45sdgf89756dfgdhgdf';
   
+  useEffect(() => {
+    if (!isClient) {
+      setTotalTabs(["Pending", "Accepted", "Completed"]);
+    }
+  }, []);
+
   // pagination
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
   const limit = 10;
 
+  // ✅ Client ke liye hamesha "Completed" tab set karo
   useEffect(() => {
-    token === "clientdgf45sdgf89756dfgdhgdf" && setSelectedTab("Completed");
-  }, [token]);
+    if (isClient) {
+      setSelectedTab("Completed");
+    }
+  }, [isClient]);
 
   useEffect(() => {
     const token = Cookies.get("Token");
@@ -125,66 +135,253 @@ const JobRequests = () => {
     }
   };
 
-  // ✅ Main Data Fetch Function
-  const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query = searchQuery) => {
-    if (isClient) currentTab = "Completed";
-    setLoading(true);
+  // ✅ FIXED: Main Data Fetch Function - CLIENT KE LIYE PROPERLY FIXED
+  // const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query = searchQuery) => {
+  //   const currentToken = Cookies.get("Token");
+    
+  //   setLoading(true);
 
-    try {
-      let url = "";
-      const baseUrl = import.meta.env.VITE_API_BASE_URL;
+  //   try {
+  //     let url = "";
+  //     const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
-      // ✅ Collector portal
-      if (token === "collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg") {
-        const statusParam = currentTab.toLowerCase();
-        url = `${baseUrl}/getjobsbycollector/${collectorId}?status=${statusParam}`;
+  //     // ✅ CLIENT FIX: Hardcoded token and always "completed" status
+  //     if (currentToken === "clientdgf45sdgf89756dfgdhgdf") {
+  //       url = `${baseUrl}/getjobrequests?id=${clientId}&status=completed&page=${pageNumber}&limit=${limit}&token=clientdgf45sdgf89756dfgdhgdf&search=${encodeURIComponent(query)}`;
         
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("Failed to fetch collector jobs");
+  //       console.log("🔍 Client API Call:", url);
+  //     }
+  //     // ✅ Collector portal
+  //     else if (currentToken === "collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg") {
+  //       const statusParam = currentTab.toLowerCase();
+  //       url = `${baseUrl}/getjobsbycollector/${collectorId}?status=${statusParam}`;
         
-        const data = await response.json();
+  //       const response = await fetch(url);
+  //       if (!response.ok) throw new Error("Failed to fetch collector jobs");
         
-        setClient(data.data || []);
-        setFilteredClients(data.data || []);
-        setTotalItems(data.count || data.data?.length || 0);
-        setTotalPages(1);
-        setPage(1);
+  //       const data = await response.json();
         
-      } else {
-        // ✅ Admin/Client flow
-        url = `${baseUrl}/getjobrequests?id=${clientId}&status=${currentTab.toLowerCase()}&page=${pageNumber}&limit=${limit}&token=${encodeURIComponent(token.toString())}&search=${encodeURIComponent(query)}`;
-        
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("Failed to fetch job requests");
-        
-        const data = await response.json();
-        setClient(data.data || []);
-        setFilteredClients(data.data || []);
-        setTotalPages(data.totalPages);
-        setTotalItems(data.total);
-        setPage(data.currentPage);
-      }
-    } catch (err) {
-      console.error("Error fetching job requests:", err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
+  //       setClient(data.data || []);
+  //       setFilteredClients(data.data || []);
+  //       setTotalItems(data.count || data.data?.length || 0);
+  //       setTotalPages(1);
+  //       setPage(1);
+  //       setLoading(false);
+  //       return; // Early return for collector
+  //     }
+  //     // ✅ Admin flow
+  //     else {
+  //       url = `${baseUrl}/getjobrequests?id=${clientId}&status=${currentTab.toLowerCase()}&page=${pageNumber}&limit=${limit}&token=${encodeURIComponent(currentToken.toString())}&search=${encodeURIComponent(query)}`;
+  //     }
+
+  //     // ✅ Common fetch for Admin and Client
+  //     console.log("🚀 Fetching URL:", url);
+  //     const response = await fetch(url);
+      
+  //     if (!response.ok) {
+  //       throw new Error(`HTTP error! status: ${response.status}`);
+  //     }
+      
+  //     const data = await response.json();
+      
+  //     if (!data.success) {
+  //       throw new Error(data.message || "API returned error");
+  //     }
+      
+  //     setClient(data.data || []);
+  //     setFilteredClients(data.data || []);
+  //     setTotalPages(data.totalPages || 1);
+  //     setTotalItems(data.total || 0);
+  //     setPage(data.currentPage || 1);
+
+  //     console.log("✅ Data fetched successfully:", {
+  //       totalItems: data.total,
+  //       currentPage: data.currentPage,
+  //       jobsCount: data.data?.length
+  //     });
+
+  //   } catch (err) {
+  //     console.error("❌ Error fetching job requests:", err);
+  //     setError(err.message);
+  //     message.error("Failed to load job requests");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+
+  // ✅ FIXED: Main Data Fetch Function - CLIENT KE LIYE PROPERLY FIXED
+// const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query = searchQuery) => {
+//   const currentToken = Cookies.get("Token");
+  
+//   setLoading(true);
+
+//   try {
+//     let url = "";
+//     const baseUrl = import.meta.env.VITE_API_BASE_URL;
+
+//     // ✅ CLIENT FIX: Hardcoded token and always "completed" status
+//     if (currentToken === "clientdgf45sdgf89756dfgdhgdf") {
+//       url = `${baseUrl}/getjobrequests?id=${clientId}&status=completed&page=${pageNumber}&limit=${limit}&token=clientdgf45sdgf89756dfgdhgdf&search=${encodeURIComponent(query)}`;
+      
+//       console.log("🔍 Client API Call:", url);
+//     }
+//     // ✅ Collector portal
+//     else if (currentToken === "collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg") {
+//       const statusParam = currentTab.toLowerCase();
+//       url = `${baseUrl}/getjobsbycollector/${collectorId}?status=${statusParam}`;
+      
+//       const response = await fetch(url);
+//       if (!response.ok) throw new Error("Failed to fetch collector jobs");
+      
+//       const data = await response.json();
+      
+//       setClient(data.data || []);
+//       setFilteredClients(data.data || []);
+//       setTotalItems(data.count || data.data?.length || 0);
+//       setTotalPages(1);
+//       setPage(1);
+//       setLoading(false);
+//       return; // Early return for collector
+//     }
+//     // ✅ Admin flow
+//     else {
+//       url = `${baseUrl}/getjobrequests?id=${clientId}&status=${currentTab.toLowerCase()}&page=${pageNumber}&limit=${limit}&token=${encodeURIComponent(currentToken.toString())}&search=${encodeURIComponent(query)}`;
+//     }
+
+//     // ✅ Common fetch for Admin and Client
+//     console.log("🚀 Fetching URL:", url);
+//     const response = await fetch(url);
+    
+//     if (!response.ok) {
+//       throw new Error(`HTTP error! status: ${response.status}`);
+//     }
+    
+//     const data = await response.json();
+    
+//     if (!data.success) {
+//       throw new Error(data.message || "API returned error");
+//     }
+    
+//     setClient(data.data || []);
+//     setFilteredClients(data.data || []);
+//     setTotalPages(data.totalPages || 1);
+//     setTotalItems(data.total || 0);
+//     setPage(data.currentPage || 1);
+
+//     console.log("✅ Data fetched successfully:", {
+//       totalItems: data.total,
+//       currentPage: data.currentPage,
+//       jobsCount: data.data?.length
+//     });
+
+//   } catch (err) {
+//     console.error("❌ Error fetching job requests:", err);
+//     setError(err.message);
+//     message.error("Failed to load job requests");
+//   } finally {
+//     setLoading(false);
+//   }
+// };
+
+
+
+const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query = searchQuery) => {
+  const currentToken = Cookies.get("Token");
+  setLoading(true);
+
+  try {
+    let url = "";
+    const baseUrl = import.meta.env.VITE_API_BASE_URL;
+
+    // ✅ CLIENT FIX: Hardcoded token and always "completed" status
+    if (currentToken === "clientdgf45sdgf89756dfgdhgdf") {
+      url = `${baseUrl}/getjobrequests?id=${clientId}&status=completed&page=${pageNumber}&limit=${limit}&token=clientdgf45sdgf89756dfgdhgdf&search=${encodeURIComponent(query)}`;
+      console.log("🔍 Client API Call:", url);
     }
-  };
 
+    // ✅ COLLECTOR PORTAL (token added)
+    else if (currentToken === "collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg") {
+      const statusParam = currentTab.toLowerCase();
+      const collectorToken = "collectorgfdgdfg548745gdfgdfg789dfg"; // same as backend route
+      url = `${baseUrl}/getjobsbycollector/${collectorId}?status=${statusParam}&token=${collectorToken}`;
+      
+      console.log("🔍 Collector API Call:", url);
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Failed to fetch collector jobs");
+
+      const data = await response.json();
+
+      setClient(data.data || []);
+      setFilteredClients(data.data || []);
+      setTotalItems(data.count || data.data?.length || 0);
+      setTotalPages(1);
+      setPage(1);
+      setLoading(false);
+      return; // Early return for collector
+    }
+
+    // ✅ ADMIN FLOW
+    else {
+      url = `${baseUrl}/getjobrequests?id=${clientId}&status=${currentTab.toLowerCase()}&page=${pageNumber}&limit=${limit}&token=${encodeURIComponent(currentToken.toString())}&search=${encodeURIComponent(query)}`;
+    }
+
+    // ✅ Common fetch for Admin and Client
+    console.log("🚀 Fetching URL:", url);
+    const response = await fetch(url);
+
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+    const data = await response.json();
+
+    if (!data.success) throw new Error(data.message || "API returned error");
+
+    setClient(data.data || []);
+    setFilteredClients(data.data || []);
+    setTotalPages(data.totalPages || 1);
+    setTotalItems(data.total || 0);
+    setPage(data.currentPage || 1);
+
+    console.log("✅ Data fetched successfully:", {
+      totalItems: data.total,
+      currentPage: data.currentPage,
+      jobsCount: data.data?.length
+    });
+
+  } catch (err) {
+    console.error("❌ Error fetching job requests:", err);
+    setError(err.message);
+    message.error("Failed to load job requests");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
+  // ✅ FIXED: Client ke liye automatically "completed" data fetch karo
   useEffect(() => {
-    if (token !== "clientdgf45sdgf89756dfgdhgdf") {
+    const currentToken = Cookies.get("Token");
+    if (currentToken === "clientdgf45sdgf89756dfgdhgdf") {
+      fetchScreen4Data(page, "Completed", searchQuery);
+    } else {
       fetchScreen4Data(page, selectedTab, searchQuery);
     }
-  }, [page, selectedTab]);
+  }, [page, selectedTab, searchQuery]);
 
   const handlePageChange = (newPage) => {
     setPage(newPage);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Initial data fetch
   useEffect(() => {
-    fetchScreen4Data(page, selectedTab, searchQuery);
+    const currentToken = Cookies.get("Token");
+    if (currentToken === "clientdgf45sdgf89756dfgdhgdf") {
+      fetchScreen4Data(1, "Completed", "");
+    } else {
+      fetchScreen4Data(1, selectedTab, "");
+    }
   }, []);
 
   // If Layout navigates here with results or a query, use them
@@ -208,22 +405,62 @@ const JobRequests = () => {
     } else if (incomingQuery) {
       setSearchQuery(incomingQuery);
       setPage(1);
-      fetchScreen4Data(1, selectedTab, incomingQuery);
+      const currentToken = Cookies.get("Token");
+      if (currentToken === "clientdgf45sdgf89756dfgdhgdf") {
+        fetchScreen4Data(1, "Completed", incomingQuery);
+      } else {
+        fetchScreen4Data(1, selectedTab, incomingQuery);
+      }
     }
   }, [location]);
 
+  // ✅ FIXED: Tab change handler - Client ko tab change ki permission nahi
   const handleTabChange = (tab) => {
+    const currentToken = Cookies.get("Token");
+    
+    if (currentToken === "clientdgf45sdgf89756dfgdhgdf") {
+      return;
+    }
+    
     setSelectedTab(tab);
     setPage(1);
     fetchScreen4Data(1, tab, searchQuery);
   };
 
+  // const handleSearchChange = (event) => {
+
+
+  //   const query = event.target.value.toLowerCase();
+  //   setSearchQuery(query);
+  //   setPage(1);
+    
+  //   const currentToken = Cookies.get("Token");
+  //   if (currentToken === "clientdgf45sdgf89756dfgdhgdf") {
+  //     fetchScreen4Data(1, "Completed", query);
+  //   } else {
+  //     fetchScreen4Data(1, selectedTab, query);
+  //   }
+  // };
+
+
+
   const handleSearchChange = (event) => {
-    const query = event.target.value.toLowerCase();
-    setSearchQuery(query);
-    setPage(1);
+  const query = event.target.value.toLowerCase();
+  setSearchQuery(query);
+  setPage(1);
+  
+  const currentToken = Cookies.get("Token");
+  if (currentToken === "clientdgf45sdgf89756dfgdhgdf") {
+    // ✅ Client ke liye hamesha "completed" status use karein
+    fetchScreen4Data(1, "Completed", query);
+  } else {
     fetchScreen4Data(1, selectedTab, query);
-  };
+  }
+};
+
+
+
+
 
   // ✅ View COC Forms
   const viewCOCForms = async (jobId) => {
@@ -246,14 +483,16 @@ const JobRequests = () => {
 
   // ✅ Handle Client Click
   const handleClientClick = async (id) => {
+    const currentToken = Cookies.get("Token");
+    
     // ✅ Collector - Pending Jobs
-    if (selectedTab === 'Pending' && token === 'collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg') {
+    if (selectedTab === 'Pending' && currentToken === 'collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg') {
       navigate(`/jobrequest/${id}`);
       return;
     }
 
     // ✅ Collector - Accepted Jobs
-    if (selectedTab === 'Accepted' && token === 'collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg') {
+    if (selectedTab === 'Accepted' && currentToken === 'collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg') {
       try {
         const cocFormId = await fetchAcceptedById(id);
         if (cocFormId) {
@@ -269,11 +508,60 @@ const JobRequests = () => {
     }
 
     // ✅ Admin / Client: open CHAIN OF CUSTODY form directly when clicking the card
-    if (token === "dskgfsdgfkgsdfkjg35464154845674987dsf@53" || token === "clientdgf45sdgf89756dfgdhgdf") {
-      // include collectorId query if available (collectorId may be same as clientId)
-      navigate(`/coc-form/${id}?collectorId=${collectorId}`);
-      return;
-    }
+      if (currentToken === "dskgfsdgfkgsdfkjg35464154845674987dsf@53" || currentToken === "clientdgf45sdgf89756dfgdhgdf") {
+        // Client flow: try to locate the collector who saved the COC for this job
+        if (currentToken === "clientdgf45sdgf89756dfgdhgdf") {
+          try {
+            const resp = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getcocforms/${id}`);
+            if (!resp.ok) {
+              message.info('No COC forms found for this job');
+              return;
+            }
+
+            const result = await resp.json();
+            const forms = result?.data || result || [];
+
+            if (!Array.isArray(forms) || forms.length === 0) {
+              message.info('No COC forms found for this job');
+              return;
+            }
+
+            // Pick the first form and try to find the collector id from common fields
+            const form = forms[0];
+            const possibleCollectorId = form.collectorId || (form.collectorsId && (form.collectorsId._id || form.collectorsId)) || form.collector || form.createdBy || form.acceptedBy || null;
+
+            const targetCollectorId = possibleCollectorId || collectorId; // fallback to cookie id
+
+            navigate(`/coc-form/${id}?collectorId=${targetCollectorId}`);
+            return;
+          } catch (err) {
+            console.error('Error fetching COC forms for client:', err);
+            message.error('Failed to open COC form');
+            return;
+          }
+        }
+
+        // Admin flow: try to find the collector who accepted/completed the job
+        try {
+          const jobDetails = await fetchJobDetailsWithCollectors(id);
+          let chosenCollectorId = collectorId; // fallback to cookie if we can't find a better id
+
+          if (jobDetails && Array.isArray(jobDetails.collectors) && jobDetails.collectors.length > 0) {
+            const accepted = jobDetails.collectors.find(c => c.status || c.cocForm || c.cocFormId);
+            const firstCollector = accepted || jobDetails.collectors[0];
+            if (firstCollector) {
+              chosenCollectorId = (firstCollector.collectorsId && firstCollector.collectorsId._id) || firstCollector.collectorId || firstCollector._id || chosenCollectorId;
+            }
+          }
+
+          navigate(`/coc-form/${id}?collectorId=${chosenCollectorId}`);
+          return;
+        } catch (err) {
+          console.error('Error finding collector for COC form:', err);
+          navigate(`/coc-form/${id}?collectorId=${collectorId}`);
+          return;
+        }
+      }
 
     // Fallback: open job request edit/view
     navigate(`/jobrequest/${id}`);
@@ -408,6 +696,10 @@ const JobRequests = () => {
     );
   };
 
+  // Get current token for display
+  const currentToken = Cookies.get("Token");
+  const displayTab = currentToken === "clientdgf45sdgf89756dfgdhgdf" ? "Completed" : selectedTab;
+
   return (
     <div className="job-requests-container">
       <Navbar />
@@ -423,11 +715,11 @@ const JobRequests = () => {
               <p className="page-subtitle">Manage and track all job requests</p>
               <div className="requests-count">
                 <span className="count-badge">{totalItems || 0}</span>
-                Total {selectedTab} Requests
+                Total {displayTab} Requests
               </div>
             </div>
 
-            {token === "dskgfsdgfkgsdfkjg35464154845674987dsf@53" && (
+            {currentToken === "dskgfsdgfkgsdfkjg35464154845674987dsf@53" && (
               <Link to="/screen4testform2" className="create-request-btn">
                 <span className="btn-icon">➕</span>
                 Create Job Request
@@ -436,11 +728,11 @@ const JobRequests = () => {
           </div>
         </div>
 
-        {/* Tabs Section */}
-        {token !== "clientdgf45sdgf89756dfgdhgdf" && (
+        {/* ✅ Tabs Section - Client ke liye completely hide */}
+        {currentToken !== "clientdgf45sdgf89756dfgdhgdf" && (
           <div className="tabs-section">
             <div className="tabs-container">
-              {["Pending", "Accepted", "Completed"].map((tab) => (
+              {totalTabs.map((tab) => (
                 <button
                   key={tab}
                   onClick={() => handleTabChange(tab)}
@@ -472,14 +764,20 @@ const JobRequests = () => {
           {loading ? (
             <div className="loading-state">
               <div className="loading-spinner"></div>
-              <p>Loading {selectedTab} Job Requests...</p>
+              <p>Loading {displayTab} Job Requests...</p>
             </div>
           ) : error ? (
             <div className="error-state">
               <div className="error-icon">⚠️</div>
               <h3>Error Loading Data</h3>
               <p>{error}</p>
-              <button onClick={() => fetchScreen4Data()} className="retry-btn">
+              <button onClick={() => {
+                if (currentToken === "clientdgf45sdgf89756dfgdhgdf") {
+                  fetchScreen4Data(1, "Completed", searchQuery);
+                } else {
+                  fetchScreen4Data(1, selectedTab, searchQuery);
+                }
+              }} className="retry-btn">
                 Try Again
               </button>
             </div>
@@ -520,7 +818,7 @@ const JobRequests = () => {
                             })}
                           </span>
                         </div>
-                        {token === "dskgfsdgfkgsdfkjg35464154845674987dsf@53" && (
+                        {currentToken === "dskgfsdgfkgsdfkjg35464154845674987dsf@53" && (
                           <div className="info-row">
                             <span className="info-label">Form Status:</span>
                             <span className="info-value" style={{ color: client.refusalForm ? 'red' : client.cocForm ? 'green' : 'orange' }}>
@@ -532,7 +830,7 @@ const JobRequests = () => {
 
                       <div className="card-actions">
                         {/* Accepted Tab Actions */}
-                        {selectedTab === "Accepted" && (
+                        {displayTab === "Accepted" && (
                           <div className="action-buttons">
                             <button
                               onClick={(e) => { navigate(`/jobrequest/${client._id}`); e.stopPropagation() }}
@@ -546,19 +844,11 @@ const JobRequests = () => {
                             >
                               Refusal Form
                             </button>
-                            {/* {token === "dskgfsdgfkgsdfkjg35464154845674987dsf@53" && (
-                              <button
-                               
-                                className="action-btn info"
-                              >
-                                View COC Forms
-                              </button>
-                            )} */}
                           </div>
                         )}
 
                         {/* Pending Tab Actions */}
-                        {selectedTab === "Pending" && token === "dskgfsdgfkgsdfkjg35464154845674987dsf@53" && (
+                        {displayTab === "Pending" && currentToken === "dskgfsdgfkgsdfkjg35464154845674987dsf@53" && (
                           <div className="action-buttons">
                             {isDeleting && client._id === deletedId ? (
                               <div className="deleting-state">
@@ -593,43 +883,20 @@ const JobRequests = () => {
                         )}
 
                         {/* Completed Tab Actions */}
-                        {selectedTab === "Completed" && (
+                        {displayTab === "Completed" && (
                           <div className="action-buttons">
-                            {token === "dskgfsdgfkgsdfkjg35464154845674987dsf@53" && (
-                              <>
-                                {sendingEmail && client._id === emailId ? (
-                                  <div className="sending-state">
-                                    <div className="sending-spinner"></div>
-                                    <span>Sending...</span>
-                                  </div>
-                                ) : (
-                                  <button
-                                    className={`action-btn ${client.isEmailed ? 'disabled' : 'primary'}`}
-                                    onClick={(event) => handleSendEmail(client, event)}
-                                    disabled={client.isEmailed}
-                                  >
-                                    <span className="btn-icon">📧</span>
-                                    {client.isEmailed ? "Email Sent" : "Send Email"}
-                                  </button>
-                                )}
-                              </>
-                            )}
+                           
                             <button
-                              onClick={() => window.open(`/jobrequest/${client._id}`, '_blank')}
+                              onClick={(e) => { e.stopPropagation(); navigate(`/jobrequest/${client._id}`); }}
                               className="action-btn secondary"
                             >
                               Job Request
                             </button>
                             <button
-                              onClick={async () => {
-                                try {
-                                  const collectorFormId = await fetchAcceptedById(client._id);
-                                  if (collectorFormId) {
-                                    window.open(`/dashboard/${collectorFormId}`, '_blank');
-                                  }
-                                } catch (error) {
-                                  console.error("Error navigating:", error);
-                                }
+                              onClick={(e) => { 
+                                e.stopPropagation();
+                                // Open the COC form inside the app for the current collector (use cookie collectorId)
+                                navigate(`/coc-form/${client._id}?collectorId=${collectorId}`);
                               }}
                               className="action-btn secondary"
                             >
@@ -642,8 +909,8 @@ const JobRequests = () => {
 
                     <div className="card-footer">
                       <div className="status-indicator">
-                        <span className={`status-badge ${selectedTab.toLowerCase()}`}>
-                          {selectedTab}
+                        <span className={`status-badge ${displayTab.toLowerCase()}`}>
+                          {displayTab}
                         </span>
                       </div>
                       <div className="view-details">
@@ -682,9 +949,9 @@ const JobRequests = () => {
               <p>
                 {searchQuery
                   ? "No job requests match your search criteria. Try adjusting your search terms."
-                  : `No ${selectedTab.toLowerCase()} found.`}
+                  : `No ${displayTab.toLowerCase()} found.`}
               </p>
-              {token === "dskgfsdgfkgsdfkjg35464154845674987dsf@53" && !searchQuery && (
+              {currentToken === "dskgfsdgfkgsdfkjg35464154845674987dsf@53" && !searchQuery && (
                 <Link to="/screen4testform2" className="create-first-btn">
                   Create Your First Job Request
                 </Link>

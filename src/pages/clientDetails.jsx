@@ -377,169 +377,288 @@ function Screen4Details() {
   };
 
   // ✅ UPDATED: Data fetching with collectorId and fallback handling
-  useEffect(() => {
-    const fetchScreen4Data = async () => {
-      try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const collectorId = urlParams.get('collectorId');
+  // useEffect(() => {
+  //   const fetchScreen4Data = async () => {
+  //     try {
+  //       const urlParams = new URLSearchParams(window.location.search);
+  //       const collectorId = urlParams.get('collectorId');
         
-        if (!collectorId) {
-          throw new Error("Collector ID is missing from URL");
-        }
+  //       if (!collectorId) {
+  //         throw new Error("Collector ID is missing from URL");
+  //       }
 
-        console.log('🔄 Fetching COC data for:', { jobId: id, collectorId });
+  //       console.log('🔄 Fetching COC data for:', { jobId: id, collectorId });
 
-        // ✅ TRY 1: New API endpoint
-        const primaryUrl = `${import.meta.env.VITE_API_BASE_URL}/getcollectorcocform/${id}/${collectorId}`;
-        console.log('🔗 Trying primary API:', primaryUrl);
+  //       // ✅ TRY 1: New API endpoint
+  //       const primaryUrl = `${import.meta.env.VITE_API_BASE_URL}/getcollectorcocform/${id}/${collectorId}`;
+  //       console.log('🔗 Trying primary API:', primaryUrl);
         
-        let response = await fetch(primaryUrl);
+  //       let response = await fetch(primaryUrl);
 
-        if (response.status === 404) {
-          // ✅ TRY 2: Existing working API as fallback
-          console.log('🔄 Primary API returned 404, trying fallback...');
-          const fallbackUrl = `${import.meta.env.VITE_API_BASE_URL}/getcollectorformbyjob/${id}?collectorId=${collectorId}`;
-          console.log('🔗 Trying fallback API:', fallbackUrl);
+  //       if (response.status === 404) {
+  //         // ✅ TRY 2: Existing working API as fallback
+  //         console.log('🔄 Primary API returned 404, trying fallback...');
+  //         const fallbackUrl = `${import.meta.env.VITE_API_BASE_URL}/getcollectorformbyjob/${id}?collectorId=${collectorId}`;
+  //         console.log('🔗 Trying fallback API:', fallbackUrl);
           
-          response = await fetch(fallbackUrl);
-        }
+  //         response = await fetch(fallbackUrl);
+  //       }
 
-        if (!response.ok) {
-          // ✅ If both APIs fail, create empty form for user to fill
-          console.log('📝 No existing COC form found - creating empty form');
-          setFormData({
-            companyName: '',
-            flight: '',
-            location: '',
-            refno: '',
-            dateoftest: '',
-            reasonForTest: '',
-            donorName: '',
-            donorEmail: '',
-            gender: '',
-            barcodeno: '',
-            AlcoholScreen: '',
-            AlcoholConfirm: '',
-            AmphetamineScreen: '',
-            AmphetamineConfirm: '',
-            BenzodiazepineScreen: '',
-            BenzodiazepineConfirm: '',
-            CocaineScreen: '',
-            CocaineConfirm: '',
-            MethamphetamineScreen: '',
-            MethamphetamineConfirm: '',
-            MorphineScreen: '',
-            MorphineConfirm: '',
-            NetworkScreen: '',
-            NetworkConfirm: '',
-            OpiatesScreen: '',
-            OpiatesConfirm: '',
-            SSRIScreen: '',
-            SSRIConfirm: '',
-            TCAScreen: '',
-            TCAConfirm: '',
-            THCScreen: '',
-            THCConfirm: '',
-            donorCertificationName: '',
-            donorCertificationSignature: '',
-            donorCertificationDate: '',
-            collectorCertificationName: '',
-            collectorCertificationSignature: '',
-            collectorCertificationDate: '',
-            recieveInitial: '',
-            recieveName: '',
-            recieveDate: '',
-            specimenBottle: '',
-            fatalFlaws: '',
-            specimenBottleComment: '',
-            fatalFlawsComment: '',
-            DrugsandAlcoholUrineTest: false,
-            DrugsandAlcoholOralTest: false,
-            BreathAlcoholOnlyTest: false,
-            DrugsOnlyTest: false
-          });
-          setError('No existing COC form found. Please fill out the form below.');
-          return;
-        }
+  //       if (!response.ok) {
+  //         // ✅ If both APIs fail, create empty form for user to fill
+  //         console.log('📝 No existing COC form found - creating empty form');
+  //         setFormData({
+  //           companyName: '',
+  //           flight: '',
+  //           location: '',
+  //           refno: '',
+  //           dateoftest: '',
+  //           reasonForTest: '',
+  //           donorName: '',
+  //           donorEmail: '',
+  //           gender: '',
+  //           barcodeno: '',
+  //           AlcoholScreen: '',
+  //           AlcoholConfirm: '',
+  //           AmphetamineScreen: '',
+  //           AmphetamineConfirm: '',
+  //           BenzodiazepineScreen: '',
+  //           BenzodiazepineConfirm: '',
+  //           CocaineScreen: '',
+  //           CocaineConfirm: '',
+  //           MethamphetamineScreen: '',
+  //           MethamphetamineConfirm: '',
+  //           MorphineScreen: '',
+  //           MorphineConfirm: '',
+  //           NetworkScreen: '',
+  //           NetworkConfirm: '',
+  //           OpiatesScreen: '',
+  //           OpiatesConfirm: '',
+  //           SSRIScreen: '',
+  //           SSRIConfirm: '',
+  //           TCAScreen: '',
+  //           TCAConfirm: '',
+  //           THCScreen: '',
+  //           THCConfirm: '',
+  //           donorCertificationName: '',
+  //           donorCertificationSignature: '',
+  //           donorCertificationDate: '',
+  //           collectorCertificationName: '',
+  //           collectorCertificationSignature: '',
+  //           collectorCertificationDate: '',
+  //           recieveInitial: '',
+  //           recieveName: '',
+  //           recieveDate: '',
+  //           specimenBottle: '',
+  //           fatalFlaws: '',
+  //           specimenBottleComment: '',
+  //           fatalFlawsComment: '',
+  //           DrugsandAlcoholUrineTest: false,
+  //           DrugsandAlcoholOralTest: false,
+  //           BreathAlcoholOnlyTest: false,
+  //           DrugsOnlyTest: false
+  //         });
+  //         setError('No existing COC form found. Please fill out the form below.');
+  //         return;
+  //       }
 
+  //       const data = await response.json();
+  //       console.log('✅ API Success (raw):', data);
+
+  //       // Accept multiple possible response shapes from backend
+  //       let cocData = null;
+
+  //       if (!data) {
+  //         cocData = null;
+  //       } else if (data.data && typeof data.data === 'object' && !Array.isArray(data.data)) {
+  //         cocData = data.data;
+  //       } else if (Array.isArray(data.data) && data.data.length > 0) {
+  //         cocData = data.data[0];
+  //       } else if (Array.isArray(data) && data.length > 0) {
+  //         cocData = data[0];
+  //       } else if (typeof data === 'object') {
+  //         cocData = data;
+  //       }
+
+  //       if (!cocData || Object.keys(cocData).length === 0) {
+  //         console.log('⚠️ COC payload empty or not found in API response. Trying /getcocforms fallback...');
+
+  //         try {
+  //           const listResp = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getcocforms/${id}`);
+  //           if (listResp.ok) {
+  //             const listData = await listResp.json();
+  //             const forms = listData?.data || listData || [];
+  //             if (Array.isArray(forms) && forms.length > 0) {
+  //               cocData = forms[0];
+  //               console.log('✅ Found COC via getcocforms fallback:', cocData);
+  //             }
+  //           }
+  //         } catch (e) {
+  //           console.error('Fallback getcocforms failed:', e);
+  //         }
+  //       }
+
+  //       if (!cocData || Object.keys(cocData).length === 0) {
+  //         console.log('⚠️ No COC found after fallback. Showing empty form.');
+  //         setError('No existing COC form found. Please fill out the form below.');
+  //         return;
+  //       }
+
+  //       // Map known field names into local formData (be tolerant to naming differences)
+  //       setFormData((prevData) => ({
+  //         ...prevData,
+  //         ...cocData,
+  //         companyName: cocData.companyName || cocData.company || '',
+  //         flight: cocData.flight || cocData.flightVessel || '',
+  //         location: cocData.location || '',
+  //         refno: cocData.refno || cocData.cocRefNo || '',
+  //         dateoftest: cocData.dateoftest ? new Date(cocData.dateoftest).toISOString().slice(0, 16) : (cocData.dateoftestRaw || ''),
+  //         reasonForTest: cocData.reasonForTest || '',
+  //       }));
+
+  //     } catch (error) {
+  //       console.error('💥 Fetch error:', error);
+  //       setError(error.message);
+        
+  //       // ✅ Even on error, show empty form
+  //       setFormData({
+  //         companyName: '',
+  //         flight: '',
+  //         location: '',
+  //         refno: '',
+  //         dateoftest: '',
+  //         reasonForTest: '',
+  //         donorName: '',
+  //         donorEmail: '',
+  //         gender: '',
+  //         barcodeno: '',
+  //         AlcoholScreen: '',
+  //         AlcoholConfirm: '',
+  //         AmphetamineScreen: '',
+  //         AmphetamineConfirm: '',
+  //         BenzodiazepineScreen: '',
+  //         BenzodiazepineConfirm: '',
+  //         CocaineScreen: '',
+  //         CocaineConfirm: '',
+  //         MethamphetamineScreen: '',
+  //         MethamphetamineConfirm: '',
+  //         MorphineScreen: '',
+  //         MorphineConfirm: '',
+  //         NetworkScreen: '',
+  //         NetworkConfirm: '',
+  //         OpiatesScreen: '',
+  //         OpiatesConfirm: '',
+  //         SSRIScreen: '',
+  //         SSRIConfirm: '',
+  //         TCAScreen: '',
+  //         TCAConfirm: '',
+  //         THCScreen: '',
+  //         THCConfirm: '',
+  //         donorCertificationName: '',
+  //         donorCertificationSignature: '',
+  //         donorCertificationDate: '',
+  //         collectorCertificationName: '',
+  //         collectorCertificationSignature: '',
+  //         collectorCertificationDate: '',
+  //         recieveInitial: '',
+  //         recieveName: '',
+  //         recieveDate: '',
+  //         specimenBottle: '',
+  //         fatalFlaws: '',
+  //         specimenBottleComment: '',
+  //         fatalFlawsComment: '',
+  //         DrugsandAlcoholUrineTest: false,
+  //         DrugsandAlcoholOralTest: false,
+  //         BreathAlcoholOnlyTest: false,
+  //         DrugsOnlyTest: false
+  //       });
+  //     }
+  //   };
+
+  //   fetchScreen4Data();
+  // }, [id]);
+
+
+  // ✅ UPDATED: Data fetching for ALL USERS (Client, Admin, Collector)
+useEffect(() => {
+  const fetchScreen4Data = async () => {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const collectorId = urlParams.get('collectorId');
+      
+      
+      // ✅ DETERMINE USER TYPE
+      let userType = 'admin'; // Default
+      if (collectorId) {
+        userType = 'collector';
+      } else {
+        // Check cookies or other methods to distinguish client vs admin
+        const token = Cookies.get("Token");
+        if (token === "clientdgf45sdgf89756dfgdhgdf") {
+          userType = 'client';
+        }
+      }
+      
+      console.log('🔄 Fetching COC data for:', { 
+        jobId: id, 
+        userType: userType,
+        collectorId: collectorId 
+      });
+
+      let apiUrl = '';
+      
+      // ✅ ALL USERS USE SAME API - Get COC forms by job ID
+      apiUrl = `${import.meta.env.VITE_API_BASE_URL}/getcocforms/${id}`;
+      console.log('🔗 API for all users:', apiUrl);
+
+      const response = await fetch(apiUrl);
+
+      if (response.ok) {
         const data = await response.json();
         console.log('✅ API Success:', data);
 
-        if (data.data) {
-          setFormData((prevData) => ({
-            ...prevData,
-            ...data.data,
-            companyName: data.data.companyName || '',
-            flight: data.data.flight || '',
-            location: data.data.location || '',
-            refno: data.data.refno || '',
-            dateoftest: data.data.dateoftest ? 
-              new Date(data.data.dateoftest).toISOString().slice(0, 16) : '',
-            reasonForTest: data.data.reasonForTest || '',
-          }));
+        let cocData = null;
+
+        // ✅ GET FIRST COC FORM FROM ARRAY
+        if (data.data && Array.isArray(data.data) && data.data.length > 0) {
+          cocData = data.data[0]; // Take first COC form
+          console.log('✅ Found COC form for all users:', cocData._id);
         }
 
-      } catch (error) {
-        console.error('💥 Fetch error:', error);
-        setError(error.message);
-        
-        // ✅ Even on error, show empty form
-        setFormData({
-          companyName: '',
-          flight: '',
-          location: '',
-          refno: '',
-          dateoftest: '',
-          reasonForTest: '',
-          donorName: '',
-          donorEmail: '',
-          gender: '',
-          barcodeno: '',
-          AlcoholScreen: '',
-          AlcoholConfirm: '',
-          AmphetamineScreen: '',
-          AmphetamineConfirm: '',
-          BenzodiazepineScreen: '',
-          BenzodiazepineConfirm: '',
-          CocaineScreen: '',
-          CocaineConfirm: '',
-          MethamphetamineScreen: '',
-          MethamphetamineConfirm: '',
-          MorphineScreen: '',
-          MorphineConfirm: '',
-          NetworkScreen: '',
-          NetworkConfirm: '',
-          OpiatesScreen: '',
-          OpiatesConfirm: '',
-          SSRIScreen: '',
-          SSRIConfirm: '',
-          TCAScreen: '',
-          TCAConfirm: '',
-          THCScreen: '',
-          THCConfirm: '',
-          donorCertificationName: '',
-          donorCertificationSignature: '',
-          donorCertificationDate: '',
-          collectorCertificationName: '',
-          collectorCertificationSignature: '',
-          collectorCertificationDate: '',
-          recieveInitial: '',
-          recieveName: '',
-          recieveDate: '',
-          specimenBottle: '',
-          fatalFlaws: '',
-          specimenBottleComment: '',
-          fatalFlawsComment: '',
-          DrugsandAlcoholUrineTest: false,
-          DrugsandAlcoholOralTest: false,
-          BreathAlcoholOnlyTest: false,
-          DrugsOnlyTest: false
-        });
+        if (cocData) {
+          // ✅ POPULATE FORM WITH EXISTING DATA
+          setFormData((prevData) => ({
+            ...prevData,
+            ...cocData,
+            companyName: cocData.companyName || cocData.company || '',
+            flight: cocData.flight || cocData.flightVessel || '',
+            location: cocData.location || '',
+            refno: cocData.refno || cocData.cocRefNo || '',
+            dateoftest: cocData.dateoftest ? new Date(cocData.dateoftest).toISOString().slice(0, 16) : (cocData.dateoftestRaw || ''),
+            reasonForTest: cocData.reasonForTest || '',
+          }));
+          console.log('✅ Form populated with existing data for:', userType);
+        } else {
+          // ✅ NO EXISTING FORM
+          console.log('📝 No existing COC form found');
+          setError('No COC form has been submitted for this job yet.');
+        }
+      } else {
+        console.log('❌ API returned error');
+        setError('Unable to load form data.');
       }
-    };
 
-    fetchScreen4Data();
-  }, [id]);
+    } catch (error) {
+      console.error('💥 Fetch error:', error);
+      setError(error.message);
+    }
+  };
+
+  fetchScreen4Data();
+}, [id]);
+
+
+
 
   if (!formData && !error) {
     return <div>Loading...</div>; // Display a loading message
@@ -584,66 +703,116 @@ function Screen4Details() {
   };
 
   // ✅ UPDATED: Form submission with collectorId
-  const handleSubmit = async (e) => {
-    setIsLoading(true)
-    e.preventDefault();
+  // const handleSubmit = async (e) => {
+  //   setIsLoading(true)
+  //   e.preventDefault();
     
-    // ✅ ADD: Get collectorId from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const collectorId = urlParams.get('collectorId');
+  //   // ✅ ADD: Get collectorId from URL
+  //   const urlParams = new URLSearchParams(window.location.search);
+  //   const collectorId = urlParams.get('collectorId');
     
-    const apiUrl = id
-      ? `${import.meta.env.VITE_API_BASE_URL}/updatescreen4data/${id}`
-      : `${import.meta.env.VITE_API_BASE_URL}/addscreen4data`;
+  //   const apiUrl = id
+  //     ? `${import.meta.env.VITE_API_BASE_URL}/updatescreen4data/${id}`
+  //     : `${import.meta.env.VITE_API_BASE_URL}/addscreen4data`;
 
-    try {
-      // ✅ ADD: Include collectorId in form data
-      const dataToSubmit = {
-        ...formData,
-        collectorId: collectorId // Add collector ID
-      };
+  //   try {
+  //     // ✅ ADD: Include collectorId in form data
+  //     const dataToSubmit = {
+  //       ...formData,
+  //       collectorId: collectorId // Add collector ID
+  //     };
 
-      const response = await fetch(apiUrl, {
-        method: id ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(dataToSubmit),
-      });
+  //     const response = await fetch(apiUrl, {
+  //       method: id ? "PUT" : "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify(dataToSubmit),
+  //     });
 
-      const result = await response.json();
+  //     const result = await response.json();
 
-      if (response.ok) {
-        message.success(
-          id ? "Form updated successfully!" : "Form submitted successfully!"
-        );
-      } else {
-        message.error(result.message || "Failed to process form.");
-      }
+  //     if (response.ok) {
+  //       message.success(
+  //         id ? "Form updated successfully!" : "Form submitted successfully!"
+  //       );
+  //     } else {
+  //       message.error(result.message || "Failed to process form.");
+  //     }
 
-      // Reset form if adding new data
-      if (id) {
-        setFormData({
-          donorName: "",
-          dob: "",
-          companyName: "",
-          reasonForTest: "Pre-Employment",
-          location: "",
-          sampleDate: "",
-          adulterationCheck: false,
-          drugTests: [],
-          consent: false,
-        });
-      }
-      navigate('/jobrequests')
-    } catch (error) {
-      console.error("Error: ", error);
-      message.error("Submission failed due to server error.");
-    }
-    setIsLoading(false)
-  };
+  //     // Reset form if adding new data
+  //     if (id) {
+  //       setFormData({
+  //         donorName: "",
+  //         dob: "",
+  //         companyName: "",
+  //         reasonForTest: "Pre-Employment",
+  //         location: "",
+  //         sampleDate: "",
+  //         adulterationCheck: false,
+  //         drugTests: [],
+  //         consent: false,
+  //       });
+  //     }
+  //     navigate('/jobrequests')
+  //   } catch (error) {
+  //     console.error("Error: ", error);
+  //     message.error("Submission failed due to server error.");
+  //   }
+  //   setIsLoading(false)
+  // };
 
  
+
+
+  // ✅ UPDATED: Form submission - ONLY COLLECTOR CAN SUBMIT
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  // ✅ GET COLLECTOR ID FROM URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const collectorId = urlParams.get('collectorId');
+  
+  // ✅ CHECK IF USER IS COLLECTOR
+  if (!collectorId) {
+    message.error("Only collectors can submit COC forms. Clients and Admins can only view.");
+    return;
+  }
+
+  setIsLoading(true);
+  
+  const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/updatescreen4data/${id}`;
+
+  try {
+    const dataToSubmit = {
+      ...formData,
+      collectorId: collectorId
+    };
+
+    console.log('📤 Submitting form as collector:', collectorId);
+
+    const response = await fetch(apiUrl, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(dataToSubmit),
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      message.success("Form saved successfully!");
+      navigate('/jobrequests');
+    } else {
+      message.error(result.message || "Failed to save form.");
+    }
+  } catch (error) {
+    console.error("Error: ", error);
+    message.error("Submission failed due to server error.");
+  }
+  setIsLoading(false);
+};
 
   
 
@@ -747,7 +916,32 @@ const handleDownloadPDF = async () => {
   }
 };
 
+// ✅ READ-Only fields for Client/Admin
+const getFieldProps = (fieldName) => {
+  if (!canEdit) {
+    return {
+      readOnly: true,
+      style: { 
+        backgroundColor: '#f5f5f5', 
+        cursor: 'not-allowed',
+        border: '1px solid #d9d9d9'
+      }
+    };
+  }
+  return {};
+};
 
+// Example usage in form fields:
+<input
+  className="inputstyle"
+  type="text"
+  name="donorName"
+  value={formData.donorName}
+  onChange={handleChange}
+  placeholder="Enter Donor's Name"
+  required
+  {...getFieldProps('donorName')} // ✅ This will make it read-only for client/admin
+/>
 
   return (
     <>
