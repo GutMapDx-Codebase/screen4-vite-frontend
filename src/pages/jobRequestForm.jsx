@@ -893,7 +893,7 @@ const handleAccept = async (e) => {
       
       // ✅ CHANGE: Redirect to COC form with collector ID
       setTimeout(() => {
-        navigate(`/coc-form/${id}?collectorId=${practitionerId}`);
+        navigate(`/jobrequests`);
       }, 1000);
       
     } else {

@@ -635,31 +635,8 @@ function Screen4Details() {
           console.log('✅ API Success:', data);
 
           let cocData = null;
-
-          // Accept a variety of shapes from API
-          // if (data && typeof data === 'object' && !Array.isArray(data) && data.data && Array.isArray(data.data) && data.data.length > 0) {
-          //   // API returned { data: [...] } - take first item
-          //   cocData = data.data[0];
-
-          //   console.log("condition 1",cocData)
-          // } else if (Array.isArray(data?.data) && data.data.length > 0) {
-          //   // data.data is array - take first item
-          //   cocData = data.data[0];
-          //   console.log("condition 2",cocData)
-
-          // } else if (Array.isArray(data) && data.length > 0) {
-          //   // data itself is array - take first item
-          //   cocData = data[0];
-          //   console.log("condition 3",cocData)
-
-          // } else if (data && typeof data === 'object' && Object.keys(data).length > 0 && !data.success) {
-          //   // some APIs may return the document directly
-          //   cocData = data;
-          //   console.log("condition 4",cocData)
-
-          // }
           cocData = data?.data
-          console.log("ssss", cocData)
+         
           // ✅ Fallback to collector-specific fetch if nothing found
           if (!cocData && collectorId) {
             try {
@@ -701,24 +678,18 @@ function Screen4Details() {
 
           // ✅ POPULATE FORM WITH EXISTING DATA - Only if we have valid data
           if (cocData && typeof cocData === 'object' && !Array.isArray(cocData)) {
-            console.log('📦 Setting form data:', cocData);
             setFormData((prevData) => ({
               ...prevData,
               ...cocData,
-              // companyName: cocData.companyName || cocData.company || prevData.companyName || '',
-              // flight: cocData.flight || cocData.flightVessel || prevData.flight || '',
-              // location: cocData.location || prevData.location || '',
-              // refno: cocData.refno || cocData.cocRefNo || prevData.refno || '',
-              // dateoftest: cocData.dateoftest ? new Date(cocData.dateoftest).toISOString().slice(0, 16) : (cocData.dateoftestRaw || prevData.dateoftest || ''),
-              // reasonForTest: (Array.isArray(cocData.reasonForTest) ? cocData.reasonForTest[0] : cocData.reasonForTest) || prevData.reasonForTest || '',
+      
             }));
             // remember the existing document id so we can update it instead of creating a new one
-            if (cocData._id) setExistingCocId(cocData._id);
-            console.log('✅ Form populated with existing data for:', userType);
+            // if (cocData._id) setExistingCocId(cocData._id);
+            // console.log('✅ Form populated with existing data for:', userType);
           } else {
             // ✅ NO EXISTING FORM
-            console.log('📝 No existing COC form found or invalid data format');
-            setError('No COC form has been submitted for this job yet.');
+            // console.log('📝 No existing COC form found or invalid data format');
+            // setError('No COC form has been submitted for this job yet.');
           }
         } else {
           console.log('❌ API returned error');
@@ -852,6 +823,7 @@ function Screen4Details() {
     // ✅ GET COLLECTOR ID FROM URL
     const urlParams = new URLSearchParams(window.location.search);
     const collectorId = urlParams.get('collectorId');
+    const jobRequestId = id;
 
     // ✅ CHECK IF USER IS COLLECTOR
     if (!collectorId) {
@@ -866,7 +838,8 @@ function Screen4Details() {
     try {
       const dataToSubmit = {
         ...formData,
-        collectorId: collectorId
+        collectorId: collectorId,
+        jobRequestId: jobRequestId
       };
 
       console.log('📤 Submitting form as collector:', collectorId);
