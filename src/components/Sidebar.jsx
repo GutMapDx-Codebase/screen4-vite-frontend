@@ -71,7 +71,7 @@ function Sidebar({ activeNav, onNav }) {
       <div className="sidebar-logo">
         <div className="logo-text">
           <img
-            src="https://screen4.org/wp-content/uploads/2023/02/SCREEN4-GREEN-WHITE-LOGO.png"
+            src="screen4.png"
             alt="Screen4 Logo"
             className="sidebar-logo-img"
             style={{

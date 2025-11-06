@@ -6,16 +6,18 @@ import { message, Tooltip } from "antd";
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import './css/Practitioner.css'
+import Cookies from 'js-cookie';
+
 import { useRef } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
- 
+
 
 function Screen4Details() {
   const navigate = useNavigate()
   const [error, setError] = useState(null);
   const { id } = useParams();
-  
+
 
   const [isloading, setIsLoading] = useState(false);
   const canvasRef = useRef(null);
@@ -44,10 +46,10 @@ function Screen4Details() {
         border: "1px solid #ccc",
         padding: "20px",
         boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-        width:"60%",
-        color:"#000000 !important"
+        width: "60%",
+        color: "#000000 !important"
       }}
-      >
+    >
       <canvas
         ref={canvasRef}
         style={{
@@ -55,7 +57,7 @@ function Screen4Details() {
           height: "200px",
           border: "1px solid #ccc",
           cursor: "crosshair",
-          width:"100%",
+          width: "100%",
           touchAction: "none",
         }}
         onMouseDown={startDrawing}
@@ -370,6 +372,8 @@ function Screen4Details() {
     BreathAlcoholOnlyTest: false,
     DrugsOnlyTest: false,
   });
+  // Track existing COC document id (if any) so we can update the same document
+  const [existingCocId, setExistingCocId] = useState(null);
   const handleAddComment = (field) => {
     const comment = prompt("Enter your comment:");
     if (comment) {
@@ -383,7 +387,7 @@ function Screen4Details() {
   //     try {
   //       const urlParams = new URLSearchParams(window.location.search);
   //       const collectorId = urlParams.get('collectorId');
-        
+
   //       if (!collectorId) {
   //         throw new Error("Collector ID is missing from URL");
   //       }
@@ -393,7 +397,7 @@ function Screen4Details() {
   //       // ✅ TRY 1: New API endpoint
   //       const primaryUrl = `${import.meta.env.VITE_API_BASE_URL}/getcollectorcocform/${id}/${collectorId}`;
   //       console.log('🔗 Trying primary API:', primaryUrl);
-        
+
   //       let response = await fetch(primaryUrl);
 
   //       if (response.status === 404) {
@@ -401,7 +405,7 @@ function Screen4Details() {
   //         console.log('🔄 Primary API returned 404, trying fallback...');
   //         const fallbackUrl = `${import.meta.env.VITE_API_BASE_URL}/getcollectorformbyjob/${id}?collectorId=${collectorId}`;
   //         console.log('🔗 Trying fallback API:', fallbackUrl);
-          
+
   //         response = await fetch(fallbackUrl);
   //       }
 
@@ -520,7 +524,7 @@ function Screen4Details() {
   //     } catch (error) {
   //       console.error('💥 Fetch error:', error);
   //       setError(error.message);
-        
+
   //       // ✅ Even on error, show empty form
   //       setFormData({
   //         companyName: '',
@@ -581,143 +585,158 @@ function Screen4Details() {
 
 
   // ✅ UPDATED: Data fetching for ALL USERS (Client, Admin, Collector)
-useEffect(() => {
-  const fetchScreen4Data = async () => {
-    try {
-      const urlParams = new URLSearchParams(window.location.search);
-      const collectorId = urlParams.get('collectorId');
-      
-      
-      // ✅ DETERMINE USER TYPE
-      let userType = 'admin'; // Default
-      if (collectorId) {
-        userType = 'collector';
-      } else {
-        // Check cookies or other methods to distinguish client vs admin
+  useEffect(() => {
+    const fetchScreen4Data = async () => {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const collectorId = urlParams.get('collectorId');
+
         const token = Cookies.get("Token");
-        if (token === "clientdgf45sdgf89756dfgdhgdf") {
+        console.log(token)
+        // ✅ DETERMINE USER TYPE
+        let userType = null // Default
+        if (token == "dskgfsdgfkgsdfkjg35464154845674987dsf@53") {
+          userType = 'admin';
+        }else if(token=="clientdgf45sdgf89756dfgdhgdf"){
           userType = 'client';
-        }
-      }
-      
-      console.log('🔄 Fetching COC data for:', { 
-        jobId: id, 
-        userType: userType,
-        collectorId: collectorId 
-      });
-
-      let apiUrl = '';
-      
-      // ✅ ALL USERS USE SAME API - Get COC forms by job ID
-      // Build URL conditionally - if collectorId exists, include it, otherwise use jobId only
-      if (collectorId && collectorId !== 'null' && collectorId !== 'undefined') {
-        apiUrl = `${import.meta.env.VITE_API_BASE_URL}/getcocforms/${id}/${collectorId}`;
-      } else {
-        apiUrl = `${import.meta.env.VITE_API_BASE_URL}/getcocforms/${id}`;
-      }
-      console.log('🔗 API for all users:', apiUrl);
-
-      const response = await fetch(apiUrl);
-
-
-
-
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ API Success:', data);
-
-        let cocData = null;
-
-        // Accept a variety of shapes from API
-        if (data && typeof data === 'object' && !Array.isArray(data) && data.data && Array.isArray(data.data) && data.data.length > 0) {
-          // API returned { data: [...] } - take first item
-          cocData = data.data[0];
-        } else if (Array.isArray(data?.data) && data.data.length > 0) {
-          // data.data is array - take first item
-          cocData = data.data[0];
-        } else if (Array.isArray(data) && data.length > 0) {
-          // data itself is array - take first item
-          cocData = data[0];
-        } else if (data && typeof data === 'object' && Object.keys(data).length > 0 && !data.success) {
-          // some APIs may return the document directly
-          cocData = data;
-        }
-
-        // ✅ Fallback to collector-specific fetch if nothing found
-        if (!cocData && collectorId) {
-          try {
-            const byCollectorUrl = `${import.meta.env.VITE_API_BASE_URL}/getcollectorcocform/${id}/${collectorId}`;
-            console.log('🔎 Trying collector-specific endpoint:', byCollectorUrl);
-            const resp2 = await fetch(byCollectorUrl);
-            if (resp2.ok) {
-              const data2 = await resp2.json();
-              const maybeData = data2?.data || data2 || null;
-              // Handle array case
-              if (Array.isArray(maybeData) && maybeData.length > 0) {
-                cocData = maybeData[0];
-              } else if (maybeData && typeof maybeData === 'object') {
-                cocData = maybeData;
-              }
-            }
-          } catch (e) {
-            console.warn('Collector-specific fetch failed', e);
-          }
-        }
-
-        // ✅ Extra fallback some backends expose
-        if (!cocData && collectorId) {
-          try {
-            const altUrl = `${import.meta.env.VITE_API_BASE_URL}/getcollectorformbyjob/${id}?collectorId=${collectorId}`;
-            console.log('🔎 Trying alternative endpoint:', altUrl);
-            const resp3 = await fetch(altUrl);
-            if (resp3.ok) {
-              const data3 = await resp3.json();
-              const maybe = data3?.data || data3 || null;
-              if (maybe) {
-                cocData = Array.isArray(maybe) ? maybe[0] : maybe;
-              }
-            }
-          } catch (e) {
-            console.warn('Alternative endpoint fetch failed', e);
-          }
-        }
-
-        // ✅ POPULATE FORM WITH EXISTING DATA - Only if we have valid data
-        if (cocData && typeof cocData === 'object' && !Array.isArray(cocData)) {
-          console.log('📦 Setting form data:', cocData);
-          setFormData((prevData) => ({
-            ...prevData,
-            ...cocData,
-            companyName: cocData.companyName || cocData.company || prevData.companyName || '',
-            flight: cocData.flight || cocData.flightVessel || prevData.flight || '',
-            location: cocData.location || prevData.location || '',
-            refno: cocData.refno || cocData.cocRefNo || prevData.refno || '',
-            dateoftest: cocData.dateoftest ? new Date(cocData.dateoftest).toISOString().slice(0, 16) : (cocData.dateoftestRaw || prevData.dateoftest || ''),
-            reasonForTest: (Array.isArray(cocData.reasonForTest) ? cocData.reasonForTest[0] : cocData.reasonForTest) || prevData.reasonForTest || '',
-          }));
-          console.log('✅ Form populated with existing data for:', userType);
         } else {
-          // ✅ NO EXISTING FORM
-          console.log('📝 No existing COC form found or invalid data format');
-          setError('No COC form has been submitted for this job yet.');
+          // Check cookies or other methods to distinguish client vs admin
+          userType = 'collector'; // For this example, assume collector if not admin
+
         }
-      } else {
-        console.log('❌ API returned error');
-        setError('Unable to load form data.');
+
+        console.log('🔄 Fetching COC data for:', {
+          jobId: id,
+          userType: userType,
+          collectorId: collectorId
+        });
+
+        let apiUrl = '';
+
+        // ✅ ALL USERS USE SAME API - Get COC forms by job ID
+        // Build URL conditionally - if collectorId exists, include it, otherwise use jobId only
+        // if (userType === 'collector') {
+          apiUrl = `${import.meta.env.VITE_API_BASE_URL}/getcocforms/${id}/${collectorId}/${userType}`;
+        //   console.log("check11")
+        // } else {
+        //   console.log("check22")
+        //   apiUrl = `${import.meta.env.VITE_API_BASE_URL}/getcocforms/${id}`;
+        // }
+        console.log('🔗 API for all users:', apiUrl);
+
+        const response = await fetch(apiUrl);
+
+
+
+
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('✅ API Success:', data);
+
+          let cocData = null;
+
+          // Accept a variety of shapes from API
+          // if (data && typeof data === 'object' && !Array.isArray(data) && data.data && Array.isArray(data.data) && data.data.length > 0) {
+          //   // API returned { data: [...] } - take first item
+          //   cocData = data.data[0];
+
+          //   console.log("condition 1",cocData)
+          // } else if (Array.isArray(data?.data) && data.data.length > 0) {
+          //   // data.data is array - take first item
+          //   cocData = data.data[0];
+          //   console.log("condition 2",cocData)
+
+          // } else if (Array.isArray(data) && data.length > 0) {
+          //   // data itself is array - take first item
+          //   cocData = data[0];
+          //   console.log("condition 3",cocData)
+
+          // } else if (data && typeof data === 'object' && Object.keys(data).length > 0 && !data.success) {
+          //   // some APIs may return the document directly
+          //   cocData = data;
+          //   console.log("condition 4",cocData)
+
+          // }
+          cocData = data?.data
+          console.log("ssss", cocData)
+          // ✅ Fallback to collector-specific fetch if nothing found
+          if (!cocData && collectorId) {
+            try {
+              const byCollectorUrl = `${import.meta.env.VITE_API_BASE_URL}/getcollectorcocform/${id}/${collectorId}`;
+              console.log('🔎 Trying collector-specific endpoint:', byCollectorUrl);
+              const resp2 = await fetch(byCollectorUrl);
+              if (resp2.ok) {
+                const data2 = await resp2.json();
+                const maybeData = data2?.data || data2 || null;
+                // Handle array case
+                if (Array.isArray(maybeData) && maybeData.length > 0) {
+                  cocData = maybeData[0];
+                } else if (maybeData && typeof maybeData === 'object') {
+                  cocData = maybeData;
+                }
+              }
+            } catch (e) {
+              console.warn('Collector-specific fetch failed', e);
+            }
+          }
+
+          // ✅ Extra fallback some backends expose
+          if (!cocData && collectorId) {
+            try {
+              const altUrl = `${import.meta.env.VITE_API_BASE_URL}/getcollectorformbyjob/${id}?collectorId=${collectorId}`;
+              console.log('🔎 Trying alternative endpoint:', altUrl);
+              const resp3 = await fetch(altUrl);
+              if (resp3.ok) {
+                const data3 = await resp3.json();
+                const maybe = data3?.data || data3 || null;
+                if (maybe) {
+                  cocData = Array.isArray(maybe) ? maybe[0] : maybe;
+                }
+              }
+            } catch (e) {
+              console.warn('Alternative endpoint fetch failed', e);
+            }
+          }
+
+          // ✅ POPULATE FORM WITH EXISTING DATA - Only if we have valid data
+          if (cocData && typeof cocData === 'object' && !Array.isArray(cocData)) {
+            console.log('📦 Setting form data:', cocData);
+            setFormData((prevData) => ({
+              ...prevData,
+              ...cocData,
+              // companyName: cocData.companyName || cocData.company || prevData.companyName || '',
+              // flight: cocData.flight || cocData.flightVessel || prevData.flight || '',
+              // location: cocData.location || prevData.location || '',
+              // refno: cocData.refno || cocData.cocRefNo || prevData.refno || '',
+              // dateoftest: cocData.dateoftest ? new Date(cocData.dateoftest).toISOString().slice(0, 16) : (cocData.dateoftestRaw || prevData.dateoftest || ''),
+              // reasonForTest: (Array.isArray(cocData.reasonForTest) ? cocData.reasonForTest[0] : cocData.reasonForTest) || prevData.reasonForTest || '',
+            }));
+            // remember the existing document id so we can update it instead of creating a new one
+            if (cocData._id) setExistingCocId(cocData._id);
+            console.log('✅ Form populated with existing data for:', userType);
+          } else {
+            // ✅ NO EXISTING FORM
+            console.log('📝 No existing COC form found or invalid data format');
+            setError('No COC form has been submitted for this job yet.');
+          }
+        } else {
+          console.log('❌ API returned error');
+          setError('Unable to load form data.');
+        }
+
+      } catch (error) {
+        console.error('💥 Fetch error:', error);
+        setError(error.message);
       }
+    };
 
-    } catch (error) {
-      console.error('💥 Fetch error:', error);
-      setError(error.message);
-    }
-  };
-
-  fetchScreen4Data();
+    fetchScreen4Data();
 
 
-}, [id]);
+  }, [id]);
 
+  console.log('Form Data:', formData);
 
 
 
@@ -728,7 +747,7 @@ useEffect(() => {
   if (error) {
     return <div>Error: {error}</div>; // Display an error message
   }
-  
+
 
   const handleCheckboxChange = (e) => {
     const { value, checked } = e.target;
@@ -767,11 +786,11 @@ useEffect(() => {
   // const handleSubmit = async (e) => {
   //   setIsLoading(true)
   //   e.preventDefault();
-    
+
   //   // ✅ ADD: Get collectorId from URL
   //   const urlParams = new URLSearchParams(window.location.search);
   //   const collectorId = urlParams.get('collectorId');
-    
+
   //   const apiUrl = id
   //     ? `${import.meta.env.VITE_API_BASE_URL}/updatescreen4data/${id}`
   //     : `${import.meta.env.VITE_API_BASE_URL}/addscreen4data`;
@@ -823,59 +842,59 @@ useEffect(() => {
   //   setIsLoading(false)
   // };
 
- 
+
 
 
   // ✅ UPDATED: Form submission - ONLY COLLECTOR CAN SUBMIT
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  
-  // ✅ GET COLLECTOR ID FROM URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const collectorId = urlParams.get('collectorId');
-  
-  // ✅ CHECK IF USER IS COLLECTOR
-  if (!collectorId) {
-    message.error("Only collectors can submit COC forms. Clients and Admins can only view.");
-    return;
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  setIsLoading(true);
-  
-  const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/updatescreen4data/${id}`;
+    // ✅ GET COLLECTOR ID FROM URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const collectorId = urlParams.get('collectorId');
 
-  try {
-    const dataToSubmit = {
-      ...formData,
-      collectorId: collectorId
-    };
-
-    console.log('📤 Submitting form as collector:', collectorId);
-
-    const response = await fetch(apiUrl, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(dataToSubmit),
-    });
-
-    const result = await response.json();
-
-    if (response.ok) {
-      message.success("Form saved successfully!");
-      navigate('/jobrequests');
-    } else {
-      message.error(result.message || "Failed to save form.");
+    // ✅ CHECK IF USER IS COLLECTOR
+    if (!collectorId) {
+      message.error("Only collectors can submit COC forms. Clients and Admins can only view.");
+      return;
     }
-  } catch (error) {
-    console.error("Error: ", error);
-    message.error("Submission failed due to server error.");
-  }
-  setIsLoading(false);
-};
 
-  
+    setIsLoading(true);
+
+    const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/updatescreen4data/${id}`;
+
+    try {
+      const dataToSubmit = {
+        ...formData,
+        collectorId: collectorId
+      };
+
+      console.log('📤 Submitting form as collector:', collectorId);
+
+      const response = await fetch(apiUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dataToSubmit),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        message.success("Form saved successfully!");
+        navigate('/jobrequests');
+      } else {
+        message.error(result.message || "Failed to save form.");
+      }
+    } catch (error) {
+      console.error("Error: ", error);
+      message.error("Submission failed due to server error.");
+    }
+    setIsLoading(false);
+  };
+
+
 
   // Example of populating form data for update
   const handleEdit = (dataToEdit) => {
@@ -928,100 +947,100 @@ const handleSubmit = async (e) => {
 
 
 
-const handleDownloadPDF = async () => {
-  // Block downloads on mobile/touch devices or small screens
-  const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-    navigator.userAgent || ""
-  );
-  const isSmallScreen = typeof window !== 'undefined' && window.innerWidth < 992; // treat <992px as non-desktop
-  if (isMobileUA || isSmallScreen) {
-    try {
-      message.warning("COC form download is only available on desktop/laptop.");
-    } catch (e) {
-      alert("COC form download is only available on desktop/laptop.");
+  const handleDownloadPDF = async () => {
+    // Block downloads on mobile/touch devices or small screens
+    const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent || ""
+    );
+    const isSmallScreen = typeof window !== 'undefined' && window.innerWidth < 992; // treat <992px as non-desktop
+    if (isMobileUA || isSmallScreen) {
+      try {
+        message.warning("COC form download is only available on desktop/laptop.");
+      } catch (e) {
+        alert("COC form download is only available on desktop/laptop.");
+      }
+      return;
     }
-    return;
-  }
-  const element = document.querySelector(".COCform");
+    const element = document.querySelector(".COCform");
 
-  if (!element) {
-    console.error("Form element not found");
-    return;
-  }
+    if (!element) {
+      console.error("Form element not found");
+      return;
+    }
 
-  try {
-    // Generate password
-    const password = "screen4@2024";
+    try {
+      // Generate password
+      const password = "screen4@2024";
 
-    const canvas = await html2canvas(element, {
-      scale: 2,
-      backgroundColor: "#ffffff",
-      useCORS: true,
-    });
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        backgroundColor: "#ffffff",
+        useCORS: true,
+      });
 
-    const imgData = canvas.toDataURL("image/png");
-    
-    // Create PDF with encryption options
-    const pdf = new jsPDF({
-      orientation: 'p',
-      unit: 'mm',
-      format: 'a4',
-      encryption: {
-        userPassword: password,
-        ownerPassword: 'Screen4Admin2024',
-        userPermissions: ['print', 'copy']
-      }
-    });
+      const imgData = canvas.toDataURL("image/png");
 
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+      // Create PDF with encryption options
+      const pdf = new jsPDF({
+        orientation: 'p',
+        unit: 'mm',
+        format: 'a4',
+        encryption: {
+          userPassword: password,
+          ownerPassword: 'Screen4Admin2024',
+          userPermissions: ['print', 'copy']
+        }
+      });
 
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, imgHeight);
-    
-    // Save with encryption
-    pdf.save("Secure_ClientDetails.pdf");
-    
-    // Show password
-    alert(`✅ PDF Downloaded Successfully!\n\n📄 File: Secure_ClientDetails.pdf\n🔐 Password: ${password}\n\nUse this password to open the PDF.`);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
 
-  } catch (error) {
-    console.error("PDF Error:", error);
-    alert("❌ Failed to generate PDF. Please try again.");
-  }
-};
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, imgHeight);
 
-// Determine if current viewer can edit: collectors (with collectorId in URL) can edit; others read-only
-const canEdit = Boolean(new URLSearchParams(window.location.search).get('collectorId'));
-const isMobileOrSmall = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-  navigator.userAgent || ""
-) || (typeof window !== 'undefined' && window.innerWidth < 992);
+      // Save with encryption
+      pdf.save("Secure_ClientDetails.pdf");
 
-// ✅ READ-Only fields for Client/Admin
-const getFieldProps = (fieldName) => {
-  if (!canEdit) {
-    return {
-      readOnly: true,
-      style: { 
-        backgroundColor: '#f5f5f5', 
-        cursor: 'not-allowed',
-        border: '1px solid #d9d9d9'
-      }
-    };
-  }
-  return {};
-};
+      // Show password
+      alert(`✅ PDF Downloaded Successfully!\n\n📄 File: Secure_ClientDetails.pdf\n🔐 Password: ${password}\n\nUse this password to open the PDF.`);
 
-// Example usage in form fields:
-<input
-  className="inputstyle"
-  type="text"
-  name="donorName"
-  value={formData.donorName}
-  onChange={handleChange}
-  placeholder="Enter Donor's Name"
-  required
-  {...getFieldProps('donorName')} // ✅ This will make it read-only for client/admin
-/>
+    } catch (error) {
+      console.error("PDF Error:", error);
+      alert("❌ Failed to generate PDF. Please try again.");
+    }
+  };
+
+  // Determine if current viewer can edit: collectors (with collectorId in URL) can edit; others read-only
+  const canEdit = Boolean(new URLSearchParams(window.location.search).get('collectorId'));
+  const isMobileOrSmall = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent || ""
+  ) || (typeof window !== 'undefined' && window.innerWidth < 992);
+
+  // ✅ READ-Only fields for Client/Admin
+  const getFieldProps = (fieldName) => {
+    if (!canEdit) {
+      return {
+        readOnly: true,
+        style: {
+          backgroundColor: '#f5f5f5',
+          cursor: 'not-allowed',
+          border: '1px solid #d9d9d9'
+        }
+      };
+    }
+    return {};
+  };
+
+  // Example usage in form fields:
+  <input
+    className="inputstyle"
+    type="text"
+    name="donorName"
+    value={formData.donorName}
+    onChange={handleChange}
+    placeholder="Enter Donor's Name"
+    required
+    {...getFieldProps('donorName')} // ✅ This will make it read-only for client/admin
+  />
 
   return (
     <>
@@ -1162,7 +1181,7 @@ const getFieldProps = (fieldName) => {
                   placeholder="Enter Company Name"
                 />
               </div>
-              
+
 
               <div className="donor">
                 {/* Location */}
@@ -1251,18 +1270,18 @@ const getFieldProps = (fieldName) => {
               <div className="donor">
                 {/* BAR CODE NUMBER */}
                 <label>BAR CODE NUMBER</label>
-                <div style={{ display: "flex", gap: "8px", alignItems: "center",flexDirection: formData.barcodeImage && "column" }}>
-                {!formData.barcodeImage &&  <input
+                <div style={{ display: "flex", gap: "8px", alignItems: "center", flexDirection: formData.barcodeImage && "column" }}>
+                  {!formData.barcodeImage && <input
                     className="inputstyle"
                     type="text"
                     name="barcodeno"
                     value={formData.barcodeno}
                     onChange={handleChange}
                   />}
-                {formData.barcodeImage && (
-                  <img src={formData.barcodeImage} alt="barcode" style={{ marginTop: "6px", maxWidth: "120px" }} />
-                )}
-                  <label className="createjob2" style={{ padding: "6px 10px", cursor: "pointer",borderRadius:"10px",backgroundColor:"#80c209",fontSize:"10px",textAlign:"center" }}>
+                  {formData.barcodeImage && (
+                    <img src={formData.barcodeImage} alt="barcode" style={{ marginTop: "6px", maxWidth: "120px" }} />
+                  )}
+                  <label className="createjob2" style={{ padding: "6px 10px", cursor: "pointer", borderRadius: "10px", backgroundColor: "#80c209", fontSize: "10px", textAlign: "center" }}>
                     Upload
                     <input type="file" accept="image/*" capture="environment" onChange={handleBarcodePhoto} style={{ display: "none" }} />
                   </label>
@@ -2596,7 +2615,7 @@ const getFieldProps = (fieldName) => {
                 />
               </div>
             </div>
-            <div class="part2" style={{  border: "1px solid black", height: "150px", marginBottom: "20px",  }}><h5 style={{ fontWeight: "bold", padding: "7px", paddingLeft: "0px", fontSize: "15px" }}>
+            <div class="part2" style={{ border: "1px solid black", height: "150px", marginBottom: "20px", }}><h5 style={{ fontWeight: "bold", padding: "7px", paddingLeft: "0px", fontSize: "15px" }}>
               Specimen bottle seals intact
             </h5><div
               style={{
@@ -2643,7 +2662,7 @@ const getFieldProps = (fieldName) => {
                   style={{
                     // marginLeft: "auto",
                     // width: "110px",
-                     width:"100%",
+                    width: "100%",
                     marginLeft: "0px",
                     fontSize: "14px",
                     cursor: "pointer",
@@ -2669,16 +2688,16 @@ const getFieldProps = (fieldName) => {
                 </div>
               )}
             </div>
-            <div class="part3" style={{   border: "1px solid black", height: "150px", marginBottom: "20px" }}>
+            <div class="part3" style={{ border: "1px solid black", height: "150px", marginBottom: "20px" }}>
               <h5 style={{ fontWeight: "bold", padding: "7px", paddingLeft: "0px", fontSize: "15px" }}>
-              Fatal Flaw
-            </h5><div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
+                Fatal Flaw
+              </h5><div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
                 <label
                   style={{
                     // marginRight: "10px",
@@ -2717,7 +2736,7 @@ const getFieldProps = (fieldName) => {
                   style={{
                     // marginLeft: "auto",
                     // width: "110px",
-                    width:"100%",
+                    width: "100%",
                     marginLeft: "0px",
                     fontSize: "14px",
                     cursor: "pointer",
@@ -2765,48 +2784,48 @@ const getFieldProps = (fieldName) => {
                 Update
               </button>
             ) : (
-              <div style={{width:"100%",display: "flex",justifyContent:"center"}}><img src="/empty.gif" style={{width:"130px",}}/></div>
+              <div style={{ width: "100%", display: "flex", justifyContent: "center" }}><img src="/empty.gif" style={{ width: "130px", }} /></div>
             )
           ) : null}
 
-         {!isMobileOrSmall && (
-           <button 
-  type="button" 
-  onClick={handleDownloadPDF}
-  style={{
-    marginTop: "20px",
-    padding: "12px 24px",
-    backgroundColor: "#28a745",
-    color: "white",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
-    fontSize: "16px",
-    fontWeight: "600",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "8px",
-    width: "100%",
-    boxShadow: "0 4px 6px rgba(40, 167, 69, 0.3)",
-    transition: "all 0.3s ease",
-    marginBottom: "10px"
-  }}
-  onMouseOver={(e) => {
-    e.target.style.backgroundColor = "#218838";
-    e.target.style.transform = "translateY(-2px)";
-    e.target.style.boxShadow = "0 6px 8px rgba(40, 167, 69, 0.4)";
-  }}
-  onMouseOut={(e) => {
-    e.target.style.backgroundColor = "#28a745";
-    e.target.style.transform = "translateY(0)";
-    e.target.style.boxShadow = "0 4px 6px rgba(40, 167, 69, 0.3)";
-  }}
->
-  <span>🔒</span>
-  Download Secure PDF
-           </button>
-         )}
+          {!isMobileOrSmall && (
+            <button
+              type="button"
+              onClick={handleDownloadPDF}
+              style={{
+                marginTop: "20px",
+                padding: "12px 24px",
+                backgroundColor: "#28a745",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer",
+                fontSize: "16px",
+                fontWeight: "600",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                width: "100%",
+                boxShadow: "0 4px 6px rgba(40, 167, 69, 0.3)",
+                transition: "all 0.3s ease",
+                marginBottom: "10px"
+              }}
+              onMouseOver={(e) => {
+                e.target.style.backgroundColor = "#218838";
+                e.target.style.transform = "translateY(-2px)";
+                e.target.style.boxShadow = "0 6px 8px rgba(40, 167, 69, 0.4)";
+              }}
+              onMouseOut={(e) => {
+                e.target.style.backgroundColor = "#28a745";
+                e.target.style.transform = "translateY(0)";
+                e.target.style.boxShadow = "0 4px 6px rgba(40, 167, 69, 0.3)";
+              }}
+            >
+              <span>🔒</span>
+              Download Secure PDF
+            </button>
+          )}
 
         </form>
       </div>

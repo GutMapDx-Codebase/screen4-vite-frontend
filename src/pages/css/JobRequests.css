@@ -782,18 +782,19 @@
 
 .collector-name {
   font-weight: 600;
-  color: #0f172a !important;
+  color: #fdfdfd !important;
   margin-bottom: 4px;
   font-size: 1rem;
 }
 
 .collector-email {
   font-size: 0.85rem;
-  color: #475569 !important;
+  color: #ffffff !important;
 }
 
 .collector-status {
   text-align: right;
+  color: #475569;
 }
 
 .status-badge {

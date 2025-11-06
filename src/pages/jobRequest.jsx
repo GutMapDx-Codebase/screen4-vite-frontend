@@ -649,10 +649,10 @@ const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query 
               {selectedJobDetails.collectors?.map((collector, index) => (
                 <div key={index} className={`collector-item ${collector.status ? 'accepted' : 'pending'}`}>
                   <div className="collector-info">
-                    <div className="collector-name">
+                    <div className="collector-namess">
                       {collector.collectorsId?.name || 'Unknown Collector'}
                     </div>
-                    <div className="collector-email">
+                    <div className="collector-emailss">
                       {collector.collectorsId?.email || 'No email'}
                     </div>
                   </div>
