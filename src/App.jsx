@@ -9,6 +9,8 @@ import AddClientForm from './pages/addClientForm';
 import AllClients from './pages/allClient';
 import AllCollectors from './pages/AllCollectors';
 import AddCollectorForm from './pages/addCollectorForm';
+import AllAdmins from './pages/AllAdmins';
+import AddAdminForm from './pages/addAdminForm';
 import ClientHub from './pages/ClientHub';
 import Patient from './pages/Patients';
 import Screen4TestForm from './pages/FSForm';
@@ -32,10 +34,13 @@ function App() {
           <Route path="/clients/:id" element={<Layout><ClientHub /></Layout>} />
           <Route path="/clients/overview" element={<Layout><ClientHub /></Layout>} />
           <Route path="/collectors" element={<Layout><AllCollectors /></Layout>} />
+          <Route path="/admins" element={<Layout><AllAdmins /></Layout>} />
           <Route path="/addclient" element={<Layout><AddClientForm /></Layout>} />
           <Route path="/addcollector" element={<Layout><AddCollectorForm /></Layout>} />
+          <Route path="/addadmin" element={<Layout><AddAdminForm /></Layout>} />
           <Route path="/addclient/:id" element={<Layout><AddClientForm /></Layout>} />
           <Route path="/addcollector/:id" element={<Layout><AddCollectorForm /></Layout>} />
+          <Route path="/addadmin/:id" element={<Layout><AddAdminForm /></Layout>} />
           <Route path='/data' element={<Layout><Patient /></Layout>} />
           <Route path='/jobrequests' element={<Layout><JobRequests /></Layout>} />
           <Route path="/refusalform" element={<Layout><RefusalForm /></Layout>} />

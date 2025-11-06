@@ -13,6 +13,7 @@ const ModernDashboard = () => {
   const [jobStats, setJobStats] = useState({ pending: 0, accepted: 0, completed: 0 });
   const [clientsCount, setClientsCount] = useState(0);
   const [collectorsCount, setCollectorsCount] = useState(0);
+  const [adminsCount, setAdminsCount] = useState(0);
   const [totalTests, setTotalTests] = useState(0);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -68,6 +69,7 @@ const ModernDashboard = () => {
       id === 'total-tests' ? 'Total Tests' :
       id === 'active-clients' ? 'Active Clients' :
       id === 'collectors' ? 'Collectors' :
+      id === 'admins' ? 'Admins' :
       id === 'pending-jobs' ? 'Pending Jobs' :
       id === 'completed-jobs' ? 'Completed Jobs' : 'Details'
     );
@@ -85,6 +87,11 @@ const ModernDashboard = () => {
         setModalItems(items);
       } else if (id === 'collectors') {
         res = await fetch(`${base}/getcollectors`);
+        const data = await res.json();
+        const items = Array.isArray(data) ? data : data.data || [];
+        setModalItems(items);
+      } else if (id === 'admins') {
+        res = await fetch(`${base}/getadmins`);
         const data = await res.json();
         const items = Array.isArray(data) ? data : data.data || [];
         setModalItems(items);
@@ -123,6 +130,7 @@ const ModernDashboard = () => {
           setTotalTests(data.totalTests);
           setClientsCount(data.clientsCount);
           setCollectorsCount(data.collectorsCount);
+          setAdminsCount(data.adminsCount || 0);
           setMonthlyData(data.monthlyData);
           setReasonData(data.reasonData);
           setJobStats(data.jobStats);
@@ -144,6 +152,7 @@ const ModernDashboard = () => {
     const path = location.pathname || '';
     if (path.startsWith('/clients')) setActiveNav('clients');
     else if (path.startsWith('/collectors')) setActiveNav('collectors');
+    else if (path.startsWith('/admins')) setActiveNav('admins');
     else if (path.startsWith('/jobrequests')) setActiveNav('jobs');
     else if (path.startsWith('/report')) setActiveNav('reports');
     else if (path.startsWith('/dashboard/profile')) setActiveNav('settings');
@@ -170,6 +179,7 @@ const ModernDashboard = () => {
         { id: 'total-tests', label: 'Total Tests', value: totalTests, icon: '🧪', color: '#22c55e' },
         { id: 'active-clients', label: 'Active Clients', value: clientsCount, icon: '👥', color: '#3b82f6' },
         { id: 'collectors', label: 'Collectors', value: collectorsCount, icon: '✓', color: '#8b5cf6' },
+        { id: 'admins', label: 'Admins', value: adminsCount, icon: '👨‍💼', color: '#ef4444' },
         { id: 'pending-jobs', label: 'Pending Jobs', value: jobStats.pending, icon: '💼', color: '#f59e0b' },
         { id: 'completed-jobs', label: 'Completed Jobs', value: jobStats.completed, icon: '✅', color: '#10b981' },
       ];
@@ -440,6 +450,36 @@ const ModernDashboard = () => {
                   >
                     <List.Item.Meta
                       avatar={<Avatar style={{ backgroundColor: '#8b5cf6' }}>{name?.toString().charAt(0)}</Avatar>}
+                      title={<div className="modal-item-title">{name}</div>}
+                      description={<div className="modal-item-meta">{email}</div>}
+                    />
+                  </List.Item>
+                );
+              }
+
+              // admins
+              if (modalType === 'admins') {
+                const name = item.name || item.adminName || item.fullName || 'Admin';
+                const email = item.email || item.contact || '';
+                return (
+                  <List.Item className="modal-list-item" key={item._id}
+                    actions={[
+                      <Button
+                        key="open-admin"
+                        type="default"
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setModalVisible(false);
+                          navigate(`/addadmin/${item._id}`);
+                        }}
+                      >
+                        Open
+                      </Button>,
+                    ]}
+                  >
+                    <List.Item.Meta
+                      avatar={<Avatar style={{ backgroundColor: '#ef4444' }}>{name?.toString().charAt(0)}</Avatar>}
                       title={<div className="modal-item-title">{name}</div>}
                       description={<div className="modal-item-meta">{email}</div>}
                     />

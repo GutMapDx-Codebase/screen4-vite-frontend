@@ -16,6 +16,7 @@ function Layout({ children }) {
     const path = location.pathname || '';
     if (path.startsWith('/clients')) setActiveNav('clients');
     else if (path.startsWith('/collectors')) setActiveNav('collectors');
+    else if (path.startsWith('/admins')) setActiveNav('admins');
     else if (path.startsWith('/jobrequests')) setActiveNav('jobs');
     else if (path.startsWith('/report')) setActiveNav('reports');
     else if (path.startsWith('/dashboard/profile')) setActiveNav('settings');
@@ -33,6 +34,9 @@ function Layout({ children }) {
         break;
       case 'collectors':
         navigate('/collectors');
+        break;
+      case 'admins':
+        navigate('/admins');
         break;
       case 'jobs':
         navigate('/jobrequests');
