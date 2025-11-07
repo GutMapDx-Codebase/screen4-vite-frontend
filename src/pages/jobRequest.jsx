@@ -26,6 +26,8 @@ const JobRequests = () => {
   const [selectedJobDetails, setSelectedJobDetails] = useState(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
 
+  const [collectorCocForms, setCollectorCocForms] = useState({});
+
   const isClient = token === 'clientdgf45sdgf89756dfgdhgdf';
   
   useEffect(() => {
@@ -84,7 +86,7 @@ const JobRequests = () => {
     setIsDeleting(false);
   };
 
-  // ✅ Fetch Collector COC Form
+  // ✅ Fetch Collector COC Form (for current logged-in collector)
   const fetchAcceptedById = async (jobId) => {
     try {
       const response = await fetch(
@@ -96,10 +98,35 @@ const JobRequests = () => {
       }
 
       const data = await response.json();
-      return data.data?._id;
+      const raw = data?.data ?? data;
+      if (Array.isArray(raw)) {
+        return raw[0]?._id || raw[0]?.id || raw[0]?.formId || null;
+      }
+      if (raw && typeof raw === 'object') {
+        return raw._id || raw.id || raw.formId || null;
+      }
+      return null;
     } catch (error) {
       console.error("Error fetching collector COC form:", error);
       return null;
+    }
+  };
+
+  // ✅ Check if a specific collector has submitted a COC for a job
+  const fetchCollectorCocFormsByCollector = async (jobId, specificCollectorId) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/getcollectorcocform/${jobId}/${specificCollectorId}`
+      );
+      if (!response.ok) return [];
+      const data = await response.json();
+      const raw = data?.data ?? data;
+      if (!raw) return [];
+      if (Array.isArray(raw)) return raw.filter(Boolean);
+      if (raw && typeof raw === 'object') return [raw];
+      return [];
+    } catch (e) {
+      return [];
     }
   };
 
@@ -132,6 +159,20 @@ const JobRequests = () => {
     if (jobDetails) {
       setSelectedJobDetails(jobDetails);
       setCollectorDetailsModal(true);
+
+      // Build submitted map for each collector in this job
+      const collectors = Array.isArray(jobDetails.collectors) ? jobDetails.collectors : [];
+      const formsEntries = await Promise.all(
+        collectors.map(async (c) => {
+          const specId = c?.collectorsId?._id || c?.collectorsId || c?._id;
+          if (!specId) return [undefined, []];
+          const forms = await fetchCollectorCocFormsByCollector(jobId, specId);
+          return [specId, forms];
+        })
+      );
+      const formsMap = {};
+      formsEntries.forEach(([cid, forms]) => { if (cid) formsMap[cid] = forms; });
+      setCollectorCocForms(formsMap);
     }
   };
 
@@ -506,39 +547,30 @@ const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query 
       return;
     }
 
-    // ✅ Admin / Client: open CHAIN OF CUSTODY form directly when clicking the card
-      if (currentToken === "dskgfsdgfkgsdfkjg35464154845674987dsf@53" || currentToken === "clientdgf45sdgf89756dfgdhgdf") {
-        // Client flow: try to locate the collector who saved the COC for this job
-        if (currentToken === "clientdgf45sdgf89756dfgdhgdf") {
-          try {
-            const resp = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getcocforms/${id}`);
-            if (!resp.ok) {
-              message.info('No COC forms found for this job');
-              return;
-            }
-
-            const result = await resp.json();
-            const forms = result?.data || result || [];
-
-            if (!Array.isArray(forms) || forms.length === 0) {
-              message.info('No COC forms found for this job');
-              return;
-            }
-
-            // Pick the first form and try to find the collector id from common fields
-            const form = forms[0];
-            const possibleCollectorId = form.collectorId || (form.collectorsId && (form.collectorsId._id || form.collectorsId)) || form.collector || form.createdBy || form.acceptedBy || null;
-
-            const targetCollectorId = possibleCollectorId || collectorId; // fallback to cookie id
-
-            navigate(`/coc-form/${id}?collectorId=${targetCollectorId}`);
-            return;
-          } catch (err) {
-            console.error('Error fetching COC forms for client:', err);
-            message.error('Failed to open COC form');
-            return;
-          }
+    // ✅ Client: show summary modal with access to per-collector COC forms (no job request view)
+      if (currentToken === "clientdgf45sdgf89756dfgdhgdf") {
+        const jobDetails = await fetchJobDetailsWithCollectors(id);
+        if (jobDetails) {
+          setSelectedJobDetails(jobDetails);
+          setCollectorDetailsModal(true);
+          const collectors = Array.isArray(jobDetails.collectors) ? jobDetails.collectors : [];
+          const formsEntries = await Promise.all(
+            collectors.map(async (c) => {
+              const specId = c?.collectorsId?._id || c?.collectorsId || c?._id;
+              if (!specId) return [undefined, []];
+              const forms = await fetchCollectorCocFormsByCollector(id, specId);
+              return [specId, forms];
+            })
+          );
+          const formsMap = {};
+          formsEntries.forEach(([cid, forms]) => { if (cid) formsMap[cid] = forms; });
+          setCollectorCocForms(formsMap);
         }
+        return;
+      }
+
+    // ✅ Admin: open CHAIN OF CUSTODY form directly when clicking the card
+      if (currentToken === "dskgfsdgfkgsdfkjg35464154845674987dsf@53") {
 
         // Admin flow: try to find the collector who accepted/completed the job
         try {
@@ -553,7 +585,15 @@ const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query 
             }
           }
 
-          navigate(`/coc-form/${id}?collectorId=${chosenCollectorId}`);
+          const forms = await fetchCollectorCocFormsByCollector(id, chosenCollectorId);
+          const basePath = `/coc-form/${id}?collectorId=${chosenCollectorId}`;
+          if (forms && forms.length > 0) {
+            const primaryFormId = forms[0]?._id || forms[0]?.id || forms[0]?.formId;
+            navigate(primaryFormId ? `${basePath}&formId=${primaryFormId}` : basePath);
+          } else {
+            const newId = `new-${Date.now()}`;
+            navigate(`${basePath}&formId=${newId}&newForm=true`);
+          }
           return;
         } catch (err) {
           console.error('Error finding collector for COC form:', err);
@@ -601,6 +641,10 @@ const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query 
   const CollectorDetailsModal = () => {
     if (!selectedJobDetails) return null;
 
+    const adminToken = 'dskgfsdgfkgsdfkjg35464154845674987dsf@53';
+    const collectorToken = 'collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg';
+    const canCreateCoc = token === adminToken || token === collectorToken;
+
     return (
       <Modal
         title={
@@ -644,32 +688,73 @@ const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query 
 
           {/* Collectors Status */}
           <div className="collectors-section">
-            <h4>Collectors Status</h4>
-            <div className="collectors-list">
-              {selectedJobDetails.collectors?.map((collector, index) => (
-                <div key={index} className={`collector-item ${collector.status ? 'accepted' : 'pending'}`}>
-                  <div className="collector-info">
-                    <div className="collector-namess">
-                      {collector.collectorsId?.name || 'Unknown Collector'}
-                    </div>
-                    <div className="collector-emailss">
-                      {collector.collectorsId?.email || 'No email'}
-                    </div>
-                  </div>
-                  <div className="collector-status">
-                    <span className={`status-badge ${collector.status ? 'accepted' : 'pending'}`}>
-                      {collector.status ? '✅ Accepted' : '⏳ Pending'}
-                    </span>
-                    {collector.status && (
-                      <div className="accepted-time">
-                        
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+  <h4>Collectors Status</h4>
+  <div className="collectors-list">
+    {selectedJobDetails.collectors?.map((collector, index) => (
+      <div key={index} className={`collector-item ${collector.status ? 'accepted' : 'pending'}`}>
+        <div className="collector-info">
+          <div className="collector-namess">
+            {collector.collectorsId?.name || 'Unknown Collector'}
           </div>
+          <div className="collector-emailss">
+            {collector.collectorsId?.email || 'No email'}
+          </div>
+        </div>
+        <div className="collector-status">
+          <span className={`status-badge ${collector.status ? 'accepted' : 'pending'}`}>
+            {collector.status ? '✅ Accepted' : '⏳ Pending'}
+          </span>
+                    {(() => {
+                      const cid = collector?.collectorsId?._id || collector?.collectorsId || collector?._id;
+                      const forms = cid && collectorCocForms[cid] ? collectorCocForms[cid] : [];
+
+                      return (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
+                          {forms.length > 0 ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                              {forms.map((form, idx) => {
+                                const formId = form?._id || form?.id || idx;
+                                const label = form?.donorName ? `View COC - ${form.donorName}` : `View COC ${idx + 1}`;
+                                return (
+                                  <button
+                                    key={`coc-${cid}-${formId}`}
+                                    className="view-coc-btn"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      navigate(`/coc-form/${selectedJobDetails._id}?collectorId=${cid}&formId=${formId}`);
+                                    }}
+                                  >
+                                    {label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <span className="status-note">
+                              {collector.status ? 'No COC submitted yet' : 'Awaiting acceptance'}
+                            </span>
+                          )}
+
+                          {canCreateCoc && collector.status && (
+                            <button
+                              className="add-coc-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const newFormId = `new-${Date.now()}`;
+                                navigate(`/coc-form/${selectedJobDetails._id}?collectorId=${cid}&formId=${newFormId}&newForm=true`);
+                              }}
+                            >
+                              Add COC
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })()}
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
 
           {/* Summary */}
           <div className="status-summary">
@@ -884,18 +969,27 @@ const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query 
                         {/* Completed Tab Actions */}
                         {displayTab === "Completed" && (
                           <div className="action-buttons">
-                           
+                            {/* Hide Job Request for clients */}
+                            {currentToken !== "clientdgf45sdgf89756dfgdhgdf" && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); navigate(`/jobrequest/${client._id}`); }}
+                                className="action-btn secondary"
+                              >
+                                Job Request
+                              </button>
+                            )}
                             <button
-                              onClick={(e) => { e.stopPropagation(); navigate(`/jobrequest/${client._id}`); }}
-                              className="action-btn secondary"
-                            >
-                              Job Request
-                            </button>
-                            <button
-                              onClick={(e) => { 
+                              onClick={async (e) => { 
                                 e.stopPropagation();
-                                // Open the COC form inside the app for the current collector (use cookie collectorId)
-                                navigate(`/coc-form/${client._id}?collectorId=${collectorId}`);
+                                try {
+                                  const formId = await fetchAcceptedById(client._id);
+                                  const basePath = `/coc-form/${client._id}?collectorId=${collectorId}`;
+                                  navigate(formId ? `${basePath}&formId=${formId}` : basePath);
+                                } catch (err) {
+                                  console.error('Failed to open COC form', err);
+                                  const basePath = `/coc-form/${client._id}?collectorId=${collectorId}`;
+                                  navigate(basePath);
+                                }
                               }}
                               className="action-btn secondary"
                             >

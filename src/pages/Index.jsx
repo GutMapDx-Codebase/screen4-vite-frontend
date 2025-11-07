@@ -119,7 +119,7 @@ function Index() {
           <div className="login-header">
             <div className="logo-container">
               <img
-                src="https://screen4.org/wp-content/uploads/2023/02/SCREEN4-GREEN-WHITE-LOGO.png"
+                src="4screen.png"
                 alt="Screen4 Logo"
                 className="login-logo"
               />

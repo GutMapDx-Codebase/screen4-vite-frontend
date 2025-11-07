@@ -72,7 +72,7 @@ function Sidebar({ activeNav, onNav }) {
       <div className="sidebar-logo">
         <div className="logo-text">
           <img
-            src="screen4.png"
+            src="4screen.png"
             alt="Screen4 Logo"
             className="sidebar-logo-img"
             style={{

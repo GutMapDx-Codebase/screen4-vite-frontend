@@ -741,6 +741,10 @@
   margin-bottom: 25px;
 }
 
+.collector-item .collector-status .status-badge.accepted {
+  color: black !important;
+}
+
 .collectors-section h4 {
   margin: 0 0 20px 0;
   color: #334155 !important;
@@ -934,4 +938,29 @@
   .info-item span {
     text-align: left;
   }
+}
+
+.view-coc-btn {
+  background-color: #22c55e;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-left: 10px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.view-coc-btn:hover {
+  background-color: #333333;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.view-coc-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }

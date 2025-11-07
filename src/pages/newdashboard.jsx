@@ -117,23 +117,143 @@ const ModernDashboard = () => {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-
+  
     const fetchData = async () => {
       try {
-        // Fetch data from your new API
         const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getdashboarddata?token=${token}&id=${id}`);
         
         if (res.ok) {
           const data = await res.json();
+          
+          // ✅ Debugging: Check what's coming from backend
+          console.log("Backend Response:", data);
+          console.log("Job Stats from backend:", data.jobStats);
   
-          // Set the state with the received data
-          setTotalTests(data.totalTests);
-          setClientsCount(data.clientsCount);
-          setCollectorsCount(data.collectorsCount);
-          setAdminsCount(data.adminsCount || 0);
-          setMonthlyData(data.monthlyData);
-          setReasonData(data.reasonData);
-          setJobStats(data.jobStats);
+          const safeLength = (value) => Array.isArray(value) ? value.length : 0;
+          const coerceNumber = (value, fallback = 0) => {
+            if (typeof value === 'number' && !Number.isNaN(value)) return value;
+            if (typeof value === 'string' && value.trim() !== '' && !Number.isNaN(Number(value))) return Number(value);
+            return fallback;
+          };
+  
+          // ✅ Directly use backend values, no fallback calculations
+          const derivedTotalTests = coerceNumber(data.totalTests, 0);
+          const derivedClients = coerceNumber(data.clientsCount, 0);
+          const derivedCollectors = coerceNumber(data.collectorsCount, 0);
+          const derivedAdmins = coerceNumber(data.adminsCount, 0);
+  
+          const pickCount = (...candidates) => {
+            for (const candidate of candidates) {
+              if (candidate === undefined || candidate === null) continue;
+              if (Array.isArray(candidate)) {
+                return candidate.length;
+              }
+              if (typeof candidate === 'object') {
+                if (typeof candidate.total === 'number' || typeof candidate.total === 'string') {
+                  const parsedTotal = coerceNumber(candidate.total, null);
+                  if (parsedTotal !== null) return parsedTotal;
+                }
+                if (typeof candidate.count === 'number' || typeof candidate.count === 'string') {
+                  const parsedCount = coerceNumber(candidate.count, null);
+                  if (parsedCount !== null) return parsedCount;
+                }
+                if (typeof candidate.value === 'number' || typeof candidate.value === 'string') {
+                  const parsedValue = coerceNumber(candidate.value, null);
+                  if (parsedValue !== null) return parsedValue;
+                }
+                if (typeof candidate.length === 'number') {
+                  return candidate.length;
+                }
+                const sizeKeys = ['total', 'count', 'value', 'pending', 'completed', 'accepted'];
+                for (const key of sizeKeys) {
+                  if (candidate[key] !== undefined) {
+                    const parsed = coerceNumber(candidate[key], null);
+                    if (parsed !== null) return parsed;
+                    if (Array.isArray(candidate[key])) return candidate[key].length;
+                  }
+                }
+              }
+              const numCandidate = coerceNumber(candidate, null);
+              if (numCandidate !== null) return numCandidate;
+            }
+            return 0;
+          };
+
+          // ✅ Directly use jobStats from backend with intelligent fallbacks
+          const jobStatsFromBackend = data.jobStats || {};
+          const derivedPending = pickCount(
+            jobStatsFromBackend.pending,
+            jobStatsFromBackend.pendingCount,
+            jobStatsFromBackend.pendingTotal,
+            jobStatsFromBackend.totalPending,
+            jobStatsFromBackend.pendingJobs,
+            jobStatsFromBackend.pending,
+            data.pendingJobsCount,
+            data.pendingJobsTotal,
+            data.pendingJobs,
+            data.pending,
+            jobStatsFromBackend.pendingList,
+            jobStatsFromBackend.pendingJobsList
+          );
+          const derivedAccepted = pickCount(
+            jobStatsFromBackend.accepted,
+            jobStatsFromBackend.acceptedCount,
+            jobStatsFromBackend.acceptedTotal,
+            jobStatsFromBackend.totalAccepted,
+            jobStatsFromBackend.acceptedJobs,
+            data.acceptedJobsCount,
+            data.acceptedJobs,
+            jobStatsFromBackend.acceptedList,
+            jobStatsFromBackend.acceptedJobsList
+          );
+          const derivedCompleted = pickCount(
+            jobStatsFromBackend.completed,
+            jobStatsFromBackend.completedCount,
+            jobStatsFromBackend.completedTotal,
+            jobStatsFromBackend.totalCompleted,
+            jobStatsFromBackend.completedJobs,
+            data.completedJobsCount,
+            data.completedJobs,
+            jobStatsFromBackend.completedList,
+            jobStatsFromBackend.completedJobsList
+          );
+  
+          console.log("Processed Job Stats:", {
+            pending: derivedPending,
+            accepted: derivedAccepted, 
+            completed: derivedCompleted
+          });
+  
+          // Normalize chart inputs to expected recharts shapes
+          const normalizeMonthly = (arr) => {
+            if (!Array.isArray(arr)) return [];
+            return arr.map((item, idx) => ({
+              month: item.month || item.label || item.name || item._id || `M${idx+1}`,
+              tests: coerceNumber(item.tests ?? item.count ?? item.total ?? item.value, 0),
+            }));
+          };
+          const normalizeReasons = (arr) => {
+            if (!Array.isArray(arr)) return [];
+            const palette = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#14b8a6'];
+            return arr.map((item, idx) => ({
+              name: item.name || item.label || item.reason || `Item ${idx+1}`,
+              value: coerceNumber(item.value ?? item.count ?? item.total ?? item.tests, 0),
+              color: item.color || palette[idx % palette.length],
+            }));
+          };
+
+          // Set the state
+          setTotalTests(derivedTotalTests);
+          setClientsCount(derivedClients);
+          setCollectorsCount(derivedCollectors);
+          setAdminsCount(derivedAdmins);
+          setMonthlyData(normalizeMonthly(data.monthlyData || data.monthly || []));
+          setReasonData(normalizeReasons(data.reasonData || data.reasons || []));
+          setJobStats({
+            pending: derivedPending,
+            accepted: derivedAccepted,
+            completed: derivedCompleted,
+          });
         } else {
           console.error('Failed to fetch dashboard data');
         }
@@ -179,7 +299,7 @@ const ModernDashboard = () => {
         { id: 'total-tests', label: 'Total Tests', value: totalTests, icon: '🧪', color: '#22c55e' },
         { id: 'active-clients', label: 'Active Clients', value: clientsCount, icon: '👥', color: '#3b82f6' },
         { id: 'collectors', label: 'Collectors', value: collectorsCount, icon: '✓', color: '#8b5cf6' },
-        { id: 'admins', label: 'Admins', value: adminsCount, icon: '👨‍💼', color: '#ef4444' },
+        // { id: 'admins', label: 'Admins', value: adminsCount, icon: '👨‍💼', color: '#ef4444' },
         { id: 'pending-jobs', label: 'Pending Jobs', value: jobStats.pending, icon: '💼', color: '#f59e0b' },
         { id: 'completed-jobs', label: 'Completed Jobs', value: jobStats.completed, icon: '✅', color: '#10b981' },
       ];
@@ -282,34 +402,10 @@ const ModernDashboard = () => {
       </div>
 
       {/* Bottom Section - Updated for collectors */}
-      {!isClientUser && !isCollectorUser && (
-        <div className="bottom-grid">
-          {/* Job Status */}
-          <div className="status-card">
-            <h2>Job Requests Status</h2>
-            <div className="status-grid">
-              <div className="status-item pending">
-                <p className="status-label">Pending</p>
-                <p className="status-value">{jobStats.pending}</p>
-                <p className="status-desc">Awaiting review</p>
-              </div>
-              <div className="status-item accepted">
-                <p className="status-label">Accepted</p>
-                <p className="status-value">{jobStats.accepted}</p>
-                <p className="status-desc">In progress</p>
-              </div>
-              <div className="status-item completed">
-                <p className="status-label">Completed</p>
-                <p className="status-value">{jobStats.completed}</p>
-                <p className="status-desc">Finished</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+    
 
       {/* Client User ke liye alternative content */}
-      {isClientUser && (
+      {/* {isClientUser && (
         <div className="bottom-grid">
           <div className="status-card">
             <h2>My Test Summary</h2>
@@ -327,10 +423,10 @@ const ModernDashboard = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Collector User ke liye alternative content */}
-      {isCollectorUser && (
+      {/* {isCollectorUser && (
         <div className="bottom-grid">
           <div className="status-card">
             <h2>My Collection Summary</h2>
@@ -348,7 +444,7 @@ const ModernDashboard = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Modal to show list details when clicking stat cards */}
       <Modal

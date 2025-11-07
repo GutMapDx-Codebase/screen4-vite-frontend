@@ -13,6 +13,113 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
 
+const defaultFormData = {
+  cocRefNo: "",
+  donorName: "",
+  donorEmail: "",
+  gcalicno: "",
+  dob: "",
+  companyName: "",
+  reasonForTest: "",
+  location: "",
+  flight: "",
+  idsource: "",
+  gender: "",
+  barcodeno: "",
+  barcodeImage: "",
+  refno: "",
+  dateoftest: "",
+  alcohoDeclaration: "",
+  donorSignature: "",
+  donorDate: "",
+  test1: "",
+  test1BaracResult1: "",
+  test1BaracResult2: "",
+  test2: "",
+  test2BaracResult1: "",
+  test2BaracResult2: "",
+  collectorName: "",
+  collectorRemarks: "",
+  collectorSignature: "",
+  collectorDate: "",
+  donorConcent: "",
+  donorDeclaration: "",
+  donorConcentDate: "",
+  medicationDate1: "",
+  medicationDate2: "",
+  medicationDate3: "",
+  medicationDate4: "",
+  medicationType1: "",
+  medicationType2: "",
+  medicationType3: "",
+  medicationType4: "",
+  medicationDosage1: "",
+  medicationDosage2: "",
+  medicationDosage3: "",
+  medicationDosage4: "",
+  collectionTime: "",
+  resultReadTime: "",
+  temperature: "",
+  lotno: "",
+  expDate: "",
+  adulterationTestPassed: "",
+  adulterationRemarks: "",
+  AlcoholScreen: "",
+  AlcoholConfirm: "",
+  AmphetaminesScreen: "",
+  AmphetaminesConfirm: "",
+  BenzodiazepinesScreen: "",
+  BenzodiazepinesConfirm: "",
+  BuprenorphineScreen: "",
+  BuprenorphineConfirm: "",
+  BloodScreen: "",
+  BloodConfirm: "",
+  OtherScreen: "",
+  OtherConfirm: "",
+  CocaineScreen: "",
+  CocaineConfirm: "",
+  KetamineScreen: "",
+  KetamineConfirm: "",
+  MaritimeScreen: "",
+  MaritimeConfirm: "",
+  MDMAScreen: "",
+  MDMAConfirm: "",
+  MethadoneScreen: "",
+  MethadoneConfirm: "",
+  MethamphetamineScreen: "",
+  MethamphetamineConfirm: "",
+  MorphineScreen: "",
+  MorphineConfirm: "",
+  NetworkScreen: "",
+  NetworkConfirm: "",
+  OpiatesScreen: "",
+  OpiatesConfirm: "",
+  SSRIScreen: "",
+  SSRIConfirm: "",
+  TCAScreen: "",
+  TCAConfirm: "",
+  THCScreen: "",
+  THCConfirm: "",
+  donorCertificationName: "",
+  donorCertificationSignature: "",
+  donorCertificationDate: "",
+  collectorCertificationName: "",
+  collectorCertificationSignature: "",
+  collectorCertificationDate: "",
+  recieveInitial: "",
+  recieveName: "",
+  recieveDate: "",
+  specimenBottle: "",
+  fatalFlaws: "",
+  specimenBottleComment: "",
+  fatalFlawsComment: "",
+  DrugsandAlcoholUrineTest: false,
+  DrugsandAlcoholOralTest: false,
+  BreathAlcoholOnlyTest: false,
+  DrugsOnlyTest: false,
+};
+
+
 function Screen4Details() {
   const navigate = useNavigate()
   const [error, setError] = useState(null);
@@ -258,122 +365,33 @@ function Screen4Details() {
       return null; // Return null for invalid dates
     }
 
-    // Format the date as YYYY-MM-DD
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // Add leading zero if needed
+    // Format the date as DD/MM/YY
     const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = String(date.getFullYear()).slice(-2); // Get last 2 digits of year
 
+    return `${day}/${month}/${year}`;
+  }
+
+  // Helper function to format date for HTML date input (YYYY-MM-DD)
+  function formatDateForInput(dateInput) {
+    if (!dateInput) {
+      return "";
+    }
+    const date = new Date(dateInput);
+    if (isNaN(date.getTime())) {
+      return "";
+    }
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   }
-  const [formData, setFormData] = useState({
-    cocRefNo: "",
-    donorName: "",
-    donorEmail: "",
-    gcalicno: "",
-    dob: "",
-    companyName: "",
-    reasonForTest: "", // Default reason
-    location: "",
-    flight: "",
-    idsource: "",
-    gender: "",
-    barcodeno: "",
-    barcodeImage: "",
-    refno: "",
-    dateoftest: "",
-    alcohoDeclaration: "",
-    donorSignature: "",
-    donorDate: "",
-    test1: "",
-    test1BaracResult1: "",
-    test1BaracResult2: "",
-    test2: "",
-    test2BaracResult1: "",
-    test2BaracResult2: "",
-    collectorName: "",
-    collectorRemarks: "",
-    collectorSignature: "",
-    collectorDate: "",
-    donorConcent: "",
-    donorDeclaration: "",
-    donorConcentDate: "",
-    medicationDate1: "",
-    medicationDate2: "",
-    medicationDate3: "",
-    medicationDate4: "",
-    medicationType1: "",
-    medicationType2: "",
-    medicationType3: "",
-    medicationType4: "",
-    medicationDosage1: "",
-    medicationDosage2: "",
-    medicationDosage3: "",
-    medicationDosage4: "",
-    collectionTime: "",
-    resultReadTime: "",
-    temperature: "",
-    lotno: "",
-    expDate: "",
-    adulterationTestPassed: "",
-    adulterationRemarks: "",
-
-    AlcoholScreen: "",
-    AlcoholConfirm: "",
-    AmphetaminesScreen: "",
-    AmphetaminesConfirm: "",
-    BenzodiazepinesScreen: "",
-    BenzodiazepinesConfirm: "",
-    BuprenorphineScreen: "",
-    BuprenorphineConfirm: "",
-    BloodScreen: "",
-    BloodConfirm: "",
-    OtherScreen: "",
-    OtherConfirm: "",
-    CocaineScreen: "",
-    CocaineConfirm: "",
-    KetamineScreen: "",
-    KetamineConfirm: "",
-    MaritimeScreen: "",
-    MaritimeConfirm: "",
-    MDMAScreen: "",
-    MDMAConfirm: "",
-    MethadoneScreen: "",
-    MethadoneConfirm: "",
-    MethamphetamineScreen: "",
-    MethamphetamineConfirm: "",
-    MorphineScreen: "",
-    MorphineConfirm: "",
-    NetworkScreen: "",
-    NetworkConfirm: "",
-    OpiatesScreen: "",
-    OpiatesConfirm: "",
-    SSRIScreen: "",
-    SSRIConfirm: "",
-    TCAScreen: "",
-    TCAConfirm: "",
-    THCScreen: "",
-    THCConfirm: "",
-
-    donorCertificationName: "",
-    donorCertificationSignature: "",
-    donorCertificationDate: "",
-    collectorCertificationName: "",
-    collectorCertificationSignature: "",
-    collectorCertificationDate: "",
-    recieveInitial: "",
-    recieveName: "",
-    recieveDate: "",
-    specimenBottle: "",
-    fatalFlaws: "",
-    specimenBottleComment: "",
-    fatalFlawsComment: "",
-    DrugsandAlcoholUrineTest: false,
-    DrugsandAlcoholOralTest: false,
-    BreathAlcoholOnlyTest: false,
-    DrugsOnlyTest: false,
-  });
+  const [formData, setFormData] = useState(() => ({ ...defaultFormData }));
   // Track existing COC document id (if any) so we can update the same document
   const [existingCocId, setExistingCocId] = useState(null);
+  const [currentFormId, setCurrentFormId] = useState(null);
+  const [isNewFormInstance, setIsNewFormInstance] = useState(false);
   const handleAddComment = (field) => {
     const comment = prompt("Enter your comment:");
     if (comment) {
@@ -590,6 +608,8 @@ function Screen4Details() {
       try {
         const urlParams = new URLSearchParams(window.location.search);
         const collectorId = urlParams.get('collectorId');
+        const formIdParam = urlParams.get('formId');
+        const isNewFlag = urlParams.get('newForm') === 'true';
 
         const token = Cookies.get("Token");
         console.log(token)
@@ -611,20 +631,13 @@ function Screen4Details() {
           collectorId: collectorId
         });
 
-        let apiUrl = '';
+        const baseUrl = import.meta.env.VITE_API_BASE_URL;
+        let response = await fetch(`${baseUrl}/getcocforms/${id}`);
 
-        // ✅ ALL USERS USE SAME API - Get COC forms by job ID
-        // Build URL conditionally - if collectorId exists, include it, otherwise use jobId only
-        // if (userType === 'collector') {
-          apiUrl = `${import.meta.env.VITE_API_BASE_URL}/getcocforms/${id}/${collectorId}/${userType}`;
-        //   console.log("check11")
-        // } else {
-        //   console.log("check22")
-        //   apiUrl = `${import.meta.env.VITE_API_BASE_URL}/getcocforms/${id}`;
-        // }
-        console.log('🔗 API for all users:', apiUrl);
-
-        const response = await fetch(apiUrl);
+        if (!response.ok && collectorId) {
+          console.log('Primary getcocforms failed, trying collector-specific endpoint');
+          response = await fetch(`${baseUrl}/getcollectorcocform/${id}/${collectorId}`);
+        }
 
 
 
@@ -634,24 +647,24 @@ function Screen4Details() {
           const data = await response.json();
           console.log('✅ API Success:', data);
 
-          let cocData = null;
-          cocData = data?.data
-         
+          const normalizeToArray = (value) => {
+            if (!value) return [];
+            if (Array.isArray(value)) return value;
+            if (typeof value === 'object') return [value];
+            return [];
+          };
+
+          let cocForms = normalizeToArray(data?.data ?? data);
+
           // ✅ Fallback to collector-specific fetch if nothing found
-          if (!cocData && collectorId) {
+          if ((!cocForms || cocForms.length === 0) && collectorId) {
             try {
               const byCollectorUrl = `${import.meta.env.VITE_API_BASE_URL}/getcollectorcocform/${id}/${collectorId}`;
               console.log('🔎 Trying collector-specific endpoint:', byCollectorUrl);
               const resp2 = await fetch(byCollectorUrl);
               if (resp2.ok) {
                 const data2 = await resp2.json();
-                const maybeData = data2?.data || data2 || null;
-                // Handle array case
-                if (Array.isArray(maybeData) && maybeData.length > 0) {
-                  cocData = maybeData[0];
-                } else if (maybeData && typeof maybeData === 'object') {
-                  cocData = maybeData;
-                }
+                cocForms = normalizeToArray(data2?.data ?? data2);
               }
             } catch (e) {
               console.warn('Collector-specific fetch failed', e);
@@ -659,37 +672,55 @@ function Screen4Details() {
           }
 
           // ✅ Extra fallback some backends expose
-          if (!cocData && collectorId) {
+          if ((!cocForms || cocForms.length === 0) && collectorId) {
             try {
               const altUrl = `${import.meta.env.VITE_API_BASE_URL}/getcollectorformbyjob/${id}?collectorId=${collectorId}`;
               console.log('🔎 Trying alternative endpoint:', altUrl);
               const resp3 = await fetch(altUrl);
               if (resp3.ok) {
                 const data3 = await resp3.json();
-                const maybe = data3?.data || data3 || null;
-                if (maybe) {
-                  cocData = Array.isArray(maybe) ? maybe[0] : maybe;
-                }
+                cocForms = normalizeToArray(data3?.data ?? data3);
               }
             } catch (e) {
               console.warn('Alternative endpoint fetch failed', e);
             }
           }
 
-          // ✅ POPULATE FORM WITH EXISTING DATA - Only if we have valid data
-          if (cocData && typeof cocData === 'object' && !Array.isArray(cocData)) {
-            setFormData((prevData) => ({
-              ...prevData,
-              ...cocData,
-      
-            }));
-            // remember the existing document id so we can update it instead of creating a new one
-            // if (cocData._id) setExistingCocId(cocData._id);
-            // console.log('✅ Form populated with existing data for:', userType);
+          const resolvedForms = Array.isArray(cocForms) ? cocForms.filter(Boolean) : [];
+
+          let selectedForm = null;
+          if (formIdParam) {
+            selectedForm = resolvedForms.find((form) => {
+              const candidateId = form?._id || form?.id || form?.formId || form?.documentId;
+              return candidateId && String(candidateId) === String(formIdParam);
+            });
+          }
+
+          if (!selectedForm && !formIdParam && resolvedForms.length > 0) {
+            selectedForm = resolvedForms[0];
+          }
+
+          if (selectedForm) {
+            setFormData({
+              ...defaultFormData,
+              ...selectedForm,
+            });
+            const existingId = selectedForm?._id || selectedForm?.id || selectedForm?.formId || null;
+            setExistingCocId(existingId);
+            setCurrentFormId(existingId || formIdParam || null);
+            setIsNewFormInstance(false);
           } else {
-            // ✅ NO EXISTING FORM
-            // console.log('📝 No existing COC form found or invalid data format');
-            // setError('No COC form has been submitted for this job yet.');
+            if (isNewFlag) {
+              setFormData({ ...defaultFormData });
+              setExistingCocId(null);
+              setCurrentFormId(formIdParam || null);
+              setIsNewFormInstance(true);
+            } else if (resolvedForms.length === 0) {
+              setFormData({ ...defaultFormData });
+              setExistingCocId(null);
+              setCurrentFormId(null);
+              setIsNewFormInstance(false);
+            }
           }
         } else {
           console.log('❌ API returned error');
@@ -752,6 +783,8 @@ function Screen4Details() {
       return updatedData;
     });
   };
+
+  
 
   // ✅ UPDATED: Form submission with collectorId
   // const handleSubmit = async (e) => {
@@ -820,15 +853,27 @@ function Screen4Details() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // ✅ GET COLLECTOR ID FROM URL
     const urlParams = new URLSearchParams(window.location.search);
     const collectorId = urlParams.get('collectorId');
     const jobRequestId = id;
 
-    // ✅ CHECK IF USER IS COLLECTOR
-    if (!collectorId) {
-      message.error("Only collectors can submit COC forms. Clients and Admins can only view.");
+    const tokenNow = Cookies.get('Token');
+    const isAdminNow = tokenNow === 'dskgfsdgfkgsdfkjg35464154845674987dsf@53';
+    const isCollectorNow = tokenNow === 'collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg';
+    const alreadySubmitted = formData?.isUpdated === true;
+
+    // Permission checks:
+    // - If already submitted: only admin can update
+    if (alreadySubmitted && !isAdminNow) {
+      message.error('Only admin can edit/update this COC after submission.');
       return;
+    }
+    // - If not submitted yet: collector or admin (with collector context) can submit
+    if (!alreadySubmitted) {
+      if ((!isCollectorNow || !collectorId) && !isAdminNow) {
+        message.error('Only collectors or admins can submit COC forms.');
+        return;
+      }
     }
 
     setIsLoading(true);
@@ -839,10 +884,10 @@ function Screen4Details() {
       const dataToSubmit = {
         ...formData,
         collectorId: collectorId,
-        jobRequestId: jobRequestId
+        jobRequestId: jobRequestId,
+        formId: currentFormId,
+        isNewForm: isNewFormInstance,
       };
-
-      console.log('📤 Submitting form as collector:', collectorId);
 
       const response = await fetch(apiUrl, {
         method: "PUT",
@@ -982,8 +1027,18 @@ function Screen4Details() {
     }
   };
 
-  // Determine if current viewer can edit: collectors (with collectorId in URL) can edit; others read-only
-  const canEdit = Boolean(new URLSearchParams(window.location.search).get('collectorId'));
+  // Determine user role from token
+  const token = Cookies.get("Token");
+  const isAdminUser = token === 'dskgfsdgfkgsdfkjg35464154845674987dsf@53';
+  const isCollectorUser = token === 'collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg';
+  const urlParamsRO = new URLSearchParams(window.location.search);
+  const collectorIdQuery = urlParamsRO.get('collectorId');
+
+  // Editing rules:
+  // - Before first submission (isUpdated !== true): collector (with collectorId in URL) can edit
+  // - After submission (isUpdated === true): ONLY admin can edit
+  const isSubmitted = formData?.isUpdated === true;
+  const canEdit = isAdminUser || (!isSubmitted && Boolean(collectorIdQuery) && isCollectorUser);
   const isMobileOrSmall = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
     navigator.userAgent || ""
   ) || (typeof window !== 'undefined' && window.innerWidth < 992);
@@ -1032,8 +1087,20 @@ function Screen4Details() {
             paddingTop: "15px",
             borderRadius: "10px",
             boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+            position: 'relative'
           }}
         >
+          {!canEdit && (
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'transparent',
+                pointerEvents: 'auto',
+                zIndex: 5,
+              }}
+            />
+          )}
           <Tooltip title="Back">
             <div
               onClick={() => navigate('/jobrequests')}
@@ -1123,11 +1190,14 @@ function Screen4Details() {
                 className="inputstyle"
                 type="date"
                 name="dob"
-                value={formData.dob}
+                value={formatDateForInput(formData.dob)}
                 onChange={handleChange}
                 // style={{ width: "99%" }}
                 required
               />
+              {formData.dob && (
+                <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.dob)}</div>
+              )}
             </div>
           </div>
           <hr></hr>
@@ -1284,10 +1354,13 @@ function Screen4Details() {
                   // style={{ width: "36%", marginLeft: "0px" }}
                   type="date"
                   name="dateoftest"
-                  value={formData.dateoftest ? new Date(formData.dateoftest).toISOString().split("T")[0] : ""}
+                  value={formatDateForInput(formData.dateoftest)}
                   onChange={handleChange}
                   required
                 />
+                {formData.dateoftest && (
+                  <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.dateoftest)}</div>
+                )}
 
               </div>
             </div>
@@ -1426,11 +1499,14 @@ function Screen4Details() {
                   className="inputstyle"
                   type="date"
                   name="donorDate"
-                  value={formatDate(formData.donorDate)}
+                  value={formatDateForInput(formData.donorDate)}
                   onChange={handleChange}
                   // style={{ width: "39%" }}
                   required
                 />
+                {formData.donorDate && (
+                  <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.donorDate)}</div>
+                )}
               </div>
               {/* </div> */}
             </div>
@@ -1451,7 +1527,7 @@ function Screen4Details() {
                 className="second-row"
                 style={{ display: "flex", justifyContent: "space-between" }}
               >
-                <p
+                {/* <p
                   style={{
                     fontWeight: "bold",
                     fontSize: "12px",
@@ -1460,7 +1536,33 @@ function Screen4Details() {
                   }}
                 >
                   Local Time
-                </p>
+                </p> */}
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+  <p
+    style={{
+      fontWeight: "bold",
+      fontSize: "12px",
+      width: "110px",
+      marginTop: "18px",
+    }}
+  >
+    Local Time
+  </p>
+  <div
+    style={{
+      border: "1px solid #ccc",
+      borderRadius: "4px",
+      padding: "8px 12px",
+      fontSize: "12px",
+      marginTop: "18px",
+      minWidth: "80px",
+      textAlign: "center",
+      backgroundColor: "#f9f9f9"
+    }}
+  >
+    {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+  </div>
+</div>
                 <div className="donor">
                   <label
                     style={{
@@ -1534,16 +1636,35 @@ function Screen4Details() {
                 className="second-row"
                 style={{ display: "flex", justifyContent: "space-between" }}
               >
-                <p
-                  style={{
-                    fontWeight: "bold",
-                    fontSize: "12px",
-                    width: "110px",
-                    marginTop: "18px",
-                  }}
-                >
-                  Local Time
-                </p>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+  <p
+    style={{
+      fontWeight: "bold",
+      fontSize: "12px",
+      width: "110px",
+      marginTop: "18px",
+    }}
+  >
+    Local Time
+  </p>
+  <div
+    style={{
+      border: "1px solid #ccc",
+      borderRadius: "4px",
+      padding: "8px 12px",
+      fontSize: "12px",
+      marginTop: "18px",
+      minWidth: "80px",
+      textAlign: "center",
+      backgroundColor: "#f9f9f9",
+      fontFamily: "monospace"
+    }}
+  >
+    {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+  </div>
+</div>
+
+                
                 <div className="donor">
                   <label
                     style={{
@@ -1717,11 +1838,14 @@ function Screen4Details() {
                     className="inputstyle"
                     type="date"
                     name="collectorDate"
-                    value={formData.collectorDate}
+                    value={formatDateForInput(formData.collectorDate)}
                     onChange={handleChange}
                     // style={{ width: "69%" }}
                     required
                   />
+                  {formData.collectorDate && (
+                    <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.collectorDate)}</div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1871,7 +1995,7 @@ function Screen4Details() {
                       className="inputstyle"
                       type="date"
                       name="donorConcentDate"
-                      value={formData.donorConcentDate}
+                      value={formatDateForInput(formData.donorConcentDate)}
                       onChange={handleChange}
                       style={{
                         //  width: "69%",
@@ -1879,6 +2003,9 @@ function Screen4Details() {
                       }}
                       required
                     />
+                    {formData.donorConcentDate && (
+                      <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.donorConcentDate)}</div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -2085,7 +2212,7 @@ function Screen4Details() {
                           className="inputstyle explabel"
                           type="date"
                           name="expDate"
-                          value={formData.expDate}
+                          value={formatDateForInput(formData.expDate)}
                           placeholder=""
                           onChange={handleChange}
                           style={{
@@ -2095,6 +2222,9 @@ function Screen4Details() {
                           }}
                           required
                         />
+                        {formData.expDate && (
+                          <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.expDate)}</div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -2403,11 +2533,14 @@ function Screen4Details() {
                     className="inputstyle"
                     type="date"
                     name="donorCertificationDate"
-                    value={formData.donorCertificationDate}
+                    value={formatDateForInput(formData.donorCertificationDate)}
                     onChange={handleChange}
                     // style={{ width: "69%" }}
                     required
                   />
+                  {formData.donorCertificationDate && (
+                    <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.donorCertificationDate)}</div>
+                  )}
                 </div>
               </div>
             </div>
@@ -2509,11 +2642,14 @@ function Screen4Details() {
                     className="inputstyle"
                     type="date"
                     name="collectorCertificationDate"
-                    value={formData.collectorCertificationDate}
+                    value={formatDateForInput(formData.collectorCertificationDate)}
                     onChange={handleChange}
                     // style={{ width: "69%" }}
                     required
                   />
+                  {formData.collectorCertificationDate && (
+                    <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.collectorCertificationDate)}</div>
+                  )}
                 </div>
               </div>
             </div>
@@ -2580,12 +2716,15 @@ function Screen4Details() {
                   className="inputstyle"
                   type="date"
                   name="recieveDate"
-                  value={formData.recieveDate}
+                  value={formatDateForInput(formData.recieveDate)}
                   placeholder=""
                   onChange={handleChange}
                   style={{ width: "102px", margin: "0px", height: "5px" }}
                   required
                 />
+              {formData.recieveDate && (
+                <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.recieveDate)}</div>
+              )}
               </div>
             </div>
             <div class="part2" style={{ border: "1px solid black", height: "150px", marginBottom: "20px", }}><h5 style={{ fontWeight: "bold", padding: "7px", paddingLeft: "0px", fontSize: "15px" }}>
@@ -2738,7 +2877,7 @@ function Screen4Details() {
           </div>
 
           {/* Submit Button */}
-          {formData.isUpdated !== true ? (
+          {canEdit && (
             !isloading ? (
               <button
                 className="createjob2"
@@ -2754,12 +2893,12 @@ function Screen4Details() {
                   fontSize: "16px",
                 }}
               >
-                Update
+                {isSubmitted && isAdminUser ? 'Update (Admin)' : 'Update'}
               </button>
             ) : (
               <div style={{ width: "100%", display: "flex", justifyContent: "center" }}><img src="/empty.gif" style={{ width: "130px", }} /></div>
             )
-          ) : null}
+          )}
 
           {!isMobileOrSmall && (
             <button
