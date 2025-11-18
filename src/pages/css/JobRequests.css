@@ -437,7 +437,7 @@
 
 .status-badge.pending {
   background: rgba(245, 158, 11, 0.2);
-  color: #ffffff !important;
+  color: #000000 !important;
   border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
@@ -813,11 +813,11 @@
   background: #d1fae5;
   color: #065f46;
 }
-
+/* 
 .status-badge.pending {
   background: #fef3c7;
   color: #92400e;
-}
+} */
 
 .accepted-time {
   font-size: 0.75rem;

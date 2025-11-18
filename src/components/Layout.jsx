@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 import Sidebar from './Sidebar';
 import '../pages/css/newdashboard.css';
 
@@ -122,9 +123,26 @@ function Layout({ children }) {
       <Sidebar activeNav={activeNav} onNav={handleNav} />
       <div className="main-content" style={{ paddingBottom: 96 }}>
         <header className="header">
-          <div className="header-left">
-            <h2>Dashboard</h2>
-            <p>Unified experience across pages</p>
+          <div className="header-top">
+            <div className="header-left">
+              <h2>Dashboard</h2>
+              <p>Unified experience across pages</p>
+            </div>
+            {/* Mobile/Tablet Logout Button - Only visible on mobile/tablet */}
+            <button
+              className="mobile-logout-btn"
+              onClick={() => {
+                // clear all cookies then navigate to login/root
+                const allCookies = Cookies.get();
+                for (const cookieName in allCookies) {
+                  Cookies.remove(cookieName);
+                }
+                navigate('/');
+              }}
+            >
+              <span className="logout-icon">🚪</span>
+              <span className="logout-text">Logout</span>
+            </button>
           </div>
           <div className="header-right">
             {isDashboard && (

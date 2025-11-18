@@ -270,7 +270,7 @@
 
   .sidebar-nav {
     flex-direction: row;
-    gap: 6px;
+    gap: 4px;
     flex: 1;
     justify-content: center;
     align-items: center;
