@@ -68,11 +68,11 @@ function Sidebar({ activeNav, onNav }) {
   }
 
   return (
-    <aside className="sidebar" style={{ color: 'white' }}>
+    <aside className="sidebar">
       <div className="sidebar-logo">
         <div className="logo-text">
           <img
-            src="4screen.png"
+            src="blackscreen4.png"
             alt="Screen4 Logo"
             className="sidebar-logo-img"
             style={{
@@ -93,13 +93,12 @@ function Sidebar({ activeNav, onNav }) {
             className={`nav-item ${activeNav === item.id ? 'active' : ''} ${
               item.id === 'Clienthub' ? 'clienthub-hover' : ''
             }`}
-            style={{ color: 'white' }}
             aria-label={item.label}
           >
-            <span className="nav-icon" style={{ color: 'white' }}>
+            <span className="nav-icon">
               {item.icon}
             </span>
-            <span className="nav-label" style={{ color: 'white' }}>
+            <span className="nav-label">
               {item.label}
             </span>
           </button>
@@ -110,20 +109,15 @@ function Sidebar({ activeNav, onNav }) {
         <div className="profile-card">
           <div
             className="profile-avatar"
-            style={{
-              color: 'white',
-              background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-            }}
           >
             {initials}
           </div>
           <div className="profile-info">
-            <p className="profile-name" style={{ color: 'white', margin: 0 }}>
+            <p className="profile-name">
               {displayName}
             </p>
             <p
               className="profile-email"
-              style={{ color: 'rgba(255, 255, 255, 0.8)', margin: 0 }}
             >
               {displayEmail}
             </p>
@@ -139,14 +133,9 @@ function Sidebar({ activeNav, onNav }) {
             }
             navigate('/');
           }}
-          style={{
-            color: 'white',
-            background: 'rgba(239, 68, 68, 0.2)',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
-          }}
         >
-          <span style={{ color: 'white' }}>🚪</span>
-          <span style={{ color: 'white' }}>Logout</span>
+          <span>🚪</span>
+          <span>Logout</span>
         </button>
       </div>
     </aside>

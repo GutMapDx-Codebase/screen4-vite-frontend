@@ -38,7 +38,7 @@
 .page-title {
   font-size: 32px;
   font-weight: 800;
-  color: #ffffff !important;
+  color: #000000 !important;
   margin: 0 0 8px 0;
   display: flex;
   align-items: center;
@@ -47,11 +47,11 @@
 
 .title-icon {
   font-size: 36px;
-  color: #ffffff !important;
+  color: #000000 !important;
 }
 
 .page-subtitle {
-  color: #ffffff !important;
+  color: #696565 !important;
   font-size: 16px;
   margin: 0 0 20px 0;
   opacity: 0.9;
@@ -165,10 +165,10 @@
 .search-input {
   width: 100%;
   padding: 16px 20px 16px 50px;
-  background: rgba(255, 255, 255, 0.08);
+  background: #8ebeee;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 16px;
-  color: #ffffff !important;
+  color: #0a0a0a !important;
   font-size: 15px;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
@@ -178,11 +178,13 @@
   outline: none;
   border-color: #22c55e;
   box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.12);
+  color: rgb(0, 0, 0)!important;
 }
 
 .search-input::placeholder {
-  color: rgba(255, 255, 255, 0.6) !important;
+  color: black!important;
+  
 }
 
 /* Content Section */
@@ -273,7 +275,7 @@
 
 /* Request Card */
 .request-card {
-  background: rgba(15, 46, 26, 0.7);
+  background: rgb(12 145 59 / 70%);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(34, 197, 94, 0.2);
   border-radius: 16px;
@@ -528,12 +530,12 @@
 .empty-state h3 {
   font-size: 24px;
   margin: 0 0 12px 0;
-  color: #ffffff !important;
+  color: #000000 !important;
 }
 
 .empty-state p {
   font-size: 16px;
-  color: #ffffff !important;
+  color: #524f4f !important;
   margin: 0 0 24px 0;
   max-width: 400px;
   margin-left: auto;
@@ -642,7 +644,7 @@
 .loading-state *,
 .error-state *,
 .pagination-section * {
-  color: #ffffff !important;
+  color: #020202 !important;
 }
 
 

@@ -547,6 +547,13 @@ const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query 
       return;
     }
 
+    // ✅ Collector - Completed Jobs (can add more COC forms)
+    if (selectedTab === 'Completed' && currentToken === 'collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg') {
+      // Collector can access COC form from completed jobs to add more forms
+      navigate(`/coc-form/${id}?collectorId=${collectorId}`);
+      return;
+    }
+
     // ✅ Client: show summary modal with access to per-collector COC forms (no job request view)
       if (currentToken === "clientdgf45sdgf89756dfgdhgdf") {
         const jobDetails = await fetchJobDetailsWithCollectors(id);

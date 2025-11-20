@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Navbar from "../components/navbar";
 import { message, Tooltip } from "antd";
 import { useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import './css/Practitioner.css'
 import Cookies from 'js-cookie';
 
@@ -121,7 +121,8 @@ const defaultFormData = {
 
 
 function Screen4Details() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const location = useLocation();
   const [error, setError] = useState(null);
   const { id } = useParams();
 
@@ -392,6 +393,7 @@ function Screen4Details() {
   const [existingCocId, setExistingCocId] = useState(null);
   const [currentFormId, setCurrentFormId] = useState(null);
   const [isNewFormInstance, setIsNewFormInstance] = useState(false);
+  const [allCocForms, setAllCocForms] = useState([]); // Store all COC forms for this job/collector
   const handleAddComment = (field) => {
     const comment = prompt("Enter your comment:");
     if (comment) {
@@ -606,7 +608,7 @@ function Screen4Details() {
   useEffect(() => {
     const fetchScreen4Data = async () => {
       try {
-        const urlParams = new URLSearchParams(window.location.search);
+        const urlParams = new URLSearchParams(location.search);
         const collectorId = urlParams.get('collectorId');
         const formIdParam = urlParams.get('formId');
         const isNewFlag = urlParams.get('newForm') === 'true';
@@ -687,6 +689,7 @@ function Screen4Details() {
           }
 
           const resolvedForms = Array.isArray(cocForms) ? cocForms.filter(Boolean) : [];
+          setAllCocForms(resolvedForms); // Store all forms for dropdown/selector
 
           let selectedForm = null;
           if (formIdParam) {
@@ -736,7 +739,7 @@ function Screen4Details() {
     fetchScreen4Data();
 
 
-  }, [id]);
+  }, [id, location.search]);
 
   console.log('Form Data:', formData);
 
@@ -853,7 +856,7 @@ function Screen4Details() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = new URLSearchParams(location.search);
     const collectorId = urlParams.get('collectorId');
     const jobRequestId = id;
 
@@ -1031,14 +1034,16 @@ function Screen4Details() {
   const token = Cookies.get("Token");
   const isAdminUser = token === 'dskgfsdgfkgsdfkjg35464154845674987dsf@53';
   const isCollectorUser = token === 'collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg';
-  const urlParamsRO = new URLSearchParams(window.location.search);
+  const urlParamsRO = new URLSearchParams(location.search);
   const collectorIdQuery = urlParamsRO.get('collectorId');
 
   // Editing rules:
   // - Before first submission (isUpdated !== true): collector (with collectorId in URL) can edit
   // - After submission (isUpdated === true): ONLY admin can edit
+  // - Collector can ALWAYS add new COC forms (even if previous ones are submitted)
   const isSubmitted = formData?.isUpdated === true;
   const canEdit = isAdminUser || (!isSubmitted && Boolean(collectorIdQuery) && isCollectorUser);
+  const canAddNewForm = isAdminUser || (isCollectorUser && Boolean(collectorIdQuery)); // Collector can always add new forms
   const isMobileOrSmall = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
     navigator.userAgent || ""
   ) || (typeof window !== 'undefined' && window.innerWidth < 992);
@@ -1090,7 +1095,7 @@ function Screen4Details() {
             position: 'relative'
           }}
         >
-          {!canEdit && (
+          {!canEdit && !canAddNewForm && (
             <div
               style={{
                 position: 'absolute',
@@ -1121,6 +1126,106 @@ function Screen4Details() {
               />
             </div>
           </Tooltip>
+          
+          {/* COC Form Selector and Add New Button */}
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            marginBottom: '20px',
+            padding: '15px',
+            background: '#f5f5f5',
+            borderRadius: '8px',
+            flexWrap: 'wrap',
+            gap: '10px',
+            position: 'relative',
+            zIndex: 10
+          }}>
+            <div style={{ flex: 1, minWidth: '200px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#333' }}>
+                Select COC Form:
+              </label>
+              <select
+                value={currentFormId || (allCocForms.length > 0 && allCocForms[0] ? (allCocForms[0]?._id || allCocForms[0]?.id || '') : '')}
+                onChange={(e) => {
+                  const selectedId = e.target.value;
+                  if (selectedId === 'new') {
+                    const urlParams = new URLSearchParams(location.search);
+                    const collectorId = urlParams.get('collectorId');
+                    const newFormId = `new-${Date.now()}`;
+                    navigate(`/coc-form/${id}?collectorId=${collectorId}&formId=${newFormId}&newForm=true`);
+                  } else if (selectedId) {
+                    const urlParams = new URLSearchParams(location.search);
+                    const collectorId = urlParams.get('collectorId');
+                    navigate(`/coc-form/${id}?collectorId=${collectorId}&formId=${selectedId}`);
+                  }
+                }}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  borderRadius: '6px',
+                  border: '1px solid #ddd',
+                  fontSize: '14px',
+                  backgroundColor: '#fff'
+                }}
+              >
+                {allCocForms.length === 0 && (
+                  <option value="">No COC forms found - Click 'Add Another COC Form' to create</option>
+                )}
+                {allCocForms.map((form, idx) => {
+                  const formId = form?._id || form?.id || form?.formId || `form-${idx}`;
+                  const formLabel = form?.donorName 
+                    ? `COC Form - ${form.donorName}` 
+                    : `COC Form ${idx + 1}`;
+                  return (
+                    <option key={formId} value={formId}>
+                      {formLabel}
+                    </option>
+                  );
+                })}
+                <option value="new" style={{ fontWeight: 'bold', color: '#80c209' }}>
+                  + Add New COC Form
+                </option>
+              </select>
+            </div>
+            {canAddNewForm && (
+              <button
+                type="button"
+                onClick={() => {
+                  const urlParams = new URLSearchParams(location.search);
+                  const collectorId = urlParams.get('collectorId');
+                  const newFormId = `new-${Date.now()}`;
+                  navigate(`/coc-form/${id}?collectorId=${collectorId}&formId=${newFormId}&newForm=true`);
+                }}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#80c209',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  whiteSpace: 'nowrap',
+                  marginTop: '28px',
+                  transition: 'all 0.3s ease',
+                  position: 'relative',
+                  zIndex: 15
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = '#6fa008';
+                  e.target.style.transform = 'scale(1.05)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = '#80c209';
+                  e.target.style.transform = 'scale(1)';
+                }}
+              >
+                + Add Another COC Form
+              </button>
+            )}
+          </div>
+
           <h2
             className="jobrequestformtitle"
             style={{

@@ -552,7 +552,7 @@
 
 /* Global white text override */
 .collectors-container * {
-  color: #ffffff !important;
+  color: #000000 !important;
 }
 
 /* Specific overrides for better contrast */

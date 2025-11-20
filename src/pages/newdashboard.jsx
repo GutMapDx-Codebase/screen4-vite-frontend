@@ -120,7 +120,14 @@ const ModernDashboard = () => {
   
     const fetchData = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getdashboarddata?token=${token}&id=${id}`);
+        const params = new URLSearchParams();
+        if (token) params.append('token', token);
+        if (id) params.append('id', id);
+        if (isCollectorUser && id) {
+          params.append('collectorId', id);
+        }
+
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getdashboarddata?${params.toString()}`);
         
         if (res.ok) {
           const data = await res.json();

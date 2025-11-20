@@ -12,10 +12,10 @@
     padding: 0 20px;
   }
   
-  .all-clients-title {
+.all-clients-title {
     font-size: 28px;
     font-weight: 700;
-    color: #ffffff !important; /* White text */
+    color: #0f172a;
     margin: 0;
   }
   
@@ -295,16 +295,16 @@
     color: #ffffff !important;
   }
   
-  /* Global white text enforcement */
-  .all-clients-container,
-  .all-clients-container h1,
-  .all-clients-container h2,
-  .all-clients-container h3,
-  .all-clients-container p,
-  .all-clients-container span,
-  .all-clients-container div {
-    color: #ffffff !important;
-  }
+/* Global text color for light theme */
+.all-clients-container,
+.all-clients-container h1,
+.all-clients-container h2,
+.all-clients-container h3,
+.all-clients-container p,
+.all-clients-container span,
+.all-clients-container div {
+  color: #0f172a;
+}
   
   /* Specific enforcement for client information */
   .client-card .client-name,
