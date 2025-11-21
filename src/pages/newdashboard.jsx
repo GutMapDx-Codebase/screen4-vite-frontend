@@ -295,9 +295,8 @@ const ModernDashboard = () => {
       ]
     : isCollectorUser
     ? [
-        // Collector view - hide Active Clients
+        // Collector view - hide Active Clients and Collectors card
         { id: 'total-tests', label: 'Total Tests', value: totalTests, icon: '🧪', color: '#22c55e' },
-        { id: 'collectors', label: 'Collectors', value: collectorsCount, icon: '✓', color: '#8b5cf6' },
         { id: 'pending-jobs', label: 'Pending Jobs', value: jobStats.pending, icon: '💼', color: '#f59e0b' },
         { id: 'completed-jobs', label: 'Completed Jobs', value: jobStats.completed, icon: '✅', color: '#10b981' },
       ]
