@@ -31,7 +31,7 @@
 }
 
 .portal-subtitle {
-  color: #ffffff !important; /* White text */
+  color: #585858 !important; /* White text */
   font-size: 16px;
   font-weight: 500;
 }
@@ -465,7 +465,7 @@
 .client-hub-portal label,
 .client-hub-portal td,
 .client-hub-portal th {
-  color: #ffffff !important;
+  color: #5a5858 !important;
 }
 
 /* Specific elements that need white text */
@@ -479,5 +479,5 @@
 .client-dropdown,
 .form-field,
 .form-field::placeholder {
-  color: #ffffff !important;
+  color: #5a5858 !important;
 }
