@@ -19,11 +19,17 @@ const Report = () => {
   const [reportTestType, setReportTestType] = useState("");
   const [reportData, setReportData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const fetchReport = async () => {
     try {
       setLoading(true);
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:1338";
+      setError("");
+
+      const apiUrl =
+        import.meta.env.VITE_API_BASE_URL ||
+        import.meta.env.VITE_API_URL ||
+        "http://localhost:1338";
 
       const query = new URLSearchParams({
         location: reportLocation || "",
@@ -35,6 +41,7 @@ const Report = () => {
           Accept: "application/json",
         },
       });
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -43,6 +50,11 @@ const Report = () => {
       setReportData(data);
     } catch (error) {
       console.error("Error fetching report:", error);
+      setError(
+        error?.message === "Failed to fetch"
+          ? "Cannot reach the reports API. Please make sure the backend server is running or update the API URL."
+          : error.message || "Unable to load report data."
+      );
     } finally {
       setLoading(false);
     }
@@ -84,14 +96,31 @@ const Report = () => {
 
   useEffect(() => {
     fetchReport();
-  }, []); // only fetch once initially
+  }, []);
 
-  if (loading || !reportData) {
+  if (loading && !error) {
     return (
       <Box className="report-main">
         <Typography variant="h5">Loading report data...</Typography>
       </Box>
     );
+  }
+
+  if (error) {
+    return (
+      <Box className="report-main">
+        <Typography variant="h5" color="error">
+          {error}
+        </Typography>
+        <button onClick={fetchReport} className="download-btn" style={{ marginTop: 16 }}>
+          Retry
+        </button>
+      </Box>
+    );
+  }
+
+  if (!reportData) {
+    return null;
   }
 
   const {
@@ -117,7 +146,6 @@ const Report = () => {
 
   return (
     <Box className="report-main">
-      {/* Header */}
       <div className="report-header">
         <Typography variant="h4" className="report-title">
           Test Reports
@@ -159,7 +187,7 @@ const Report = () => {
 
         <div className="report-actions">
           <button onClick={downloadReport} className="download-btn">
-            ⬇️ Download Report
+            ⬇ Download Report
           </button>
         </div>
       </div>
@@ -201,6 +229,7 @@ const Report = () => {
             <h3>Positive Confirmed vs Non-Negative Screens</h3>
             <p>Test result distribution</p>
           </div>
+
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={barData}>
               <XAxis dataKey="name" stroke="#9ca3af" />
@@ -233,6 +262,7 @@ const Report = () => {
             <h3>Tests per Location</h3>
             <p>Geographical distribution</p>
           </div>
+
           <ResponsiveContainer width="100%" height={280}>
             <PieChart>
               <Pie

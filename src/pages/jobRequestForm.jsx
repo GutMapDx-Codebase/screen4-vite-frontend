@@ -188,7 +188,7 @@ const fetchScreen4Data = async () => {
     laboratoryAddress: "",
     sampleDeliveryMethod: "",
     flightVessel: "",
-    collectorid:[]
+    // collectorid:[]
   });
   const navigate = useNavigate()
   const canvasRef = useRef(null);

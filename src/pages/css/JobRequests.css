@@ -275,7 +275,7 @@
 
 /* Request Card */
 .request-card {
-  background: rgb(12 145 59 / 70%);
+  background:linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(34, 197, 94, 0.2);
   border-radius: 16px;
