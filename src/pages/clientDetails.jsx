@@ -703,23 +703,52 @@ function Screen4Details() {
             selectedForm = resolvedForms[0];
           }
 
+          // ✅ Fetch job request data to auto-populate fields
+          let jobRequestData = null;
+          try {
+            const jobResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getjobrequest/${id}`);
+            if (jobResponse.ok) {
+              const jobResult = await jobResponse.json();
+              if (jobResult.success && jobResult.data) {
+                jobRequestData = jobResult.data;
+              }
+            }
+          } catch (jobError) {
+            console.error("Error fetching job request data:", jobError);
+          }
+
           if (selectedForm) {
+            // Existing COC form - merge with job request data
             setFormData({
               ...defaultFormData,
               ...selectedForm,
+              // Always use job request data for these fields (they should match the job request)
+              cocRefNo: jobRequestData?.jobReferenceNo || selectedForm.cocRefNo || "",
+              location: jobRequestData?.location || selectedForm.location || "",
+              reasonForTest: jobRequestData?.reasonForTest || selectedForm.reasonForTest || "",
+              flight: jobRequestData?.flightVessel || selectedForm.flight || "",
             });
             const existingId = selectedForm?._id || selectedForm?.id || selectedForm?.formId || null;
             setExistingCocId(existingId);
             setCurrentFormId(existingId || formIdParam || null);
             setIsNewFormInstance(false);
           } else {
+            // New COC form - initialize with job request data
+            const initialFormData = { ...defaultFormData };
+            if (jobRequestData) {
+              initialFormData.cocRefNo = jobRequestData.jobReferenceNo || "";
+              initialFormData.location = jobRequestData.location || "";
+              initialFormData.reasonForTest = jobRequestData.reasonForTest || "";
+              initialFormData.flight = jobRequestData.flightVessel || "";
+            }
+            
             if (isNewFlag) {
-              setFormData({ ...defaultFormData });
+              setFormData(initialFormData);
               setExistingCocId(null);
               setCurrentFormId(formIdParam || null);
               setIsNewFormInstance(true);
             } else if (resolvedForms.length === 0) {
-              setFormData({ ...defaultFormData });
+              setFormData(initialFormData);
               setExistingCocId(null);
               setCurrentFormId(null);
               setIsNewFormInstance(false);
@@ -1342,6 +1371,8 @@ function Screen4Details() {
                   value={formData.location}
                   onChange={handleChange}
                   placeholder="Enter Location"
+                  readOnly
+                  style={{ backgroundColor: "#f5f5f5", cursor: "not-allowed" }}
                 />
               </div>
               <div className="donor">
@@ -1405,6 +1436,8 @@ function Screen4Details() {
                       value={reason}
                       checked={formData.reasonForTest === reason}
                       onChange={handleChange}
+                      disabled
+                      style={{ cursor: "not-allowed" }}
                     />
                     {reason}
                   </label>
@@ -1446,6 +1479,8 @@ function Screen4Details() {
                   name="cocRefNo"
                   value={formData.cocRefNo}
                   onChange={handleChange}
+                  readOnly
+                  style={{ backgroundColor: "#f5f5f5", cursor: "not-allowed" }}
                 />
               </div>
               <hr></hr>
@@ -1701,7 +1736,7 @@ function Screen4Details() {
                       // marginRight: "-10px",
                     }}
                   >
-                    BrAC Result
+                    BAC Result
                   </label>
                   <input
                     className="inputstyle"
@@ -1723,7 +1758,7 @@ function Screen4Details() {
                       // marginRight: "-10px",
                     }}
                   >
-                    BrAC Result
+                    BAC Result
                   </label>
                   <input
                     className="inputstyle"
@@ -1803,7 +1838,7 @@ function Screen4Details() {
                       // marginRight: "-10px",
                     }}
                   >
-                    BrAC Result
+                    BAC Result
                   </label>
                   <input
                     className="inputstyle"
@@ -1825,7 +1860,7 @@ function Screen4Details() {
                       // marginRight: "-10px",
                     }}
                   >
-                    BrAC Result
+                    BAC Result
                   </label>
                   <input
                     className="inputstyle"
