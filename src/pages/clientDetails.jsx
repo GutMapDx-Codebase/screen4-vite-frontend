@@ -35,9 +35,11 @@ const defaultFormData = {
   test1: "",
   test1BaracResult1: "",
   test1BaracResult2: "",
+  test1Time: "",
   test2: "",
   test2BaracResult1: "",
   test2BaracResult2: "",
+  test2Time: "",
   collectorName: "",
   collectorRemarks: "",
   collectorSignature: "",
@@ -117,6 +119,27 @@ const defaultFormData = {
   DrugsandAlcoholOralTest: false,
   BreathAlcoholOnlyTest: false,
   DrugsOnlyTest: false,
+};
+
+// Generate next unique COC reference using existing forms
+const deriveNextCocRef = (baseRef, forms = []) => {
+  const base = baseRef || "COC";
+  let maxSuffix = 0;
+  forms.forEach((form) => {
+    const ref = form?.cocRefNo || form?.refno || "";
+    if (typeof ref !== "string") return;
+    if (!ref.startsWith(base)) return;
+    const tail = ref.slice(base.length);
+    const match = tail.match(/^-?(\d+)$/);
+    if (match && match[1]) {
+      const num = parseInt(match[1], 10);
+      if (!Number.isNaN(num)) {
+        maxSuffix = Math.max(maxSuffix, num);
+      }
+    }
+  });
+  const next = maxSuffix + 1;
+  return `${base}-${next}`;
 };
 
 
@@ -394,6 +417,7 @@ function Screen4Details() {
   const [currentFormId, setCurrentFormId] = useState(null);
   const [isNewFormInstance, setIsNewFormInstance] = useState(false);
   const [allCocForms, setAllCocForms] = useState([]); // Store all COC forms for this job/collector
+  const [jobStatus, setJobStatus] = useState(null); // Track job status for edit restrictions
   const handleAddComment = (field) => {
     const comment = prompt("Enter your comment:");
     if (comment) {
@@ -690,6 +714,24 @@ function Screen4Details() {
 
           const resolvedForms = Array.isArray(cocForms) ? cocForms.filter(Boolean) : [];
           setAllCocForms(resolvedForms); // Store all forms for dropdown/selector
+          // ✅ Fetch job request data to auto-populate fields
+          let jobRequestData = null;
+          try {
+            const jobResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getjobrequest/${id}`);
+            if (jobResponse.ok) {
+              const jobResult = await jobResponse.json();
+              if (jobResult.success && jobResult.data) {
+                jobRequestData = jobResult.data;
+                // Capture job status for permission enforcement
+                setJobStatus(jobResult.data?.status || jobResult.data?.jobStatus || null);
+              }
+            }
+          } catch (jobError) {
+            console.error("Error fetching job request data:", jobError);
+          }
+
+          const baseRefNo = jobRequestData?.jobReferenceNo || id || 'COC';
+          const nextCocRef = deriveNextCocRef(baseRefNo, resolvedForms);
 
           let selectedForm = null;
           if (formIdParam) {
@@ -703,28 +745,15 @@ function Screen4Details() {
             selectedForm = resolvedForms[0];
           }
 
-          // ✅ Fetch job request data to auto-populate fields
-          let jobRequestData = null;
-          try {
-            const jobResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getjobrequest/${id}`);
-            if (jobResponse.ok) {
-              const jobResult = await jobResponse.json();
-              if (jobResult.success && jobResult.data) {
-                jobRequestData = jobResult.data;
-              }
-            }
-          } catch (jobError) {
-            console.error("Error fetching job request data:", jobError);
-          }
-
           if (selectedForm) {
             // Existing COC form - merge with job request data
             setFormData({
               ...defaultFormData,
               ...selectedForm,
               // Always use job request data for these fields (they should match the job request)
-              cocRefNo: jobRequestData?.jobReferenceNo || selectedForm.cocRefNo || "",
+              cocRefNo: selectedForm.cocRefNo || jobRequestData?.jobReferenceNo || "",
               location: jobRequestData?.location || selectedForm.location || "",
+              companyName: jobRequestData?.companyName || jobRequestData?.company || selectedForm.companyName || selectedForm.company || "",
               reasonForTest: jobRequestData?.reasonForTest || selectedForm.reasonForTest || "",
               flight: jobRequestData?.flightVessel || selectedForm.flight || "",
             });
@@ -736,8 +765,9 @@ function Screen4Details() {
             // New COC form - initialize with job request data
             const initialFormData = { ...defaultFormData };
             if (jobRequestData) {
-              initialFormData.cocRefNo = jobRequestData.jobReferenceNo || "";
+              initialFormData.cocRefNo = nextCocRef || jobRequestData.jobReferenceNo || "";
               initialFormData.location = jobRequestData.location || "";
+              initialFormData.companyName = jobRequestData.companyName || jobRequestData.company || "";
               initialFormData.reasonForTest = jobRequestData.reasonForTest || "";
               initialFormData.flight = jobRequestData.flightVessel || "";
             }
@@ -893,11 +923,17 @@ function Screen4Details() {
     const isAdminNow = tokenNow === 'dskgfsdgfkgsdfkjg35464154845674987dsf@53';
     const isCollectorNow = tokenNow === 'collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg';
     const alreadySubmitted = formData?.isUpdated === true;
+    const isJobCompletedNow = isJobCompleted;
 
     // Permission checks:
     // - If already submitted: only admin can update
     if (alreadySubmitted && !isAdminNow) {
       message.error('Only admin can edit/update this COC after submission.');
+      return;
+    }
+    // - If job is completed: only admin may edit
+    if (isJobCompletedNow && !isAdminNow) {
+      message.error('Job is completed. Only admin can edit/add COC forms.');
       return;
     }
     // - If not submitted yet: collector or admin (with collector context) can submit
@@ -1065,14 +1101,26 @@ function Screen4Details() {
   const isCollectorUser = token === 'collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg';
   const urlParamsRO = new URLSearchParams(location.search);
   const collectorIdQuery = urlParamsRO.get('collectorId');
+  const isJobCompleted = (() => {
+    if (!jobStatus) return false;
+    const normalized = String(jobStatus).toLowerCase();
+    return ["completed", "complete", "done", "closed", "finished"].some((flag) => normalized.includes(flag));
+  })();
+  // Breath-only flow: skip requiring adulteration/drug-test fields
+  const isBreathOnly = Boolean(
+    formData?.BreathAlcoholOnlyTest &&
+    !formData?.DrugsandAlcoholUrineTest &&
+    !formData?.DrugsandAlcoholOralTest &&
+    !formData?.DrugsOnlyTest
+  );
 
   // Editing rules:
   // - Before first submission (isUpdated !== true): collector (with collectorId in URL) can edit
   // - After submission (isUpdated === true): ONLY admin can edit
   // - Collector can ALWAYS add new COC forms (even if previous ones are submitted)
   const isSubmitted = formData?.isUpdated === true;
-  const canEdit = isAdminUser || (!isSubmitted && Boolean(collectorIdQuery) && isCollectorUser);
-  const canAddNewForm = isAdminUser || (isCollectorUser && Boolean(collectorIdQuery)); // Collector can always add new forms
+  const canEdit = isAdminUser || (!isSubmitted && Boolean(collectorIdQuery) && isCollectorUser && !isJobCompleted);
+  const canAddNewForm = isAdminUser || (isCollectorUser && Boolean(collectorIdQuery) && !isJobCompleted); // Collector blocked if job completed
   const isMobileOrSmall = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
     navigator.userAgent || ""
   ) || (typeof window !== 'undefined' && window.innerWidth < 992);
@@ -1254,6 +1302,15 @@ function Screen4Details() {
               </button>
             )}
           </div>
+
+          {/* Read-only notice when form is locked for non-admin users */}
+          {!canEdit && (
+            <div style={{ margin: '10px 0 20px', padding: '12px 14px', background: '#fffbe6', border: '1px solid #ffe58f', color: '#ad6800', borderRadius: '6px' }}>
+              This COC form is locked. Only admins can edit it. Collectors or clients can add and fill a new COC form, but they cannot update this existing form..
+            </div>
+          )}
+
+          <fieldset disabled={!canEdit} style={{ border: 'none', padding: 0, margin: 0, opacity: !canEdit ? 0.65 : 1 }}>
 
           <h2
             className="jobrequestformtitle"
@@ -1678,31 +1735,29 @@ function Screen4Details() {
                   Local Time
                 </p> */}
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-  <p
-    style={{
-      fontWeight: "bold",
-      fontSize: "12px",
-      width: "110px",
-      marginTop: "18px",
-    }}
-  >
-    Local Time
-  </p>
-  <div
-    style={{
-      border: "1px solid #ccc",
-      borderRadius: "4px",
-      padding: "8px 12px",
-      fontSize: "12px",
-      marginTop: "18px",
-      minWidth: "80px",
-      textAlign: "center",
-      backgroundColor: "#f9f9f9"
-    }}
-  >
-    {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-  </div>
-</div>
+                  <p
+                    style={{
+                      fontWeight: "bold",
+                      fontSize: "12px",
+                      width: "110px",
+                      marginTop: "18px",
+                    }}
+                  >
+                    Local Time
+                  </p>
+                  <input
+                    className="inputstyle"
+                    type="time"
+                    name="test1Time"
+                    value={formData.test1Time}
+                    onChange={handleChange}
+                    style={{
+                      marginTop: "18px",
+                      width: "120px",
+                    }}
+                    required
+                  />
+                </div>
                 <div className="donor">
                   <label
                     style={{
@@ -1736,7 +1791,7 @@ function Screen4Details() {
                       // marginRight: "-10px",
                     }}
                   >
-                    BAC Result
+                    BrAC Result
                   </label>
                   <input
                     className="inputstyle"
@@ -1777,32 +1832,29 @@ function Screen4Details() {
                 style={{ display: "flex", justifyContent: "space-between" }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-  <p
-    style={{
-      fontWeight: "bold",
-      fontSize: "12px",
-      width: "110px",
-      marginTop: "18px",
-    }}
-  >
-    Local Time
-  </p>
-  <div
-    style={{
-      border: "1px solid #ccc",
-      borderRadius: "4px",
-      padding: "8px 12px",
-      fontSize: "12px",
-      marginTop: "18px",
-      minWidth: "80px",
-      textAlign: "center",
-      backgroundColor: "#f9f9f9",
-      fontFamily: "monospace"
-    }}
-  >
-    {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-  </div>
-</div>
+                  <p
+                    style={{
+                      fontWeight: "bold",
+                      fontSize: "12px",
+                      width: "110px",
+                      marginTop: "18px",
+                    }}
+                  >
+                    Local Time
+                  </p>
+                  <input
+                    className="inputstyle"
+                    type="time"
+                    name="test2Time"
+                    value={formData.test2Time}
+                    onChange={handleChange}
+                    style={{
+                      marginTop: "18px",
+                      width: "120px",
+                    }}
+                    required
+                  />
+                </div>
 
                 
                 <div className="donor">
@@ -1838,7 +1890,7 @@ function Screen4Details() {
                       // marginRight: "-10px",
                     }}
                   >
-                    BAC Result
+                    BrAC Result
                   </label>
                   <input
                     className="inputstyle"
@@ -2219,7 +2271,7 @@ function Screen4Details() {
                     placeholder=""
                     onChange={handleChange}
                     style={{ width: "102px", margin: "0px", height: "5px" }}
-                    required
+                  required={!isBreathOnly}
                   />
                 </div>
                 <div className="donor" style={{ marginLeft: "5px" }}>
@@ -2241,7 +2293,7 @@ function Screen4Details() {
                     placeholder=""
                     onChange={handleChange}
                     style={{ width: "102px", margin: "0px", height: "5px" }}
-                    required
+                  required={!isBreathOnly}
                   />
                 </div>
                 <div class="row"></div>
@@ -2324,7 +2376,7 @@ function Screen4Details() {
                             margin: "0px",
                             height: "5px",
                           }}
-                          required
+                  required={!isBreathOnly}
                         />
                       </div>
                     </div>
@@ -2360,7 +2412,7 @@ function Screen4Details() {
                             margin: "0px",
                             height: "5px",
                           }}
-                          required
+                  required={!isBreathOnly}
                         />
                         {formData.expDate && (
                           <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.expDate)}</div>
@@ -2451,7 +2503,7 @@ function Screen4Details() {
                       width: "50%",
                       margin: "0px", height: "5px"
                     }}
-                    required
+                  required={!isBreathOnly}
                   />
                 </div>
               </div>
@@ -2816,7 +2868,6 @@ function Screen4Details() {
                   placeholder=""
                   onChange={handleChange}
                   style={{ width: "102px", margin: "0px", height: "5px" }}
-                  required
                 />
               </div>
               <div className="donor" style={{ marginLeft: "5px" }}>
@@ -2838,7 +2889,6 @@ function Screen4Details() {
                   placeholder=""
                   onChange={handleChange}
                   style={{ width: "102px", margin: "0px", height: "5px" }}
-                  required
                 />
               </div>
               <div className="donor" style={{ marginLeft: "5px" }}>
@@ -2860,7 +2910,6 @@ function Screen4Details() {
                   placeholder=""
                   onChange={handleChange}
                   style={{ width: "102px", margin: "0px", height: "5px" }}
-                  required
                 />
               {formData.recieveDate && (
                 <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.recieveDate)}</div>
@@ -3015,6 +3064,8 @@ function Screen4Details() {
               )}
             </div>
           </div>
+
+          </fieldset>
 
           {/* Submit Button */}
           {canEdit && (
