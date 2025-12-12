@@ -16,7 +16,7 @@ export default function AddClientForm() {
   const [client, setClient] = useState({
     name: "",
     contact: "",
-    hqAddress: [{ address: "", contactName: "", contactEmail: "" }],
+    hqAddress: [{ address: "", contactName: "", contactEmail: "", onsiteContactName: "", onsiteContactTelephone: "" }],
     operationalBases: [{ address: "", contact: "" }],
     emails: "",
     password: "",
@@ -26,14 +26,13 @@ export default function AddClientForm() {
     costings: "",
     jobPack: "",
     location: "",
-    NameofOnsiteContact: "",
-    Contacttelephoneno: "",
 
     // NEW FIELDS
     secondBreathTestRequired: "No",        // "Yes" or "No"
     drugKitType: "",                        // e.g. "Urine" or "Oral Fluid"
     nonNegativeSamplesToLab: "No",         // "Yes" or "No"
-    laboratoryAddress: "",                 // Text
+    selectedLaboratory: "",                 // Dropdown: Omega, Cansford, Matrix, Eurofinns
+    laboratoryAddress: "",                 // Text - Free text address
     sampleDeliveryMethod: "",
   });
 
@@ -131,7 +130,7 @@ export default function AddClientForm() {
   const addNewSite = () => {
     setClient((prev) => ({
       ...prev,
-      hqAddress: [...prev.hqAddress, { address: "", contactName: "", contactEmail: "" }],
+      hqAddress: [...prev.hqAddress, { address: "", contactName: "", contactEmail: "", onsiteContactName: "", onsiteContactTelephone: "" }],
     }));
   };
 
@@ -262,14 +261,31 @@ export default function AddClientForm() {
                     placeholder="Site Contact Email"
                     value={site.contactEmail}
                     onChange={(e) => updateSiteField(index, "contactEmail", e.target.value)}
+                    style={{ marginBottom: 8 }}
                   />
                 </>
               )}
+              <div style={{ marginTop: 12 }}>
+                <Form.Item label="Name of Onsite Contact" style={{ marginBottom: 8 }}>
+                  <Input
+                    value={site.onsiteContactName || ""}
+                    onChange={(e) => updateSiteField(index, "onsiteContactName", e.target.value)}
+                    placeholder="Enter onsite contact name"
+                  />
+                </Form.Item>
+                <Form.Item label="Contact telephone no.">
+                  <Input
+                    value={site.onsiteContactTelephone || ""}
+                    onChange={(e) => updateSiteField(index, "onsiteContactTelephone", e.target.value)}
+                    placeholder="Enter contact telephone number"
+                  />
+                </Form.Item>
+              </div>
             </div>
           ))}
 
           <Button onClick={addNewSite} style={{ marginBottom: 30 }}>
-            + Add Additional Site Address
+            + contact and contact tel/email address
           </Button>
 
           {/* <Form.Item label="Main Contact Email Address">
@@ -359,19 +375,6 @@ export default function AddClientForm() {
             />
           </Form.Item> */}
 
-          <Form.Item label="Name of Onsite Contact">
-            <Input
-              value={client.NameofOnsiteContact}
-              onChange={(e) => setClient({ ...client, NameofOnsiteContact: e.target.value })}
-            />
-          </Form.Item>
-
-          <Form.Item label="Contact telephone no.">
-            <Input
-              value={client.Contacttelephoneno}
-              onChange={(e) => setClient({ ...client, Contacttelephoneno: e.target.value })}
-            />
-          </Form.Item>
 
            <Form.Item label="Type Of Test">
             <Select
@@ -398,15 +401,19 @@ export default function AddClientForm() {
   <td><strong>Second Breath Test Required?</strong></td>
   <td>
     <label>
-      <input
+
+    If breath alcohol result is over the cut off
+do they require a second breath alcohol
+test?
+      {/* <input
         type="radio"
         name="secondBreathTestRequired"
         value="Yes"
         checked={client.secondBreathTestRequired === "Yes"}
         onChange={(e) => setClient({ ...client, secondBreathTestRequired: e.target.value })}
-      /> Yes
+      /> Yes */}
     </label>
-    <label style={{ marginLeft: "15px" }}>
+    {/* <label style={{ marginLeft: "15px" }}>
       <input
         type="radio"
         name="secondBreathTestRequired"
@@ -414,14 +421,16 @@ export default function AddClientForm() {
         checked={client.secondBreathTestRequired === "No"}
         onChange={(e) => setClient({ ...client, secondBreathTestRequired: e.target.value })}
       /> No
-    </label>
+    </label> */}
   </td>
 </tr>
 
 <tr>
   <td><strong>Drugs (Kit Type)</strong></td>
   <td>
-    <select
+
+  POCT Drugs Panel (Kit types)
+    {/* <select
      className="drugsselect"
       value={client.drugKitType}
       onChange={(e) => setClient({ ...client, drugKitType: e.target.value })}
@@ -429,7 +438,7 @@ export default function AddClientForm() {
       <option value="" disabled>Select Kit Type</option>
       <option value="Urine">Urine (POCT 10 Panel cup / BtL)</option>
       <option value="Oral Fluid">Oral Fluid (POCT 9NR / Oral-Eze BtL)</option>
-    </select>
+    </select> */}
   </td>
 </tr>
 
@@ -437,7 +446,11 @@ export default function AddClientForm() {
   <td><strong>Non-Negative Samples to Lab?</strong></td>
   <td>
     <label>
-      <input
+
+    If a Non-Negative drugs POCT, do the
+samples need to be sent back to the
+laboratory?
+      {/* <input
         type="radio"
         name="nonNegativeSamplesToLab"
         value="Yes"
@@ -452,8 +465,25 @@ export default function AddClientForm() {
         value="No"
         checked={client.nonNegativeSamplesToLab === "No"}
         onChange={(e) => setClient({ ...client, nonNegativeSamplesToLab: e.target.value })}
-      /> No
+      /> No */}
     </label>
+  </td>
+</tr>
+
+<tr>
+  <td><strong>Which Laboratory do the non-negative samples go to?</strong></td>
+  <td>
+    <Select
+      value={client.selectedLaboratory}
+      onChange={(value) => setClient({ ...client, selectedLaboratory: value })}
+      placeholder="Select Laboratory"
+      style={{ width: "100%" }}
+    >
+      <Select.Option value="Omega">Omega</Select.Option>
+      <Select.Option value="Cansford">Cansford</Select.Option>
+      <Select.Option value="Matrix">Matrix</Select.Option>
+      <Select.Option value="Eurofinns">Eurofinns</Select.Option>
+    </Select>
   </td>
 </tr>
 
@@ -463,6 +493,7 @@ export default function AddClientForm() {
     <Input
       value={client.laboratoryAddress}
       onChange={(e) => setClient({ ...client, laboratoryAddress: e.target.value })}
+      placeholder="Enter laboratory address"
     />
   </td>
 </tr>
@@ -470,10 +501,13 @@ export default function AddClientForm() {
 <tr>
   <td><strong>Samples Back to Lab</strong></td>
   <td>
-    <Input
+  Do drug test samples go back to lab
+
+without onsite POCT?
+    {/* <Input
       value={client.sampleDeliveryMethod}
       onChange={(e) => setClient({ ...client, sampleDeliveryMethod: e.target.value })}
-    />
+    /> */}
   </td>
 </tr>
 </tbody>

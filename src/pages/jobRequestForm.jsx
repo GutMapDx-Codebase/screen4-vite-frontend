@@ -127,6 +127,10 @@ const fetchScreen4Data = async () => {
           laboratoryAddress: jobData.customerId.laboratoryAddress || "",
           sampleDeliveryMethod: jobData.customerId.sampleDeliveryMethod || "Courier"
         });
+        // Preload locations so location select has onsite contact info
+        if (Array.isArray(jobData.customerId.hqAddress)) {
+          setLocations(jobData.customerId.hqAddress);
+        }
       }
     } else {
       throw new Error("Invalid data received from server");
@@ -285,6 +289,8 @@ const fetchScreen4Data = async () => {
                 address: addr.address,
                 contactName: addr.contactName,
                 contactEmail: addr.contactEmail,
+                onsiteContactName: addr.onsiteContactName,
+                onsiteContactTelephone: addr.onsiteContactTelephone,
               });
             }
           });
@@ -747,6 +753,18 @@ const generateUniqueJobRef = async () => {
   };
   const handleChange = (e) => {
     const { name, value, type } = e.target;
+
+    // Auto-populate onsite contact details when a location is selected
+    if (name === "location") {
+      const matchedLocation = locations.find((loc) => loc.address === value);
+      setFormData((prevData) => ({
+        ...prevData,
+        location: value,
+        nameOfOnsiteContact: matchedLocation?.onsiteContactName || matchedLocation?.contactName || prevData.nameOfOnsiteContact,
+        contactOfTelephoneNo: matchedLocation?.onsiteContactTelephone || prevData.contactOfTelephoneNo,
+      }));
+      return;
+    }
 
     if (type === "select-multiple") {
       // Handle multiple selection for collectorid
@@ -1237,14 +1255,18 @@ const handleAccept = async (e) => {
               <option value="" disabled>
                 Select a test type
               </option>
-              <option value="Breath Alcohol">Breath Alcohol</option>
-              <option value="Urine POCT / BtL">Urine POCT / BtL</option>
-              <option value="Oral Fluid POCT / BtL">
-                Oral Fluid POCT / BtL
+              <option value="Breath Alcohol Test only">Breath Alcohol Test only</option>
+              <option value="Breath Alcohol and Urine Drug Test">Breath Alcohol and Urine Drug Test</option>
+              <option value="Breath Alcohol and Oral Fluid Drug Test">
+              Breath Alcohol and Oral Fluid Drug Test
               </option>
-              <option value="Non-Neg samples back to lab for confirmation">
-                Non-Neg samples back to lab for confirmation
+              <option value="Urine Drug Test only">
+              Urine Drug Test only
               </option>
+
+              <option value="Oral Fluid Drug Test only">Oral Fluid Drug Test only</option>
+
+              <option value="Hair Drug Test">Hair Drug Test</option>
             </select>
           </div>
           <hr></hr>
