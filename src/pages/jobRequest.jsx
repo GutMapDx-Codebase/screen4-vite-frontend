@@ -629,8 +629,17 @@ const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query 
         }
       );
 
+      const result = await response.json().catch(() => ({}));
+
       if (!response.ok) {
-        throw new Error("Failed to send email");
+        message.error(result?.message || "Email failed, please retry.");
+        throw new Error(result?.message || "Failed to send email");
+      }
+
+      if (result?.emailStatus) {
+        message.success(result.emailStatus);
+      } else {
+        message.success("Donor email queued.");
       }
 
       setFilteredClients((prevClients) =>
@@ -640,6 +649,7 @@ const fetchScreen4Data = async (pageNumber = 1, currentTab = selectedTab, query 
       );
     } catch (err) {
       console.error(err.message);
+      message.error("Email failed, please retry.");
     }
     setSendingEmail(false);
   };

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/navbar";
 import Cookies from "js-cookie";
+import { message } from "antd";
 
 const Patients = () => {
   const [client, setClient] = useState([]);
@@ -106,8 +107,17 @@ const Patients = () => {
         method: "POST",
       });
 
+      const result = await response.json().catch(() => ({}));
+
       if (!response.ok) {
-        throw new Error("Failed to send email");
+        message.error(result?.message || "Email failed, please retry.");
+        throw new Error(result?.message || "Failed to send email");
+      }
+
+      if (result?.emailStatus) {
+        message.success(result.emailStatus);
+      } else {
+        message.success("Donor email queued.");
       }
 
       setFilteredClients((prevClients) =>
@@ -117,6 +127,7 @@ const Patients = () => {
       );
     } catch (err) {
       console.error(err.message);
+      message.error("Email failed, please retry.");
     }
   };
 

@@ -320,6 +320,18 @@ const fetchScreen4Data = async () => {
     }
   }, [formData.customer, customers]);
 
+  // Auto-populate onsite contact fields when locations load or location value changes (covers edit mode too)
+  useEffect(() => {
+    if (!formData.location || !Array.isArray(locations)) return;
+    const matchedLocation = locations.find((loc) => loc.address === formData.location);
+    if (!matchedLocation) return;
+    setFormData((prev) => ({
+      ...prev,
+      nameOfOnsiteContact: matchedLocation.onsiteContactName || matchedLocation.contactName || "",
+      contactOfTelephoneNo: matchedLocation.onsiteContactTelephone || "",
+    }));
+  }, [formData.location, locations]);
+
 
   
   const handleAddComment = (field) => {
@@ -760,8 +772,8 @@ const generateUniqueJobRef = async () => {
       setFormData((prevData) => ({
         ...prevData,
         location: value,
-        nameOfOnsiteContact: matchedLocation?.onsiteContactName || matchedLocation?.contactName || prevData.nameOfOnsiteContact,
-        contactOfTelephoneNo: matchedLocation?.onsiteContactTelephone || prevData.contactOfTelephoneNo,
+        nameOfOnsiteContact: matchedLocation?.onsiteContactName || matchedLocation?.contactName || "",
+        contactOfTelephoneNo: matchedLocation?.onsiteContactTelephone || "",
       }));
       return;
     }
@@ -803,7 +815,11 @@ const generateUniqueJobRef = async () => {
       const result = await response.json();
   
       if (response.ok) {
-        message.success(formData._id ? "Form updated successfully!" : "Form submitted successfully!");
+        const baseMsg = formData._id ? "Form updated successfully!" : "Form submitted successfully!";
+        message.success(baseMsg);
+        if (result?.emailStatus) {
+          message.info(result.emailStatus);
+        }
       } else {
         message.error(result.message || "Failed to process form.");
       }
@@ -959,30 +975,43 @@ const handleAccept = async (e) => {
 
   // };
   const handleCustomerChange = async (e) => {
-  const selectedId = e.target.value; // This is the ObjectId
+    const selectedId = e.target.value; // This is the ObjectId
 
-  console.log("Selected customerId:", selectedId);
+    setFormData((prev) => ({
+      ...prev,
+      customerId: selectedId, // ✅ store ObjectId
+    }));
 
-  setFormData((prev) => ({
-    ...prev,
-    customerId: selectedId, // ✅ store ObjectId
-  }));
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getcustomerbyid/${selectedId}`);
+      const raw = await res.json();
+      const data = raw?.data
+        ? Array.isArray(raw.data)
+          ? raw.data[0]
+          : raw.data
+        : Array.isArray(raw)
+          ? raw[0]
+          : raw;
 
-  try {
-    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getcustomerbyid/${selectedId}`);
-    const data = await res.json();
-    setClientDetails(data);
+      setClientDetails(data);
 
-    if (data && Array.isArray(data.hqAddress)) {
-      setLocations(data.hqAddress);
-    } else {
+      const hq = Array.isArray(data?.hqAddress) ? data.hqAddress : [];
+      setLocations(hq);
+
+      const firstLoc = hq.find((loc) => loc?.address) || hq[0];
+      if (firstLoc && firstLoc.address) {
+        setFormData((prev) => ({
+          ...prev,
+          location: prev.location || firstLoc.address,
+          nameOfOnsiteContact: firstLoc.onsiteContactName || firstLoc.contactName || "",
+          contactOfTelephoneNo: firstLoc.onsiteContactTelephone || "",
+        }));
+      }
+    } catch (err) {
+      console.error("Failed to fetch customer details:", err);
       setLocations([]);
     }
-  } catch (err) {
-    console.error("Failed to fetch customer details:", err);
-    setLocations([]);
-  }
-};
+  };
 
   // };
 

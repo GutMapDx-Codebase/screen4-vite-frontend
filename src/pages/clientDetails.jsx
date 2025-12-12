@@ -969,6 +969,33 @@ function Screen4Details() {
 
       if (response.ok) {
         message.success("Form saved successfully!");
+        
+        // ✅ Send email to client after COC form submission
+        try {
+          const emailResponse = await fetch(
+            `${import.meta.env.VITE_API_BASE_URL}/sendscreenemailtoclient/${jobRequestId}`,
+            {
+              method: "POST",
+            }
+          );
+
+          const emailResult = await emailResponse.json().catch(() => ({}));
+
+          if (emailResponse.ok) {
+            if (emailResult?.emailStatus) {
+              message.info(emailResult.emailStatus);
+            } else {
+              message.info("Client email queued.");
+            }
+          } else {
+            console.warn("Email to client failed:", emailResult?.message || "Unknown error");
+            message.warning("COC form saved, but client email failed. Please retry.");
+          }
+        } catch (emailErr) {
+          console.error("Error sending email to client:", emailErr);
+          message.warning("COC form saved, but client email failed. Please retry.");
+        }
+        
         navigate('/jobrequests');
       } else {
         message.error(result.message || "Failed to save form.");

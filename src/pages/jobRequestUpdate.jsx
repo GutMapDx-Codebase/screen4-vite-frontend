@@ -472,7 +472,11 @@ const handleSubmit = async (e) => {
       const result = await response.json();
   
       if (response.ok) {
-        message.success(formData._id ? "Form updated successfully!" : "Form submitted successfully!");
+        const baseMsg = formData._id ? "Form updated successfully!" : "Form submitted successfully!";
+        message.success(baseMsg);
+        if (result?.emailStatus) {
+          message.info(result.emailStatus);
+        }
       } else {
         message.error(result.message || "Failed to process form.");
       }
