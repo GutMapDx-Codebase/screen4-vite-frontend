@@ -237,7 +237,7 @@ export default function AddClientForm() {
             <Input value={client.name} onChange={(e) => setClient({ ...client, name: e.target.value })} />
           </Form.Item>
 
-          <Form.Item label="Contact">
+          <Form.Item label="Client Main Contact:">
             <Input value={client.contact} onChange={(e) => setClient({ ...client, contact: e.target.value })} />
           </Form.Item>
 
@@ -352,12 +352,12 @@ export default function AddClientForm() {
               onChange={(e) => setClient({ ...client, costings: e.target.value })}
             />
           </Form.Item>
-          <Form.Item label="Location">
+          {/* <Form.Item label="Location">
             <Input
               value={client.location}
               onChange={(e) => setClient({ ...client, location: e.target.value })}
             />
-          </Form.Item>
+          </Form.Item> */}
 
           <Form.Item label="Name of Onsite Contact">
             <Input
