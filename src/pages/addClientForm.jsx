@@ -116,10 +116,10 @@ export default function AddClientForm() {
     const token = Cookies.get("Token");
     if (
       !token ||
-      (token !== "dskgfsdgfkgsdfkjg35464154845674987dsf@53" 
-       &&
+      (token !== "dskgfsdgfkgsdfkjg35464154845674987dsf@53"
+        &&
         token !== "collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg"
-       &&
+        &&
         token !== "clientdgf45sdgf89756dfgdhgdf")
     ) {
       navigate("/");
@@ -205,31 +205,31 @@ export default function AddClientForm() {
                 />
               </div>
             </Tooltip> */}
-            <Card style={{ width: 1300 }}>
-  {/* Custom Header */}
-  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-    <Tooltip title="Back">
-      <div
-        onClick={() => navigate('/clients')}
-        style={{
-          cursor: 'pointer',
-          padding: '5px',
-          borderRadius: '4px',
-          transition: 'background-color 0.3s ease',
-        }}
-        className="back-btn"
-      >
-        <img
-        className="backbtnimg"
-          src="/backbtn.png"
-          alt="Back"
-          style={{ width: '20px', marginBottom: '10px' }}
-        />
-      </div>
-    </Tooltip>
+      <Card style={{ width: 1300 }}>
+        {/* Custom Header */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+          <Tooltip title="Back">
+            <div
+              onClick={() => navigate('/clients')}
+              style={{
+                cursor: 'pointer',
+                padding: '5px',
+                borderRadius: '4px',
+                transition: 'background-color 0.3s ease',
+              }}
+              className="back-btn"
+            >
+              <img
+                className="backbtnimg"
+                src="/backbtn.png"
+                alt="Back"
+                style={{ width: '20px', marginBottom: '10px' }}
+              />
+            </div>
+          </Tooltip>
 
-    <h2 style={{ fontWeight: 'bold', fontSize: '20px' }}>Add Client</h2>
-  </div>
+          <h2 style={{ fontWeight: 'bold', fontSize: '20px' }}>Add Client</h2>
+        </div>
 
         <Form form={form} layout="vertical" onFinish={handleSubmit}>
           <Form.Item label="Client Name">
@@ -295,19 +295,19 @@ export default function AddClientForm() {
             />
           </Form.Item> */}
 
-<Form.Item
-  label="Main Contact Email Address"
-  name="emails"
-  rules={[
-    { required: true, message: "Please input the client's email!" },
-    { type: 'email', message: "Enter a valid email address" }
-  ]}
->
-  <Input.TextArea
-    value={client.emails}
-    onChange={(e) => setClient({ ...client, emails: e.target.value })}
-  />
-</Form.Item>
+          <Form.Item
+            label="Main Contact Email Address"
+            name="emails"
+            rules={[
+              { required: true, message: "Please input the client's email!" },
+              { type: 'email', message: "Enter a valid email address" }
+            ]}
+          >
+            <Input.TextArea
+              value={client.emails}
+              onChange={(e) => setClient({ ...client, emails: e.target.value })}
+            />
+          </Form.Item>
 
 
           <Form.Item label="Password">
@@ -376,7 +376,7 @@ export default function AddClientForm() {
           </Form.Item> */}
 
 
-           <Form.Item label="Type Of Test">
+          <Form.Item label="Type Of Test">
             <Select
               mode="multiple"
               value={client.TypeOfTestOptions}
@@ -393,127 +393,114 @@ export default function AddClientForm() {
               ))}
             </Select>
           </Form.Item>
-          
+
           <Form.Item label="Client Details">
-  <table style={{ width: "100%" }}>
-    <tbody>
-          <tr>
-  <td><strong>Second Breath Test Required?</strong></td>
-  <td>
-    <label>
+            <table style={{ width: "100%" }}>
+              <tbody>
+                <tr>
+                  <td><strong>If breath alcohol result is over the cut off do they require a second breath alcohol test?</strong></td>
+                  <td>
+                    <label>
+                      <input
+                        type="radio"
+                        name="secondBreathTestRequired"
+                        value="Yes"
+                        checked={client.secondBreathTestRequired === "Yes"}
+                        onChange={(e) => setClient({ ...client, secondBreathTestRequired: e.target.value })}
+                      /> Yes
+                    </label>
+                    <label style={{ marginLeft: "15px" }}>
+                      <input
+                        type="radio"
+                        name="secondBreathTestRequired"
+                        value="No"
+                        checked={client.secondBreathTestRequired === "No"}
+                        onChange={(e) => setClient({ ...client, secondBreathTestRequired: e.target.value })}
+                      /> No
+                    </label>
+                  </td>
+                </tr>
 
-    If breath alcohol result is over the cut off
-do they require a second breath alcohol
-test?
-      {/* <input
-        type="radio"
-        name="secondBreathTestRequired"
-        value="Yes"
-        checked={client.secondBreathTestRequired === "Yes"}
-        onChange={(e) => setClient({ ...client, secondBreathTestRequired: e.target.value })}
-      /> Yes */}
-    </label>
-    {/* <label style={{ marginLeft: "15px" }}>
-      <input
-        type="radio"
-        name="secondBreathTestRequired"
-        value="No"
-        checked={client.secondBreathTestRequired === "No"}
-        onChange={(e) => setClient({ ...client, secondBreathTestRequired: e.target.value })}
-      /> No
-    </label> */}
-  </td>
-</tr>
+                <tr>
+                  <td><strong>POCT Drugs Panel (Kit types)</strong></td>
+                  <td>
+                    <select
+                      className="drugsselect"
+                      value={client.drugKitType}
+                      onChange={(e) => setClient({ ...client, drugKitType: e.target.value })}
+                    >
+                      <option value="" disabled>Select Kit Type</option>
+                      <option value="Urine">Urine (POCT 10 Panel cup / BtL)</option>
+                      <option value="Oral Fluid">Oral Fluid (POCT 9NR / Oral-Eze BtL)</option>
+                    </select>
+                  </td>
+                </tr>
 
-<tr>
-  <td><strong>Drugs (Kit Type)</strong></td>
-  <td>
+                <tr>
+                  <td><strong>If a Non-Negative drugs POCT, do the samples need to be sent back to the laboratory?</strong></td>
+                  <td>
+                    <label>
+                      <input
+                        type="radio"
+                        name="nonNegativeSamplesToLab"
+                        value="Yes"
+                        checked={client.nonNegativeSamplesToLab === "Yes"}
+                        onChange={(e) => setClient({ ...client, nonNegativeSamplesToLab: e.target.value })}
+                      /> Yes
+                    </label>
+                    <label style={{ marginLeft: "15px" }}>
+                      <input
+                        type="radio"
+                        name="nonNegativeSamplesToLab"
+                        value="No"
+                        checked={client.nonNegativeSamplesToLab === "No"}
+                        onChange={(e) => setClient({ ...client, nonNegativeSamplesToLab: e.target.value })}
+                      /> No
+                    </label>
+                  </td>
+                </tr>
 
-  POCT Drugs Panel (Kit types)
-    {/* <select
-     className="drugsselect"
-      value={client.drugKitType}
-      onChange={(e) => setClient({ ...client, drugKitType: e.target.value })}
-    >
-      <option value="" disabled>Select Kit Type</option>
-      <option value="Urine">Urine (POCT 10 Panel cup / BtL)</option>
-      <option value="Oral Fluid">Oral Fluid (POCT 9NR / Oral-Eze BtL)</option>
-    </select> */}
-  </td>
-</tr>
+                <tr>
+                  <td><strong>Which Laboratory do the non-negative samples go to?</strong></td>
+                  <td>
+                    <Select
+                      value={client.selectedLaboratory}
+                      onChange={(value) => setClient({ ...client, selectedLaboratory: value })}
+                      placeholder="Select Laboratory"
+                      style={{ width: "100%" }}
+                    >
+                      <Select.Option value="Omega">Omega</Select.Option>
+                      <Select.Option value="Cansford">Cansford</Select.Option>
+                      <Select.Option value="Matrix">Matrix</Select.Option>
+                      <Select.Option value="Eurofinns">Eurofinns</Select.Option>
+                    </Select>
+                  </td>
+                </tr>
 
-<tr>
-  <td><strong>Non-Negative Samples to Lab?</strong></td>
-  <td>
-    <label>
+                <tr>
+                  <td><strong>Laboratory Address</strong></td>
+                  <td>
+                    <Input
+                      value={client.laboratoryAddress}
+                      onChange={(e) => setClient({ ...client, laboratoryAddress: e.target.value })}
+                      placeholder="Enter laboratory address"
+                    />
+                  </td>
+                </tr>
 
-    If a Non-Negative drugs POCT, do the
-samples need to be sent back to the
-laboratory?
-      {/* <input
-        type="radio"
-        name="nonNegativeSamplesToLab"
-        value="Yes"
-        checked={client.nonNegativeSamplesToLab === "Yes"}
-        onChange={(e) => setClient({ ...client, nonNegativeSamplesToLab: e.target.value })}
-      /> Yes
-    </label>
-    <label style={{ marginLeft: "15px" }}>
-      <input
-        type="radio"
-        name="nonNegativeSamplesToLab"
-        value="No"
-        checked={client.nonNegativeSamplesToLab === "No"}
-        onChange={(e) => setClient({ ...client, nonNegativeSamplesToLab: e.target.value })}
-      /> No */}
-    </label>
-  </td>
-</tr>
-
-<tr>
-  <td><strong>Which Laboratory do the non-negative samples go to?</strong></td>
-  <td>
-    <Select
-      value={client.selectedLaboratory}
-      onChange={(value) => setClient({ ...client, selectedLaboratory: value })}
-      placeholder="Select Laboratory"
-      style={{ width: "100%" }}
-    >
-      <Select.Option value="Omega">Omega</Select.Option>
-      <Select.Option value="Cansford">Cansford</Select.Option>
-      <Select.Option value="Matrix">Matrix</Select.Option>
-      <Select.Option value="Eurofinns">Eurofinns</Select.Option>
-    </Select>
-  </td>
-</tr>
-
-<tr>
-  <td><strong>Laboratory Address</strong></td>
-  <td>
-    <Input
-      value={client.laboratoryAddress}
-      onChange={(e) => setClient({ ...client, laboratoryAddress: e.target.value })}
-      placeholder="Enter laboratory address"
-    />
-  </td>
-</tr>
-
-<tr>
-  <td><strong>Samples Back to Lab</strong></td>
-  <td>
-  Do drug test samples go back to lab
-
-without onsite POCT?
-    {/* <Input
-      value={client.sampleDeliveryMethod}
-      onChange={(e) => setClient({ ...client, sampleDeliveryMethod: e.target.value })}
-    /> */}
-  </td>
-</tr>
-</tbody>
-  </table>
-</Form.Item>
-{/* 
+                <tr>
+                  <td><strong>Do drug test samples go back to lab without onsite POCT?</strong></td>
+                  <td>
+                    <Input
+                      value={client.sampleDeliveryMethod}
+                      onChange={(e) => setClient({ ...client, sampleDeliveryMethod: e.target.value })}
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </Form.Item>
+          {/* 
 
           <Form.Item label="Upload Job Pack Document" name="jobPack" valuePropName="file">
             <Upload beforeUpload={() => false} accept=".pdf,.doc,.docx" maxCount={1}>
@@ -539,75 +526,75 @@ without onsite POCT?
             </a>
           </div> */}
 
-<Form.Item label="Upload Job Pack Document" name="jobPack" valuePropName="file">
-  <Upload beforeUpload={() => false} accept=".pdf,.doc,.docx" maxCount={1}>
-    <Button>Click to Upload</Button>
-  </Upload>
-</Form.Item>
+          <Form.Item label="Upload Job Pack Document" name="jobPack" valuePropName="file">
+            <Upload beforeUpload={() => false} accept=".pdf,.doc,.docx" maxCount={1}>
+              <Button>Click to Upload</Button>
+            </Upload>
+          </Form.Item>
 
 
 
-{(() => {
-  const uploadedFile = form.getFieldValue("jobPack");
+          {(() => {
+            const uploadedFile = form.getFieldValue("jobPack");
 
-  // Case 1: show Firebase URL if client.jobPack is saved
-  if (client.jobPack) {
-    return (
-      <div style={{ marginTop: 15, display: "flex", gap: 15 }}>
-        <a
-          href={client.jobPack}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            padding: "8px 16px",
-            backgroundColor: "#80c209",
-            color: "#fff",
-            textDecoration: "none",
-            borderRadius: "6px",
-            fontWeight: "bold",
-            marginBottom: "20px"
-          }}
-        >
-          🔍 View Saved Job Pack
-        </a>
-      </div>
-    );
-  }
+            // Case 1: show Firebase URL if client.jobPack is saved
+            if (client.jobPack) {
+              return (
+                <div style={{ marginTop: 15, display: "flex", gap: 15 }}>
+                  <a
+                    href={client.jobPack}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      padding: "8px 16px",
+                      backgroundColor: "#80c209",
+                      color: "#fff",
+                      textDecoration: "none",
+                      borderRadius: "6px",
+                      fontWeight: "bold",
+                      marginBottom: "20px"
+                    }}
+                  >
+                    🔍 View Saved Job Pack
+                  </a>
+                </div>
+              );
+            }
 
-  // Case 2: show preview if file is uploaded but not saved
-  if (uploadedFile && uploadedFile.originFileObj) {
-    const fileURL = URL.createObjectURL(uploadedFile.originFileObj);
-    return (
-      <div style={{ marginTop: 15, display: "flex", gap: 15 }}>
-        <a
-          href={fileURL}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            padding: "8px 16px",
-            backgroundColor: "#f0ad4e",
-            color: "#fff",
-            textDecoration: "none",
-            borderRadius: "6px",
-            fontWeight: "bold"
-          }}
-        >
-          👁️ Preview Uploaded File
-        </a>
-      </div>
-    );
-  }
+            // Case 2: show preview if file is uploaded but not saved
+            if (uploadedFile && uploadedFile.originFileObj) {
+              const fileURL = URL.createObjectURL(uploadedFile.originFileObj);
+              return (
+                <div style={{ marginTop: 15, display: "flex", gap: 15 }}>
+                  <a
+                    href={fileURL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      padding: "8px 16px",
+                      backgroundColor: "#f0ad4e",
+                      color: "#fff",
+                      textDecoration: "none",
+                      borderRadius: "6px",
+                      fontWeight: "bold"
+                    }}
+                  >
+                    👁️ Preview Uploaded File
+                  </a>
+                </div>
+              );
+            }
 
-  // Case 3: no file at all
-  return null;
-})()}
+            // Case 3: no file at all
+            return null;
+          })()}
 
 
 
           <Form.Item>
             {!isloading ? <button className="createjob2" type="submit" style={submitStyle}>
               {client?._id ? "Update" : "Add"}
-            </button> :<div style={{width:"100%",display: "flex",justifyContent:"center"}}><img src="/empty.gif" style={{width:"130px",}}/></div>}
+            </button> : <div style={{ width: "100%", display: "flex", justifyContent: "center" }}><img src="/empty.gif" style={{ width: "130px", }} /></div>}
           </Form.Item>
         </Form>
       </Card>
