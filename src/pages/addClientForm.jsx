@@ -280,34 +280,30 @@ export default function AddClientForm() {
                     placeholder="Enter contact telephone number"
                   />
                 </Form.Item>
+                {index === 0 && (
+                  <Form.Item
+                    label="Main Contact Email Address"
+                    name="emails"
+                    rules={[
+                      { required: true, message: "Please input the client's email!" },
+                      { type: 'email', message: "Enter a valid email address" }
+                    ]}
+                  >
+                    <Input.TextArea
+                      value={client.emails}
+                      onChange={(e) => setClient({ ...client, emails: e.target.value })}
+                    />
+                  </Form.Item>
+                )}
               </div>
             </div>
           ))}
 
           <Button onClick={addNewSite} style={{ marginBottom: 30 }}>
-            + contact and contact tel/email address
+            Add Additional Site
           </Button>
 
-          {/* <Form.Item label="Main Contact Email Address">
-            <Input.TextArea
-              value={client.emails}
-              onChange={(e) => setClient({ ...client, emails: e.target.value })}
-            />
-          </Form.Item> */}
 
-          <Form.Item
-            label="Main Contact Email Address"
-            name="emails"
-            rules={[
-              { required: true, message: "Please input the client's email!" },
-              { type: 'email', message: "Enter a valid email address" }
-            ]}
-          >
-            <Input.TextArea
-              value={client.emails}
-              onChange={(e) => setClient({ ...client, emails: e.target.value })}
-            />
-          </Form.Item>
 
 
           <Form.Item label="Password">
