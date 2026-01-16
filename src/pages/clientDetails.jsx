@@ -643,7 +643,7 @@ function Screen4Details() {
         let userType = null // Default
         if (token == "dskgfsdgfkgsdfkjg35464154845674987dsf@53") {
           userType = 'admin';
-        }else if(token=="clientdgf45sdgf89756dfgdhgdf"){
+        } else if (token == "clientdgf45sdgf89756dfgdhgdf") {
           userType = 'client';
         } else {
           // Check cookies or other methods to distinguish client vs admin
@@ -733,6 +733,54 @@ function Screen4Details() {
           const baseRefNo = jobRequestData?.jobReferenceNo || id || 'COC';
           const nextCocRef = deriveNextCocRef(baseRefNo, resolvedForms);
 
+          // ✅ AUTO-POPULATE COLLECTOR NAME from job request collector IDs or URL
+          let collectorName = '';
+
+          // Try to get collector IDs from job request data first, then fall back to URL parameter
+          let collectorIds = [];
+
+          if (jobRequestData && jobRequestData.collectorid) {
+            // Use collector IDs from job request data
+            collectorIds = Array.isArray(jobRequestData.collectorid)
+              ? jobRequestData.collectorid
+              : [jobRequestData.collectorid];
+            console.log('📋 Using collector IDs from job request data:', collectorIds);
+          } else if (collectorId) {
+            // Fallback: Use collector ID from URL parameter
+            collectorIds = [collectorId];
+            console.log('📋 Using collector ID from URL parameter:', collectorIds);
+          }
+
+          if (collectorIds.length > 0) {
+            try {
+              // Fetch collector details for each ID
+              const collectorPromises = collectorIds.map(async (id) => {
+                try {
+                  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getcollector/${id}`);
+                  if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Fetched collector data:', data);
+                    return data?.name || data?.collectorName || data?.fullName || '';
+                  }
+                  console.warn(`❌ Failed to fetch collector ${id}: ${response.status}`);
+                  return '';
+                } catch (error) {
+                  console.warn(`❌ Error fetching collector ${id}:`, error);
+                  return '';
+                }
+              });
+
+              const collectorNames = await Promise.all(collectorPromises);
+              collectorName = collectorNames.filter(name => name).join(', ');
+
+              console.log('🔍 Collector Name Auto-populated:', collectorName);
+            } catch (error) {
+              console.error('❌ Could not auto-populate collector name:', error);
+            }
+          } else {
+            console.log('⚠️ No collector ID found in job request data or URL parameters');
+          }
+
           let selectedForm = null;
           if (formIdParam) {
             selectedForm = resolvedForms.find((form) => {
@@ -756,6 +804,8 @@ function Screen4Details() {
               companyName: jobRequestData?.companyName || jobRequestData?.company || selectedForm.companyName || selectedForm.company || "",
               reasonForTest: jobRequestData?.reasonForTest || selectedForm.reasonForTest || "",
               flight: jobRequestData?.flightVessel || selectedForm.flight || "",
+              // ✅ AUTO-POPULATE COLLECTOR NAME if not already set
+              collectorName: selectedForm.collectorName || collectorName || "",
             });
             const existingId = selectedForm?._id || selectedForm?.id || selectedForm?.formId || null;
             setExistingCocId(existingId);
@@ -771,7 +821,9 @@ function Screen4Details() {
               initialFormData.reasonForTest = jobRequestData.reasonForTest || "";
               initialFormData.flight = jobRequestData.flightVessel || "";
             }
-            
+            // ✅ AUTO-POPULATE COLLECTOR NAME for new forms
+            initialFormData.collectorName = collectorName || "";
+
             if (isNewFlag) {
               setFormData(initialFormData);
               setExistingCocId(null);
@@ -846,7 +898,7 @@ function Screen4Details() {
     });
   };
 
-  
+
 
   // ✅ UPDATED: Form submission with collectorId
   // const handleSubmit = async (e) => {
@@ -969,7 +1021,7 @@ function Screen4Details() {
 
       if (response.ok) {
         message.success("Form saved successfully!");
-        
+
         // ✅ Send email to client after COC form submission
         try {
           const emailResponse = await fetch(
@@ -995,7 +1047,7 @@ function Screen4Details() {
           console.error("Error sending email to client:", emailErr);
           message.warning("COC form saved, but client email failed. Please retry.");
         }
-        
+
         navigate('/jobrequests');
       } else {
         message.error(result.message || "Failed to save form.");
@@ -1230,12 +1282,12 @@ function Screen4Details() {
               />
             </div>
           </Tooltip>
-          
+
           {/* COC Form Selector and Add New Button */}
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             marginBottom: '20px',
             padding: '15px',
             background: '#f5f5f5',
@@ -1278,8 +1330,8 @@ function Screen4Details() {
                 )}
                 {allCocForms.map((form, idx) => {
                   const formId = form?._id || form?.id || form?.formId || `form-${idx}`;
-                  const formLabel = form?.donorName 
-                    ? `COC Form - ${form.donorName}` 
+                  const formLabel = form?.donorName
+                    ? `COC Form - ${form.donorName}`
                     : `COC Form ${idx + 1}`;
                   return (
                     <option key={formId} value={formId}>
@@ -1339,419 +1391,419 @@ function Screen4Details() {
 
           <fieldset disabled={!canEdit} style={{ border: 'none', padding: 0, margin: 0, opacity: !canEdit ? 0.65 : 1 }}>
 
-          <h2
-            className="jobrequestformtitle"
-            style={{
-              textAlign: "center",
-              color: "#80c209",
-              padding: "10px",
-            }}
-          >
-            CHAIN OF CUSTODY FORM FOR SPECIMEN ANALYSIS
-          </h2>
-          <hr />
-          <div className="donor">
-            {/* Donor's Name */}
-            <label>Donor's Name</label>
-            <input
-              className="inputstyle"
-              type="text"
-              name="donorName"
-              style={{ marginLeft: '0px' }}
-              value={formData.donorName}
-              onChange={handleChange}
-              placeholder="Enter Donor's Name"
-              required
-            />
-          </div> <hr />
-          <div className="donor">
-            {/* Donor's Name */}
-            <label>Donor's Email<span style={{ color: "red" }}>*</span>
-            </label>
-            <input
-              className="inputstyle"
-              type="email"
-              name="donorEmail"
-              value={formData.donorEmail}
-              onChange={handleChange}
-              placeholder="Enter Donor's Email"
-              required
-            />
-          </div>
-          <hr></hr>
-          <div
-            className="second-row"
-            style={{ display: "flex", justifyContent: "space-between" }}
-          >
+            <h2
+              className="jobrequestformtitle"
+              style={{
+                textAlign: "center",
+                color: "#80c209",
+                padding: "10px",
+              }}
+            >
+              CHAIN OF CUSTODY FORM FOR SPECIMEN ANALYSIS
+            </h2>
+            <hr />
             <div className="donor">
-              {/* GCAA LIC No */}
-              <label
-              // style={{ width: "180px" }}
-              >
-                CAA LIC No{" "}
-                <span style={{ fontSize: "10px" }}>(if applicable)</span>:
-              </label>
+              {/* Donor's Name */}
+              <label>Donor's Name</label>
               <input
                 className="inputstyle"
-                type="number"
-                name="gcalicno"
-                value={formData.gcalicno}
-                placeholder="Enter CAA LIC No"
+                type="text"
+                name="donorName"
+                style={{ marginLeft: '0px' }}
+                value={formData.donorName}
                 onChange={handleChange}
-              // style={{ width: "39%" }}
-              />
-            </div>
-            <div className="donor">
-              {/* Date of Birth */}
-              <label>Date of Birth</label>
-              <input
-                className="inputstyle"
-                type="date"
-                name="dob"
-                value={formatDateForInput(formData.dob)}
-                onChange={handleChange}
-                // style={{ width: "99%" }}
+                placeholder="Enter Donor's Name"
                 required
               />
-              {formData.dob && (
-                <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.dob)}</div>
-              )}
-            </div>
-          </div>
-          <hr></hr>
-          <div
-            className="main-container"
-            style={{ display: "flex", columnGap: "0px" }}
-          >
-            <div className="inner1" style={{}}>
-              <div className="donor">
-                {/* Company Name */}
-                <label
-                // style={{ width: "137px" }}
-                >Company Name</label>
-                <input
-                  className="inputstyle"
-                  style={{
-                    //  marginLeft: "15px", 
-                    //  width: "190px" 
-                  }}
-                  type="text"
-                  name="companyName"
-                  value={formData.companyName}
-                  onChange={handleChange}
-                  placeholder="Enter Company Name"
-                />
-              </div>
-
-
-              <div className="donor">
-                {/* Location */}
-
-                <label>Location</label>
-                <input
-                  className="inputstyle"
-                  type="text"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleChange}
-                  placeholder="Enter Location"
-                  readOnly
-                  style={{ backgroundColor: "#f5f5f5", cursor: "not-allowed" }}
-                />
-              </div>
-              <div className="donor">
-                {/* Flight/Vessel */}
-                <label>Flight/Vessel</label>
-                <input
-                  className="inputstyle"
-                  type="text"
-                  name="flight"
-                  value={formData.flight}
-                  onChange={handleChange}
-                  placeholder="Enter Flight / Vessel"
-                />
-              </div>
-              {/* <span style={{ fontSize: "6px" }}>Check donor identity and record ID source here, e.g. passport (with number) OR supervisor's signature and PRINTED name.</span> */}
-              <div className="donor">
-                {/* ID Source */}
-                <label>ID Source/No</label>
-                <input
-                  className="inputstyle"
-                  type="text"
-                  name="idsource"
-                  value={formData.idsource}
-                  onChange={handleChange}
-                  placeholder="Enter ID Source"
-                />
-              </div>
-              <label style={{ marginLeft: "0px" }}>
-                <input
-                  className="radioinput"
-                  type="radio"
-                  name="gender"
-                  value="M"
-                  checked={formData.gender === "M"}
-                  onChange={handleChange}
-                />
-                M
+            </div> <hr />
+            <div className="donor">
+              {/* Donor's Name */}
+              <label>Donor's Email<span style={{ color: "red" }}>*</span>
               </label>
-              <label className="Flabel">
-                <input
-                  className="radioinput"
-                  type="radio"
-                  name="gender"
-                  value="F"
-                  checked={formData.gender === "F"}
-                  onChange={handleChange}
-                />
-                F
-              </label>
+              <input
+                className="inputstyle"
+                type="email"
+                name="donorEmail"
+                value={formData.donorEmail}
+                onChange={handleChange}
+                placeholder="Enter Donor's Email"
+                required
+              />
             </div>
-            <div className="inner2" style={{ marginLeft: "45px" }}>
-              <label className="reasonlabel" style={{ marginBottom: "10px", display: "block", fontWeight: "bold" }}>
-                Reason for Test
-              </label>
-              <div className="reason-radio-group">
-                {["Pre-Employment", "Random", "For Cause", "Follow-up"].map((reason) => (
-                  <label key={reason}>
-                    <input
-                      type="radio"
-                      name="reasonForTest"
-                      value={reason}
-                      checked={formData.reasonForTest === reason}
-                      onChange={handleChange}
-                      disabled
-                      style={{ cursor: "not-allowed" }}
-                    />
-                    {reason}
-                  </label>
-                ))}
-              </div>
-            </div>
-
-
-
-            <div className="inner3">
-              <div className="donor">
-                {/* BAR CODE NUMBER */}
-                <label>BAR CODE NUMBER</label>
-                <div style={{ display: "flex", gap: "8px", alignItems: "center", flexDirection: formData.barcodeImage && "column" }}>
-                  {!formData.barcodeImage && <input
-                    className="inputstyle"
-                    type="text"
-                    name="barcodeno"
-                    value={formData.barcodeno}
-                    onChange={handleChange}
-                  />}
-                  {formData.barcodeImage && (
-                    <img src={formData.barcodeImage} alt="barcode" style={{ marginTop: "6px", maxWidth: "120px" }} />
-                  )}
-                  <label className="createjob2" style={{ padding: "6px 10px", cursor: "pointer", borderRadius: "10px", backgroundColor: "#80c209", fontSize: "10px", textAlign: "center" }}>
-                    Upload
-                    <input type="file" accept="image/*" capture="environment" onChange={handleBarcodePhoto} style={{ display: "none" }} />
-                  </label>
-                </div>
-              </div>
-              <hr></hr>
-              <div className="donor">
-                {/* REF NO/JOB NO:*/}
-                <label>REF NO/JOB NO:</label>
-                <input
-                  className="inputstyle"
-                  // style={{ width: "35%", marginLeft: "0px" }}
-                  type="text"
-                  name="cocRefNo"
-                  value={formData.cocRefNo}
-                  onChange={handleChange}
-                  readOnly
-                  style={{ backgroundColor: "#f5f5f5", cursor: "not-allowed" }}
-                />
-              </div>
-              <hr></hr>
-              <div className="donor">
-                {/* DATE OF TEST: */}
-                <label
-                // style={{ width: "180px" }}
-                >DATE OF TEST:</label>
-                <input
-                  className="inputstyle"
-                  // style={{ width: "36%", marginLeft: "0px" }}
-                  type="date"
-                  name="dateoftest"
-                  value={formatDateForInput(formData.dateoftest)}
-                  onChange={handleChange}
-                  required
-                />
-                {formData.dateoftest && (
-                  <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.dateoftest)}</div>
-                )}
-
-              </div>
-            </div>
-          </div>
-          <hr />
-          <div
-            class="second-container"
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginBottom: "10px",
-            }}
-          >
+            <hr></hr>
             <div
-              class="second-container-part1"
-              style={{
-                // width: "35.5%",
-                border: "1px solid black",
-                padding: "10px",
-              }}
+              className="second-row"
+              style={{ display: "flex", justifyContent: "space-between" }}
             >
-              <h5>RESIDUAL MOUTH ALCOHOL DECLARATION</h5>
-              <p style={{ fontSize: "10.5px" }}>
-                Have you in the last 20 minutes smoked and/or consumed an
-                alcoholic drink or used a product containing alcohol such as
-                mouthwash
-              </p>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <label
-                  className="yesnolabel"
-                  style={{
-                    marginRight: "10px",
-
-                    fontSize: "14px",
-                  }}
-                >
-                  Yes
-                  <input
-                    type="radio"
-                    name="alcohoDeclaration"
-                    value="Yes"
-                    checked={formData.alcohoDeclaration === 'Yes'}
-                    onChange={handleChange}
-                    className="radioyesno"
-                  />
-                </label>
-                <label
-                  className="yesnolabel"
-                  style={{
-                    marginRight: "10px",
-
-                    fontSize: "14px",
-                  }}
-                >
-                  No
-                  <input
-                    type="radio"
-                    name="alcohoDeclaration"
-                    value="No"
-                    className="radioyesno"
-                    checked={formData.alcohoDeclaration === 'No'}
-                    onChange={handleChange}
-                  />
-                </label>
-                <span
-                  style={{
-                    marginLeft: "auto",
-                    width: "100px",
-                    fontSize: "14px",
-                  }}
-                >
-                  Please tick
-                </span>
-              </div>
-
-              <p style={{ fontSize: "10.5px" }}>
-                I understand that any of the above may artificially increase the
-                result of the breath test that I am about to take.
-              </p>
-              {/* <div className="second-row" style={{ display: "flex",justifyContent:"space-between" }}> */}
               <div className="donor">
                 {/* GCAA LIC No */}
-                <label style={{ fontSize: "11px", fontWeight: "bold" }}>
-                  Donor's Signature{" "}
+                <label
+                // style={{ width: "180px" }}
+                >
+                  CAA LIC No{" "}
+                  <span style={{ fontSize: "10px" }}>(if applicable)</span>:
                 </label>
                 <input
                   className="inputstyle"
-                  type="text"
-                  name="donorSignature"
-                  value=""
-                  placeholder=""
-                  onClick={() => { openSignaturePad(); setIsDonorOpen(true) }}
-                  style={{
-                    width: "156px",
-                    margin: "0px",
-                    cursor: "pointer",
-                    backgroundImage: `url(${formData.donorSignature})`,
-                    backgroundSize: "contain",
-                    backgroundRepeat: "no-repeat",
-                    backgroundPosition: "center",
-                    height: "30px", // Adjust height to fit the signature image
-                  }}
-                  readOnly
+                  type="number"
+                  name="gcalicno"
+                  value={formData.gcalicno}
+                  placeholder="Enter CAA LIC No"
+                  onChange={handleChange}
+                // style={{ width: "39%" }}
                 />
-                {isError && isError === 'donorSignature' && (
-                  <p style={{ color: "red", padding: "5px", fontSize: "12px", marginTop: "5px" }}>
-                    Please fill donor signature
-                  </p>
-                )}
-
-
               </div>
-              {isSignaturePadOpen && donorOpen && (
-                pad("donorSignature")
-              )}
               <div className="donor">
                 {/* Date of Birth */}
-                <label
-                  style={{
-                    fontSize: "12px",
-                    fontWeight: "bold",
-                    // marginLeft: "10px",
-                    // marginRight: "10px",
-                    margin: "0px",
-                  }}
-                >
-                  Date
-                </label>
+                <label>Date of Birth</label>
                 <input
                   className="inputstyle"
                   type="date"
-                  name="donorDate"
-                  value={formatDateForInput(formData.donorDate)}
+                  name="dob"
+                  value={formatDateForInput(formData.dob)}
                   onChange={handleChange}
-                  // style={{ width: "39%" }}
+                  // style={{ width: "99%" }}
                   required
                 />
-                {formData.donorDate && (
-                  <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.donorDate)}</div>
+                {formData.dob && (
+                  <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.dob)}</div>
                 )}
               </div>
-              {/* </div> */}
             </div>
+            <hr></hr>
             <div
-              class="second-container-part2"
+              className="main-container"
+              style={{ display: "flex", columnGap: "0px" }}
+            >
+              <div className="inner1" style={{}}>
+                <div className="donor">
+                  {/* Company Name */}
+                  <label
+                  // style={{ width: "137px" }}
+                  >Company Name</label>
+                  <input
+                    className="inputstyle"
+                    style={{
+                      //  marginLeft: "15px", 
+                      //  width: "190px" 
+                    }}
+                    type="text"
+                    name="companyName"
+                    value={formData.companyName}
+                    onChange={handleChange}
+                    placeholder="Enter Company Name"
+                  />
+                </div>
+
+
+                <div className="donor">
+                  {/* Location */}
+
+                  <label>Location</label>
+                  <input
+                    className="inputstyle"
+                    type="text"
+                    name="location"
+                    value={formData.location}
+                    onChange={handleChange}
+                    placeholder="Enter Location"
+                    readOnly
+                    style={{ backgroundColor: "#f5f5f5", cursor: "not-allowed" }}
+                  />
+                </div>
+                <div className="donor">
+                  {/* Flight/Vessel */}
+                  <label>Flight/Vessel</label>
+                  <input
+                    className="inputstyle"
+                    type="text"
+                    name="flight"
+                    value={formData.flight}
+                    onChange={handleChange}
+                    placeholder="Enter Flight / Vessel"
+                  />
+                </div>
+                {/* <span style={{ fontSize: "6px" }}>Check donor identity and record ID source here, e.g. passport (with number) OR supervisor's signature and PRINTED name.</span> */}
+                <div className="donor">
+                  {/* ID Source */}
+                  <label>ID Source/No</label>
+                  <input
+                    className="inputstyle"
+                    type="text"
+                    name="idsource"
+                    value={formData.idsource}
+                    onChange={handleChange}
+                    placeholder="Enter ID Source"
+                  />
+                </div>
+                <label style={{ marginLeft: "0px" }}>
+                  <input
+                    className="radioinput"
+                    type="radio"
+                    name="gender"
+                    value="M"
+                    checked={formData.gender === "M"}
+                    onChange={handleChange}
+                  />
+                  M
+                </label>
+                <label className="Flabel">
+                  <input
+                    className="radioinput"
+                    type="radio"
+                    name="gender"
+                    value="F"
+                    checked={formData.gender === "F"}
+                    onChange={handleChange}
+                  />
+                  F
+                </label>
+              </div>
+              <div className="inner2" style={{ marginLeft: "45px" }}>
+                <label className="reasonlabel" style={{ marginBottom: "10px", display: "block", fontWeight: "bold" }}>
+                  Reason for Test
+                </label>
+                <div className="reason-radio-group">
+                  {["Pre-Employment", "Random", "For Cause", "Follow-up"].map((reason) => (
+                    <label key={reason}>
+                      <input
+                        type="radio"
+                        name="reasonForTest"
+                        value={reason}
+                        checked={formData.reasonForTest === reason}
+                        onChange={handleChange}
+                        disabled
+                        style={{ cursor: "not-allowed" }}
+                      />
+                      {reason}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+
+
+              <div className="inner3">
+                <div className="donor">
+                  {/* BAR CODE NUMBER */}
+                  <label>BAR CODE NUMBER</label>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center", flexDirection: formData.barcodeImage && "column" }}>
+                    {!formData.barcodeImage && <input
+                      className="inputstyle"
+                      type="text"
+                      name="barcodeno"
+                      value={formData.barcodeno}
+                      onChange={handleChange}
+                    />}
+                    {formData.barcodeImage && (
+                      <img src={formData.barcodeImage} alt="barcode" style={{ marginTop: "6px", maxWidth: "120px" }} />
+                    )}
+                    <label className="createjob2" style={{ padding: "6px 10px", cursor: "pointer", borderRadius: "10px", backgroundColor: "#80c209", fontSize: "10px", textAlign: "center" }}>
+                      Upload
+                      <input type="file" accept="image/*" capture="environment" onChange={handleBarcodePhoto} style={{ display: "none" }} />
+                    </label>
+                  </div>
+                </div>
+                <hr></hr>
+                <div className="donor">
+                  {/* REF NO/JOB NO:*/}
+                  <label>REF NO/JOB NO:</label>
+                  <input
+                    className="inputstyle"
+                    // style={{ width: "35%", marginLeft: "0px" }}
+                    type="text"
+                    name="cocRefNo"
+                    value={formData.cocRefNo}
+                    onChange={handleChange}
+                    readOnly
+                    style={{ backgroundColor: "#f5f5f5", cursor: "not-allowed" }}
+                  />
+                </div>
+                <hr></hr>
+                <div className="donor">
+                  {/* DATE OF TEST: */}
+                  <label
+                  // style={{ width: "180px" }}
+                  >DATE OF TEST:</label>
+                  <input
+                    className="inputstyle"
+                    // style={{ width: "36%", marginLeft: "0px" }}
+                    type="date"
+                    name="dateoftest"
+                    value={formatDateForInput(formData.dateoftest)}
+                    onChange={handleChange}
+                    required
+                  />
+                  {formData.dateoftest && (
+                    <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.dateoftest)}</div>
+                  )}
+
+                </div>
+              </div>
+            </div>
+            <hr />
+            <div
+              class="second-container"
               style={{
-                // width: "58.8%",
-                border: "1px solid black",
-                padding: "10px",
+                display: "flex",
+                justifyContent: "space-between",
+                marginBottom: "10px",
               }}
             >
-              <h5>
-                I certify that I have conducted Breath Alcohol testing on the
-                above named individual, the results of which are recorded below:
-              </h5>
-
               <div
-                className="second-row"
-                style={{ display: "flex", justifyContent: "space-between" }}
+                class="second-container-part1"
+                style={{
+                  // width: "35.5%",
+                  border: "1px solid black",
+                  padding: "10px",
+                }}
               >
-                {/* <p
+                <h5>RESIDUAL MOUTH ALCOHOL DECLARATION</h5>
+                <p style={{ fontSize: "10.5px" }}>
+                  Have you in the last 20 minutes smoked and/or consumed an
+                  alcoholic drink or used a product containing alcohol such as
+                  mouthwash
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "flex-start",
+                    gap: "20px",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: "600",
+                    }}
+                  >
+                    Please tick
+                  </span>
+                  <label
+                    className="yesnolabel"
+                    style={{
+                      marginRight: "10px",
+
+                      fontSize: "14px",
+                    }}
+                  >
+                    Yes
+                    <input
+                      type="radio"
+                      name="alcohoDeclaration"
+                      value="Yes"
+                      checked={formData.alcohoDeclaration === 'Yes'}
+                      onChange={handleChange}
+                      className="radioyesno"
+                    />
+                  </label>
+                  <label
+                    className="yesnolabel"
+                    style={{
+                      marginRight: "10px",
+
+                      fontSize: "14px",
+                    }}
+                  >
+                    No
+                    <input
+                      type="radio"
+                      name="alcohoDeclaration"
+                      value="No"
+                      className="radioyesno"
+                      checked={formData.alcohoDeclaration === 'No'}
+                      onChange={handleChange}
+                    />
+                  </label>
+                </div>
+
+                <p style={{ fontSize: "10.5px" }}>
+                  I understand that any of the above may artificially increase the
+                  result of the breath test that I am about to take.
+                </p>
+                {/* <div className="second-row" style={{ display: "flex",justifyContent:"space-between" }}> */}
+                <div className="donor">
+                  {/* GCAA LIC No */}
+                  <label style={{ fontSize: "11px", fontWeight: "bold" }}>
+                    Donor's Signature{" "}
+                  </label>
+                  <input
+                    className="inputstyle"
+                    type="text"
+                    name="donorSignature"
+                    value=""
+                    placeholder=""
+                    onClick={() => { openSignaturePad(); setIsDonorOpen(true) }}
+                    style={{
+                      width: "156px",
+                      margin: "0px",
+                      cursor: "pointer",
+                      backgroundImage: `url(${formData.donorSignature})`,
+                      backgroundSize: "contain",
+                      backgroundRepeat: "no-repeat",
+                      backgroundPosition: "center",
+                      height: "30px", // Adjust height to fit the signature image
+                    }}
+                    readOnly
+                  />
+                  {isError && isError === 'donorSignature' && (
+                    <p style={{ color: "red", padding: "5px", fontSize: "12px", marginTop: "5px" }}>
+                      Please fill donor signature
+                    </p>
+                  )}
+
+
+                </div>
+                {isSignaturePadOpen && donorOpen && (
+                  pad("donorSignature")
+                )}
+                <div className="donor">
+                  {/* Date of Birth */}
+                  <label
+                    style={{
+                      fontSize: "12px",
+                      fontWeight: "bold",
+                      // marginLeft: "10px",
+                      // marginRight: "10px",
+                      margin: "0px",
+                    }}
+                  >
+                    Date
+                  </label>
+                  <input
+                    className="inputstyle"
+                    type="date"
+                    name="donorDate"
+                    value={formatDateForInput(formData.donorDate)}
+                    onChange={handleChange}
+                    // style={{ width: "39%" }}
+                    required
+                  />
+                  {formData.donorDate && (
+                    <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.donorDate)}</div>
+                  )}
+                </div>
+                {/* </div> */}
+              </div>
+              <div
+                class="second-container-part2"
+                style={{
+                  // width: "58.8%",
+                  border: "1px solid black",
+                  padding: "10px",
+                }}
+              >
+                <h5>
+                  I certify that I have conducted Breath Alcohol testing on the
+                  above named individual, the results of which are recorded below:
+                </h5>
+
+                <div
+                  className="second-row"
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  {/* <p
                   style={{
                     fontWeight: "bold",
                     fontSize: "12px",
@@ -1761,397 +1813,204 @@ function Screen4Details() {
                 >
                   Local Time
                 </p> */}
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <p
-                    style={{
-                      fontWeight: "bold",
-                      fontSize: "12px",
-                      width: "110px",
-                      marginTop: "18px",
-                    }}
-                  >
-                    Local Time
-                  </p>
-                  <input
-                    className="inputstyle"
-                    type="time"
-                    name="test1Time"
-                    value={formData.test1Time}
-                    onChange={handleChange}
-                    style={{
-                      marginTop: "18px",
-                      width: "120px",
-                    }}
-                    required
-                  />
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <p
+                      style={{
+                        fontWeight: "bold",
+                        fontSize: "12px",
+                        width: "110px",
+                        marginTop: "18px",
+                      }}
+                    >
+                      Local Time
+                    </p>
+                    <input
+                      className="inputstyle"
+                      type="time"
+                      name="test1Time"
+                      value={formData.test1Time}
+                      onChange={handleChange}
+                      style={{
+                        marginTop: "18px",
+                        width: "120px",
+                      }}
+                      required
+                    />
+                  </div>
+                  <div className="donor">
+                    <label
+                      style={{
+                        //  width: "45px", 
+                        fontSize: "12px", margin: "0px"
+                      }}
+                    >
+                      Test 1.
+                    </label>
+                    <input
+                      className="inputstyle"
+                      type="text"
+                      name="test1"
+                      value={formData.test1}
+                      placeholder=""
+                      onChange={handleChange}
+                      style={{
+                        // width: "85px",
+                        margin: "0px"
+                      }}
+                      required
+                    />
+                  </div>
+                  <div className="donor">
+                    {/* Date of Birth */}
+                    <label
+                      style={{
+                        // width: "25px",
+                        fontSize: "12px",
+                        // marginLeft: "10px",
+                        // marginRight: "-10px",
+                      }}
+                    >
+                      BrAC Result
+                    </label>
+                    <input
+                      className="inputstyle"
+                      type="text"
+                      name="test1BaracResult1"
+                      value={formData.test1BaracResult1}
+                      onChange={handleChange}
+                      // style={{ width: "69%" }}
+                      required
+                    />
+                  </div>
+                  <p style={{ paddingLeft: "10px" }}></p>
                 </div>
-                <div className="donor">
-                  <label
-                    style={{
-                      //  width: "45px", 
-                      fontSize: "12px", margin: "0px"
-                    }}
-                  >
-                    Test 1.
-                  </label>
-                  <input
-                    className="inputstyle"
-                    type="text"
-                    name="test1"
-                    value={formData.test1}
-                    placeholder=""
-                    onChange={handleChange}
-                    style={{
-                      // width: "85px",
-                      margin: "0px"
-                    }}
-                    required
-                  />
-                </div>
-                <div className="donor">
-                  {/* Date of Birth */}
-                  <label
-                    style={{
-                      // width: "25px",
-                      fontSize: "12px",
-                      // marginLeft: "10px",
-                      // marginRight: "-10px",
-                    }}
-                  >
-                    BrAC Result
-                  </label>
-                  <input
-                    className="inputstyle"
-                    type="text"
-                    name="test1BaracResult1"
-                    value={formData.test1BaracResult1}
-                    onChange={handleChange}
-                    // style={{ width: "69%" }}
-                    required
-                  />
-                </div>
-                <div className="donor">
-                  {/* Date of Birth */}
-                  <label
-                    style={{
-                      // width: "25px",
-                      fontSize: "12px",
-                      // marginLeft: "10px",
-                      // marginRight: "-10px",
-                    }}
-                  >
-                    BAC Result
-                  </label>
-                  <input
-                    className="inputstyle"
-                    type="text"
-                    name="test1BaracResult2"
-                    value={formData.test1BaracResult2}
-                    onChange={handleChange}
-                    // style={{ width: "69%" }}
-                    required
-                  />
-                </div>
-                <p style={{ paddingLeft: "10px" }}></p>
-              </div>
-              <div
-                className="second-row"
-                style={{ display: "flex", justifyContent: "space-between" }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <p
-                    style={{
-                      fontWeight: "bold",
-                      fontSize: "12px",
-                      width: "110px",
-                      marginTop: "18px",
-                    }}
-                  >
-                    Local Time
-                  </p>
-                  <input
-                    className="inputstyle"
-                    type="time"
-                    name="test2Time"
-                    value={formData.test2Time}
-                    onChange={handleChange}
-                    style={{
-                      marginTop: "18px",
-                      width: "120px",
-                    }}
-                    required
-                  />
-                </div>
-
-                
-                <div className="donor">
-                  <label
-                    style={{
-                      //  width: "45px",
-                      fontSize: "12px", margin: "0px"
-                    }}
-                  >
-                    Test 2.
-                  </label>
-                  <input
-                    className="inputstyle"
-                    type="text"
-                    name="test2"
-                    value={formData.test2}
-                    placeholder=""
-                    onChange={handleChange}
-                    style={{
-                      //  width: "85px",
-                      margin: "0px"
-                    }}
-                    required
-                  />
-                </div>
-                <div className="donor">
-                  {/* Date of Birth */}
-                  <label
-                    style={{
-                      // width: "25px",
-                      fontSize: "12px",
-                      // marginLeft: "10px",
-                      // marginRight: "-10px",
-                    }}
-                  >
-                    BrAC Result
-                  </label>
-                  <input
-                    className="inputstyle"
-                    type="text"
-                    name="test2BaracResult1"
-                    value={formData.test2BaracResult1}
-                    onChange={handleChange}
-                    // style={{ width: "69%" }}
-                    required
-                  />
-                </div>
-                <div className="donor">
-                  {/* Date of Birth */}
-                  <label
-                    style={{
-                      // width: "25px",
-                      fontSize: "12px",
-                      // marginLeft: "10px",
-                      // marginRight: "-10px",
-                    }}
-                  >
-                    BAC Result
-                  </label>
-                  <input
-                    className="inputstyle"
-                    type="text"
-                    name="test2BaracResult2"
-                    value={formData.test2BaracResult2}
-                    onChange={handleChange}
-                    // style={{ width: "69%" }}
-                    required
-                  />
-                </div>
-                <p style={{ paddingLeft: "10px" }}></p>
-              </div>
-              <div
-                className="second-row"
-                style={{ display: "flex" }}
-              >
-                <div className="donor">
-                  {/* GCAA LIC No */}
-                  <label
-                    style={{
-                      //// width: "130px",
-                      fontSize: "11px",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    Collector Name:{" "}
-                  </label>
-                  <input
-                    className="inputstyle"
-                    type="text"
-                    name="collectorName"
-                    value={formData.collectorName}
-                    placeholder=""
-                    onChange={handleChange}
-                    // style={{ width: "142px", margin: "0px" }}
-                    required
-                  />
-                </div>
-                <div className="donor">
-                  {/* Date of Birth */}
-                  <label
-                    style={{
-                      // width: "25px",
-                      fontSize: "12px",
-                      fontWeight: "bold",
-                      // marginLeft: "31px",
-                      // marginRight: "10px",
-                    }}
-                  >
-                    Remarks
-                  </label>
-                  <input
-                    className="inputstyle"
-                    type="text"
-                    name="collectorRemarks"
-                    value={formData.collectorRemarks}
-                    onChange={handleChange}
-                    // style={{ width: "69%" }}
-                    required
-                  />
-                </div>
-              </div>
-              <div
-                className="second-row"
-              // style={{ display: "flex", justifyContent: "space-around" }}
-              >
-                <div className="donor">
-                  {/* GCAA LIC No */}
-                  <label
-                    style={{
-                      //// width: "130px",
-                      fontSize: "11px",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    Collector Signature:{" "}
-                  </label>
-                  <input
-                    className="inputstyle"
-                    type="text"
-                    onClick={() => { openSignaturePad(); setIsCollectorOpen(true) }}
-                    name="collectorSignature"
-                    value=""
-                    placeholder=""
-                    onChange={handleChange}
-                    style={{
-                      // width: "152px",
-                      margin: "0px", cursor: "pointer",
-                      backgroundImage: `url(${formData.collectorSignature})`,
-                      backgroundSize: "contain",
-                      backgroundRepeat: "no-repeat",
-                      backgroundPosition: "center", height: "30px"
-                    }}
-
-                  />
-                </div>
-                {isSignaturePadOpen && collectorOpen && (
-                  pad("collectorSignature")
-                )}
-                <div className="donor">
-                  {/* Date of Birth */}
-                  <label
-                    style={{
-                      // width: "25px",
-                      fontSize: "12px",
-                      fontWeight: "bold",
-                      // marginLeft: "10px",
-                      // marginRight: "10px",
-                    }}
-                  >
-                    Date
-                  </label>
-                  <input
-                    className="inputstyle"
-                    type="date"
-                    name="collectorDate"
-                    value={formatDateForInput(formData.collectorDate)}
-                    onChange={handleChange}
-                    // style={{ width: "69%" }}
-                    required
-                  />
-                  {formData.collectorDate && (
-                    <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.collectorDate)}</div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="third-row" style={{ marginBottom: "10px" }}>
-            <p style={{ fontSize: "12px" }}>
-              {" "}
-              <span style={{ fontWeight: "bold", fontSize: "15px" }}>
-                DONOR CONSENT TO TEST AND SPECIFIC DECLARATION
-              </span>{" "}
-              I hereby consent to providing a sample of breath, saliva, urine
-              hair or blood to the collector and if required for it to be
-              screened in my presence, if necessary, and if required by my
-              employer / potential future employer, for the analysis to be
-              performed at an off site laboratory. I also consent to the results
-              of the analysis being communicated in writing to my employer /
-              potential future employer and for them to use this information for
-              any purpose connected to my employment / application for
-              employment{" "}
-              <span style={{ fontWeight: "bold", fontSize: "13px" }}>
-                I declare that I have read and understood the Donor Information
-                Sheet relating to the test.
-              </span>
-            </p>
-            <div class="" className="donor-consent-row">
-              <div className="donor">
-                {/* GCAA LIC No */}
-                <label
-                  style={{
-                    fontSize: "14px",
-                    fontWeight: "bold",
-                    // width: "120px",
-                  }}
+                <div
+                  className="second-row"
+                  style={{ display: "flex", justifyContent: "space-between" }}
                 >
-                  Donor Consent{" "}
-                </label>
-                <input
-                  className="inputstyle"
-                  type="text"
-                  name="donorConcent"
-                  value=""
-                  placeholder=""
-                  onClick={() => { openSignaturePad(); setisconcentOpen(true) }}
-                  style={{
-                    // width: "156px",
-                    margin: "0px",
-                    cursor: "pointer",
-                    backgroundImage: `url(${formData.donorConcent})`,
-                    backgroundSize: "contain",
-                    backgroundRepeat: "no-repeat",
-                    backgroundPosition: "center",
-                    height: "30px", // Adjust height to fit the signature image
-                  }}
-                  readOnly
-                />
-                {isError && isError === 'donorConcent' && (
-                  <p style={{ color: "red", padding: "5px", fontSize: "12px", marginTop: "5px" }}>
-                    Please fill donor signature
-                  </p>
-                )}
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <p
+                      style={{
+                        fontWeight: "bold",
+                        fontSize: "12px",
+                        width: "110px",
+                        marginTop: "18px",
+                      }}
+                    >
+                      Local Time
+                    </p>
+                    <input
+                      className="inputstyle"
+                      type="time"
+                      name="test2Time"
+                      value={formData.test2Time}
+                      onChange={handleChange}
+                      style={{
+                        marginTop: "18px",
+                        width: "120px",
+                      }}
+                      required
+                    />
+                  </div>
 
 
-              </div>
-              {isSignaturePadOpen && ConcentOpen && (
-                pad("donorConcent")
-              )}
-
-              <div
-                class="box"
-                style={{
-                  border: "1px solid black",
-                  // marginLeft: "15px",
-                  padding: "3px",
-                  // width: "90%",
-                }}
-              >
-                <p
-                  style={{
-                    fontSize: "11px",
-                    fontWeight: "bold",
-                    margin: "0px",
-                    paddingLeft: "10px",
-                  }}
+                  <div className="donor">
+                    <label
+                      style={{
+                        //  width: "45px",
+                        fontSize: "12px", margin: "0px"
+                      }}
+                    >
+                      Test 2.
+                    </label>
+                    <input
+                      className="inputstyle"
+                      type="text"
+                      name="test2"
+                      value={formData.test2}
+                      placeholder=""
+                      onChange={handleChange}
+                      style={{
+                        //  width: "85px",
+                        margin: "0px"
+                      }}
+                      required
+                    />
+                  </div>
+                  <div className="donor">
+                    {/* Date of Birth */}
+                    <label
+                      style={{
+                        // width: "25px",
+                        fontSize: "12px",
+                        // marginLeft: "10px",
+                        // marginRight: "-10px",
+                      }}
+                    >
+                      BrAC Result
+                    </label>
+                    <input
+                      className="inputstyle"
+                      type="text"
+                      name="test2BaracResult1"
+                      value={formData.test2BaracResult1}
+                      onChange={handleChange}
+                      // style={{ width: "69%" }}
+                      required
+                    />
+                  </div>
+                  <p style={{ paddingLeft: "10px" }}></p>
+                </div>
+                <div
+                  className="second-row"
+                  style={{ display: "flex" }}
                 >
-                  I am satisfied that the test has been completed in line with
-                  stated process.
-                </p>
+                  <div className="donor">
+                    {/* GCAA LIC No */}
+                    <label
+                      style={{
+                        //// width: "130px",
+                        fontSize: "11px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Collector Name:{" "}
+                    </label>
+                    <input
+                      className="inputstyle"
+                      type="text"
+                      name="collectorName"
+                      value={formData.collectorName}
+                      placeholder=""
+                      onChange={handleChange}
+                      // style={{ width: "142px", margin: "0px" }}
+                      required
+                    />
+                  </div>
+                  <div className="donor">
+                    {/* Date of Birth */}
+                    <label
+                      style={{
+                        // width: "25px",
+                        fontSize: "12px",
+                        fontWeight: "bold",
+                        // marginLeft: "31px",
+                        // marginRight: "10px",
+                      }}
+                    >
+                      Remarks
+                    </label>
+                    <input
+                      className="inputstyle"
+                      type="text"
+                      name="collectorRemarks"
+                      value={formData.collectorRemarks}
+                      onChange={handleChange}
+                      // style={{ width: "69%" }}
+                      required
+                    />
+                  </div>
+                </div>
                 <div
                   className="second-row"
                 // style={{ display: "flex", justifyContent: "space-around" }}
@@ -2160,45 +2019,37 @@ function Screen4Details() {
                     {/* GCAA LIC No */}
                     <label
                       style={{
-                        // width: "130px",
+                        //// width: "130px",
                         fontSize: "11px",
                         fontWeight: "bold",
                       }}
                     >
-                      Donor Declaration:{" "}
+                      Collector Signature:{" "}
                     </label>
                     <input
                       className="inputstyle"
                       type="text"
-                      name="donorDeclaration"
+                      onClick={() => { openSignaturePad(); setIsCollectorOpen(true) }}
+                      name="collectorSignature"
                       value=""
                       placeholder=""
-                      onClick={() => { openSignaturePad(); setIsdeclarationopen(true) }}
+                      onChange={handleChange}
                       style={{
-                        width: "156px",
-                        margin: "0px",
-                        cursor: "pointer",
-                        backgroundImage: `url(${formData.donorDeclaration})`,
+                        // width: "152px",
+                        margin: "0px", cursor: "pointer",
+                        backgroundImage: `url(${formData.collectorSignature})`,
                         backgroundSize: "contain",
                         backgroundRepeat: "no-repeat",
-                        backgroundPosition: "center",
-                        height: "30px", // Adjust height to fit the signature image
+                        backgroundPosition: "center", height: "30px"
                       }}
-                      readOnly
+
                     />
-                    {isError && isError === 'donorDeclaration' && (
-                      <p style={{ color: "red", padding: "5px", fontSize: "12px", marginTop: "5px" }}>
-                        Please fill donor signature
-                      </p>
-                    )}
-
-
                   </div>
-                  {isSignaturePadOpen && declarationOpen && (
-                    pad("donorDeclaration")
+                  {isSignaturePadOpen && collectorOpen && (
+                    pad("collectorSignature")
                   )}
-
                   <div className="donor">
+                    {/* Date of Birth */}
                     <label
                       style={{
                         // width: "25px",
@@ -2213,248 +2064,280 @@ function Screen4Details() {
                     <input
                       className="inputstyle"
                       type="date"
-                      name="donorConcentDate"
-                      value={formatDateForInput(formData.donorConcentDate)}
+                      name="collectorDate"
+                      value={formatDateForInput(formData.collectorDate)}
                       onChange={handleChange}
-                      style={{
-                        //  width: "69%",
-                        height: "5px"
-                      }}
+                      // style={{ width: "69%" }}
                       required
                     />
-                    {formData.donorConcentDate && (
-                      <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.donorConcentDate)}</div>
+                    {formData.collectorDate && (
+                      <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.collectorDate)}</div>
                     )}
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-          <table className="table-one">
-            <thead>
-              <h4>Test Details</h4>
-              <tr>
-                <th>Test Method</th>
-                <th>Technology</th>
-                <th>Cut Off Level</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style={{ border: "1px solid black", padding: "8px" }}>
-                  {formData.testMethods?.join(', ') || 'N/A'}
-                </td>
-                <td style={{ border: "1px solid black", padding: "8px" }}>
-                  {formData.testingTechnology?.join(', ') || 'N/A'}
-                </td>
-                <td style={{ border: "1px solid black", padding: "8px" }}>
-                  {formData.cutOffLevels || 'N/A'}
-                </td>
-              </tr>
-            </tbody>
+            <div class="third-row" style={{ marginBottom: "10px" }}>
+              <p style={{ fontSize: "12px" }}>
+                {" "}
+                <span style={{ fontWeight: "bold", fontSize: "15px" }}>
+                  DONOR CONSENT TO TEST AND SPECIFIC DECLARATION
+                </span>{" "}
+                I hereby consent to providing a sample of breath, saliva, urine
+                hair or blood to the collector and if required for it to be
+                screened in my presence, if necessary, and if required by my
+                employer / potential future employer, for the analysis to be
+                performed at an off site laboratory. I also consent to the results
+                of the analysis being communicated in writing to my employer /
+                potential future employer and for them to use this information for
+                any purpose connected to my employment / application for
+                employment{" "}
+                <span style={{ fontWeight: "bold", fontSize: "13px" }}>
+                  I declare that I have read and understood the Donor Information
+                  Sheet relating to the test.
+                </span>
+              </p>
+              <div class="" className="donor-consent-row">
+                <div className="donor">
+                  {/* GCAA LIC No */}
+                  <label
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: "bold",
+                      // width: "120px",
+                    }}
+                  >
+                    Donor Consent{" "}
+                  </label>
+                  <input
+                    className="inputstyle"
+                    type="text"
+                    name="donorConcent"
+                    value=""
+                    placeholder=""
+                    onClick={() => { openSignaturePad(); setisconcentOpen(true) }}
+                    style={{
+                      // width: "156px",
+                      margin: "0px",
+                      cursor: "pointer",
+                      backgroundImage: `url(${formData.donorConcent})`,
+                      backgroundSize: "contain",
+                      backgroundRepeat: "no-repeat",
+                      backgroundPosition: "center",
+                      height: "30px", // Adjust height to fit the signature image
+                    }}
+                    readOnly
+                  />
+                  {isError && isError === 'donorConcent' && (
+                    <p style={{ color: "red", padding: "5px", fontSize: "12px", marginTop: "5px" }}>
+                      Please fill donor signature
+                    </p>
+                  )}
 
-          </table>
-          <div class="row5">
-            <div
-              className="head"
-              style={{
-                // border: "1px solid black",
-                // borderBottom: "none",
-                width: "98.7%",
-                height: "30px",
-                fontSize: "15px",
-                fontWeight: "bold",
-                paddingLeft: "10px",
-              }}
-            >
-              Adulteration Check
-            </div>
-            <div className="adulteration-body">
-              <div
-                className="bone"
-                style={{
-                  border: "1px solid black",
-                  // borderRight: "none",
-                  // width: "30%",
-                  // height: "100px",
-                }}
-              >
-                <div className="donor" style={{ marginLeft: "5px" }}>
-                  {/* GCAA LIC No */}
-                  <label
-                    style={{
-                      width: "40%",
-                      fontSize: "13px",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    Collection Time:{" "}
-                  </label>
-                  <input
-                    className="inputstyle explabel"
-                    type="text"
-                    name="collectionTime"
-                    value={formData.collectionTime}
-                    placeholder=""
-                    onChange={handleChange}
-                    style={{ width: "102px", margin: "0px", height: "5px" }}
-                  required={!isBreathOnly}
-                  />
+
                 </div>
-                <div className="donor" style={{ marginLeft: "5px" }}>
-                  {/* GCAA LIC No */}
-                  <label
-                    style={{
-                      width: "40%",
-                      fontSize: "13px",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    Result Read Time:{" "}
-                  </label>
-                  <input
-                    className="inputstyle explabel"
-                    type="text"
-                    name="resultReadTime"
-                    value={formData.resultReadTime}
-                    placeholder=""
-                    onChange={handleChange}
-                    style={{ width: "102px", margin: "0px", height: "5px" }}
-                  required={!isBreathOnly}
-                  />
-                </div>
-                <div class="row"></div>
-                <h5 style={{ marginLeft: "3px" }}>
-                  Temperature 32 - 38˚{" "}
-                  <label
-                    style={{
-                      // marginRight: "10px",
-                      // marginLeft: "10px",
-                      width: "100px",
-                      fontSize: "14px",
-                    }}
-                  >
-                    Yes
-                    <input
-                      className="radioinput"
-                      type="radio"
-                      name="temperature"
-                      value="Yes"
-                      checked={formData.temperature === 'Yes'}
-                      onChange={handleChange}
-                    />
-                  </label>
-                  <label
-                    style={{
-                      marginRight: "10px",
-                      width: "100px",
-                      fontSize: "14px",
-                    }}
-                  >
-                    No
-                    <input
-                      className="radioinput"
-                      type="radio"
-                      name="temperature"
-                      value="No"
-                      checked={formData.temperature === 'No'}
-                      onChange={handleChange}
-                    />
-                  </label>
-                </h5>
-              </div>
-              <div class="btwo myb" style={{ minHeight: "100px" }}>
+                {isSignaturePadOpen && ConcentOpen && (
+                  pad("donorConcent")
+                )}
+
                 <div
-                  class="row1"
-                  style={{ minHeight: "50px", borderBottom: "1px solid black" }}
+                  class="box"
+                  style={{
+                    border: "1px solid black",
+                    // marginLeft: "15px",
+                    padding: "3px",
+                    // width: "90%",
+                  }}
                 >
-                  <div class="lotexprow" style={{ display: "flex" }}>
-                    <div
-                      class=""
-                      style={{
-                        minHeight: "50px",
-                        width: "50%",
-                        // borderRight: "1px solid black",
-                      }}
-                    >
-                      <div
-                        className="donor"
-                        style={{ marginLeft: "15px", marginTop: "10px" }}
-                      >
-                        {/* GCAA LIC No */}
-                        <label
-                          style={{
-                            width: "20%",
-                            fontSize: "13px",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          Lot No.{" "}
-                        </label>
-                        <input
-                          className="inputstyle explabel"
-                          type="number"
-                          name="lotno"
-                          value={formData.lotno}
-                          placeholder=""
-                          onChange={handleChange}
-                          style={{
-                            width: "72px",
-                            margin: "0px",
-                            height: "5px",
-                          }}
-                  required={!isBreathOnly}
-                        />
-                      </div>
-                    </div>
-                    <div class="" style={{ minHeight: "50px", width: "50%" }}>
-                      <div
-                        className="donor"
+                  <p
+                    style={{
+                      fontSize: "11px",
+                      fontWeight: "bold",
+                      margin: "0px",
+                      paddingLeft: "10px",
+                    }}
+                  >
+                    I am satisfied that the test has been completed in line with
+                    stated process.
+                  </p>
+                  <div
+                    className="second-row"
+                  // style={{ display: "flex", justifyContent: "space-around" }}
+                  >
+                    <div className="donor">
+                      {/* GCAA LIC No */}
+                      <label
                         style={{
-                          marginLeft: "15px",
-                          // marginLeft: "10px", 
-                          marginTop: "10px"
+                          // width: "130px",
+                          fontSize: "11px",
+                          fontWeight: "bold",
                         }}
                       >
-                        {/* GCAA LIC No */}
-                        <label
-                          className="explabel"
-                          style={{
-                            width: "20%",
-                            fontSize: "13px",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          Exp Date{" "}
-                        </label>
-                        <input
-                          className="inputstyle explabel"
-                          type="date"
-                          name="expDate"
-                          value={formatDateForInput(formData.expDate)}
-                          placeholder=""
-                          onChange={handleChange}
-                          style={{
-                            width: "52px",
-                            margin: "0px",
-                            height: "5px",
-                          }}
-                  required={!isBreathOnly}
-                        />
-                        {formData.expDate && (
-                          <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.expDate)}</div>
-                        )}
-                      </div>
+                        Donor Declaration:{" "}
+                      </label>
+                      <input
+                        className="inputstyle"
+                        type="text"
+                        name="donorDeclaration"
+                        value=""
+                        placeholder=""
+                        onClick={() => { openSignaturePad(); setIsdeclarationopen(true) }}
+                        style={{
+                          width: "156px",
+                          margin: "0px",
+                          cursor: "pointer",
+                          backgroundImage: `url(${formData.donorDeclaration})`,
+                          backgroundSize: "contain",
+                          backgroundRepeat: "no-repeat",
+                          backgroundPosition: "center",
+                          height: "30px", // Adjust height to fit the signature image
+                        }}
+                        readOnly
+                      />
+                      {isError && isError === 'donorDeclaration' && (
+                        <p style={{ color: "red", padding: "5px", fontSize: "12px", marginTop: "5px" }}>
+                          Please fill donor signature
+                        </p>
+                      )}
+
+
+                    </div>
+                    {isSignaturePadOpen && declarationOpen && (
+                      pad("donorDeclaration")
+                    )}
+
+                    <div className="donor">
+                      <label
+                        style={{
+                          // width: "25px",
+                          fontSize: "12px",
+                          fontWeight: "bold",
+                          // marginLeft: "10px",
+                          // marginRight: "10px",
+                        }}
+                      >
+                        Date
+                      </label>
+                      <input
+                        className="inputstyle"
+                        type="date"
+                        name="donorConcentDate"
+                        value={formatDateForInput(formData.donorConcentDate)}
+                        onChange={handleChange}
+                        style={{
+                          //  width: "69%",
+                          height: "5px"
+                        }}
+                        required
+                      />
+                      {formData.donorConcentDate && (
+                        <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.donorConcentDate)}</div>
+                      )}
                     </div>
                   </div>
                 </div>
-                <div className="row2" style={{ minHeight: "50px" }}>
-                  <h5 style={{ marginLeft: "5px", marginTop: "10px" }}>
-                    Adulteration Test Passed
+              </div>
+            </div>
+            <table className="table-one">
+              <thead>
+                <h4>Test Details</h4>
+                <tr>
+                  <th>Test Method</th>
+                  <th>Technology</th>
+                  <th>Cut Off Level</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style={{ border: "1px solid black", padding: "8px" }}>
+                    {formData.testMethods?.join(', ') || 'N/A'}
+                  </td>
+                  <td style={{ border: "1px solid black", padding: "8px" }}>
+                    {formData.testingTechnology?.join(', ') || 'N/A'}
+                  </td>
+                  <td style={{ border: "1px solid black", padding: "8px" }}>
+                    {formData.cutOffLevels || 'N/A'}
+                  </td>
+                </tr>
+              </tbody>
+
+            </table>
+            <div class="row5">
+              <div
+                className="head"
+                style={{
+                  // border: "1px solid black",
+                  // borderBottom: "none",
+                  width: "98.7%",
+                  height: "30px",
+                  fontSize: "15px",
+                  fontWeight: "bold",
+                  paddingLeft: "10px",
+                }}
+              >
+                Adulteration Check
+              </div>
+              <div className="adulteration-body">
+                <div
+                  className="bone"
+                  style={{
+                    border: "1px solid black",
+                    // borderRight: "none",
+                    // width: "30%",
+                    // height: "100px",
+                  }}
+                >
+                  <div className="donor" style={{ marginLeft: "5px" }}>
+                    {/* GCAA LIC No */}
                     <label
                       style={{
-                        marginRight: "10px",
-                        marginLeft: "20px",
+                        width: "40%",
+                        fontSize: "13px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Collection Time:{" "}
+                    </label>
+                    <input
+                      className="inputstyle explabel"
+                      type="text"
+                      name="collectionTime"
+                      value={formData.collectionTime}
+                      placeholder=""
+                      onChange={handleChange}
+                      style={{ width: "102px", margin: "0px", height: "5px" }}
+                      required={!isBreathOnly}
+                    />
+                  </div>
+                  <div className="donor" style={{ marginLeft: "5px" }}>
+                    {/* GCAA LIC No */}
+                    <label
+                      style={{
+                        width: "40%",
+                        fontSize: "13px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Result Read Time:{" "}
+                    </label>
+                    <input
+                      className="inputstyle explabel"
+                      type="text"
+                      name="resultReadTime"
+                      value={formData.resultReadTime}
+                      placeholder=""
+                      onChange={handleChange}
+                      style={{ width: "102px", margin: "0px", height: "5px" }}
+                      required={!isBreathOnly}
+                    />
+                  </div>
+                  <div class="row"></div>
+                  <h5 style={{ marginLeft: "3px" }}>
+                    Temperature 32 - 38˚{" "}
+                    <label
+                      style={{
+                        // marginRight: "10px",
+                        // marginLeft: "10px",
                         width: "100px",
                         fontSize: "14px",
                       }}
@@ -2463,9 +2346,9 @@ function Screen4Details() {
                       <input
                         className="radioinput"
                         type="radio"
-                        name="adulterationTestPassed"
+                        name="temperature"
                         value="Yes"
-                        checked={formData.adulterationTestPassed === 'Yes'}
+                        checked={formData.temperature === 'Yes'}
                         onChange={handleChange}
                       />
                     </label>
@@ -2480,545 +2363,596 @@ function Screen4Details() {
                       <input
                         className="radioinput"
                         type="radio"
-                        name="adulterationTestPassed"
+                        name="temperature"
                         value="No"
-                        checked={formData.adulterationTestPassed === 'No'}
+                        checked={formData.temperature === 'No'}
                         onChange={handleChange}
                       />
                     </label>
                   </h5>
                 </div>
-              </div>
-              <div
-                class="bthree"
-                style={{
-                  border: "1px solid black",
-                  // borderLeft: "none",
-                  // width: "30%",
-                  minHeight: "100px",
-                }}
-              >
+                <div class="btwo myb" style={{ minHeight: "100px" }}>
+                  <div
+                    class="row1"
+                    style={{ minHeight: "50px", borderBottom: "1px solid black" }}
+                  >
+                    <div class="lotexprow" style={{ display: "flex" }}>
+                      <div
+                        class=""
+                        style={{
+                          minHeight: "50px",
+                          width: "50%",
+                          // borderRight: "1px solid black",
+                        }}
+                      >
+                        <div
+                          className="donor"
+                          style={{ marginLeft: "15px", marginTop: "10px" }}
+                        >
+                          {/* GCAA LIC No */}
+                          <label
+                            style={{
+                              width: "20%",
+                              fontSize: "13px",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            Lot No.{" "}
+                          </label>
+                          <input
+                            className="inputstyle explabel"
+                            type="number"
+                            name="lotno"
+                            value={formData.lotno}
+                            placeholder=""
+                            onChange={handleChange}
+                            style={{
+                              width: "72px",
+                              margin: "0px",
+                              height: "5px",
+                            }}
+                            required={!isBreathOnly}
+                          />
+                        </div>
+                      </div>
+                      <div class="" style={{ minHeight: "50px", width: "50%" }}>
+                        <div
+                          className="donor"
+                          style={{
+                            marginLeft: "15px",
+                            // marginLeft: "10px", 
+                            marginTop: "10px"
+                          }}
+                        >
+                          {/* GCAA LIC No */}
+                          <label
+                            className="explabel"
+                            style={{
+                              width: "20%",
+                              fontSize: "13px",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            Exp Date{" "}
+                          </label>
+                          <input
+                            className="inputstyle explabel"
+                            type="date"
+                            name="expDate"
+                            value={formatDateForInput(formData.expDate)}
+                            placeholder=""
+                            onChange={handleChange}
+                            style={{
+                              width: "52px",
+                              margin: "0px",
+                              height: "5px",
+                            }}
+                            required={!isBreathOnly}
+                          />
+                          {formData.expDate && (
+                            <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.expDate)}</div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="row2" style={{ minHeight: "50px" }}>
+                    <h5 style={{ marginLeft: "5px", marginTop: "10px" }}>
+                      Adulteration Test Passed
+                      <label
+                        style={{
+                          marginRight: "10px",
+                          marginLeft: "20px",
+                          width: "100px",
+                          fontSize: "14px",
+                        }}
+                      >
+                        Yes
+                        <input
+                          className="radioinput"
+                          type="radio"
+                          name="adulterationTestPassed"
+                          value="Yes"
+                          checked={formData.adulterationTestPassed === 'Yes'}
+                          onChange={handleChange}
+                        />
+                      </label>
+                      <label
+                        style={{
+                          marginRight: "10px",
+                          width: "100px",
+                          fontSize: "14px",
+                        }}
+                      >
+                        No
+                        <input
+                          className="radioinput"
+                          type="radio"
+                          name="adulterationTestPassed"
+                          value="No"
+                          checked={formData.adulterationTestPassed === 'No'}
+                          onChange={handleChange}
+                        />
+                      </label>
+                    </h5>
+                  </div>
+                </div>
                 <div
-                  className=""
+                  class="bthree"
                   style={{
-                    padding: "10px",
-                    marginLeft: "5px",
-                    display: "flex",
-                    flexDirection: "column",
+                    border: "1px solid black",
+                    // borderLeft: "none",
+                    // width: "30%",
+                    minHeight: "100px",
                   }}
                 >
+                  <div
+                    className=""
+                    style={{
+                      padding: "10px",
+                      marginLeft: "5px",
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
+                    {/* GCAA LIC No */}
+                    <label
+                      className="remarks"
+                      style={{
+                        //// width: "130px",
+                        fontSize: "13px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Remarks / Drug Test Result
+                    </label>
+                    <input
+
+                      className="inputstyle remarksinput"
+                      type="text"
+                      name="adulterationRemarks"
+                      value={formData.adulterationRemarks}
+                      placeholder=""
+                      onChange={handleChange}
+                      style={{
+                        width: "50%",
+                        margin: "0px", height: "5px"
+                      }}
+                      required={!isBreathOnly}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style={{ overflowX: "auto" }}>
+
+              <table
+                style={{
+                  borderCollapse: "collapse",
+                  width: "100%",
+                  border: "1px solid black",
+                }}
+              >
+                <thead>
+                  <tr>
+                    <th
+                      colSpan="6"
+                      style={{ border: "1px solid black", padding: "8px" }}
+                    >
+                      Laboratory Tests (Please tick tests required)
+                    </th>
+                    <th
+                      colSpan="1"
+                      style={{ border: "1px solid black", padding: "8px" }}
+                    ></th>
+                    <th
+                      colSpan="1"
+                      style={{ border: "1px solid black", padding: "8px" }}
+                    >
+                      Screen
+                    </th>
+                    <th
+                      colSpan="1"
+                      style={{ border: "1px solid black", padding: "8px" }}
+                    >
+                      Confirm
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    ["", "screen", "confirm", "", "Methamphetamine"],
+                    ["Alcohol", "", "", "Cocaine", "Morphine"],
+                    ["Amphetamines", "", "", "Ketamine", "Network Rail Std"],
+                    [
+                      "Benzodiazepines",
+                      "",
+                      "",
+                      "Maritime Std",
+                      "Opiates",
+                    ],
+                    ,
+                    ["Buprenorphine", "", "", "MDMA", "SSRI"],
+                    ["Blood", "", "", "Methadone", "TCA"],
+                    ["Other (Please Specify)", "", "", "", "THC"],
+                  ].map(([leftTest, a, b, rightTest, c], index) => (
+                    <tr key={index}>
+                      <td style={{ border: "1px solid black", padding: "8px" }}>
+                        {leftTest}
+                      </td>
+                      <td style={{ border: "1px solid black", padding: "8px" }}>
+                        {a}
+                        {index !== 0 && (<input
+                          type="checkbox"
+                          name={`${leftTest.split(" ")[0]}Screen`}
+                          checked={formData[`${leftTest.split(" ")[0]}Screen`] || false}
+                          onChange={handleChange}
+                        />)}
+                      </td>
+                      <td style={{ border: "1px solid black", padding: "8px" }}>
+                        {b}
+                        {index !== 0 && (<input
+                          type="checkbox"
+                          name={`${leftTest.split(" ")[0]}Confirm`}
+                          checked={formData[`${leftTest.split(" ")[0]}Confirm`] || false}
+                          onChange={handleChange}
+                        />)}
+                      </td>
+                      <td style={{ border: "1px solid black", padding: "8px" }}>
+                        {rightTest}
+                      </td>
+                      <td style={{ border: "1px solid black", padding: "8px" }}>
+                        {a}
+                        {index !== 0 && index !== 7 && (<input
+                          type="checkbox"
+                          name={`${rightTest.split(" ")[0]}Screen`}
+                          checked={formData[`${rightTest.split(" ")[0]}Screen`] || false}
+                          onChange={handleChange}
+                        />)}
+                      </td>
+                      <td style={{ border: "1px solid black", padding: "8px" }}>
+                        {b}
+                        {index !== 0 && index !== 7 && (<input
+                          type="checkbox"
+                          name={`${rightTest.split(" ")[0]}Confirm`}
+                          checked={formData[`${rightTest.split(" ")[0]}Confirm`] || false}
+                          onChange={handleChange}
+                        />)}
+                      </td>
+                      <td style={{ border: "1px solid black", padding: "8px" }}>
+                        {c}
+                      </td>
+                      <td
+                        style={{ border: "1px solid black", padding: "8px" }}
+                      >{<input
+                        type="checkbox"
+                        name={`${c.split(" ")[0]}Screen`}
+                        checked={formData[`${c.split(" ")[0]}Screen`] || false}
+                        onChange={handleChange}
+                      />}</td>
+                      <td
+                        style={{ border: "1px solid black", padding: "8px" }}
+                      >{<input
+                        type="checkbox"
+                        name={`${c.split(" ")[0]}Confirm`}
+                        checked={formData[`${c.split(" ")[0]}Confirm`] || false}
+                        onChange={handleChange}
+                      />}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div class="myb seventh-row">
+              <div
+                class="third-row"
+                style={{ marginBottom: "10px", padding: "10px" }}
+              >
+                <div class="" style={{ borderBottom: "1px solid black" }}>
+                  <h5 style={{ fontWeight: "bold", fontSize: "15px" }}>
+                    DONOR CONSENT TO TEST AND SPECIFIC DECLARATION
+                  </h5>
+                </div>
+                <p style={{ fontSize: "12px" }}>
+                  {" "}
+                  I certify that the specimens accompanying this form are my own
+                  and were provided by me to the collector. The specimens were
+                  split and sealed with tamper-proof seals in my presence and the
+                  information provided on this form and on the labels is correct.
+                  I consent to the specimens being submitted to a laboratory for
+                  testing. I understand the results of the test will only be made
+                  available to the organisation requesting the test or their
+                  authorised representatives.
+                  <span style={{ fontWeight: "bold", fontSize: "13px" }}>
+                    I am satisfied that the test has been completed in line with
+                    stated process.
+                  </span>
+                </p>
+                <div className="donorConcentToTest">
+                  <div className="donor">
+                    {/* GCAA LIC No */}
+                    <label
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: "bold",
+                        // width: "60px",
+                      }}
+                    >
+                      Name{" "}
+                    </label>
+                    <input
+                      className="inputstyle"
+                      type="text"
+                      name="donorName"
+                      value={formData.donorName}
+                      onChange={handleChange}
+                      placeholder="Enter Donor's Name"
+                      required
+                    />
+                  </div>
+                  <div className="donor" >
+                    {/* GCAA LIC No */}
+                    <label
+                      style={{
+                        // width: "80px",
+                        fontSize: "14px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Signature{" "}
+                    </label>
+                    <input
+                      className="inputstyle"
+                      type="text"
+                      name="donorCertificationSignature"
+                      value=""
+                      placeholder=""
+                      onChange={handleChange}
+                      onClick={() => { openSignaturePad(); setIsDonorConcentOpen(true) }}
+                      style={{
+                        // width: "152px",
+                        // marginLeft: "30px",
+                        cursor: "pointer",
+                        backgroundImage: `url(${formData.donorCertificationSignature})`,
+                        backgroundSize: "contain",
+                        backgroundRepeat: "no-repeat",
+                        backgroundPosition: "center", height: "30px"
+                      }}
+
+                    />
+                  </div>
+                  {isSignaturePadOpen && donorConcentOpen && (
+                    pad("donorCertificationSignature")
+                  )}
+                  <div className="donor" >
+                    <label
+                      style={{
+                        // width: "25px",
+                        fontSize: "14px",
+                        fontWeight: "bold",
+                        // marginLeft: "10px",
+                        // marginRight: "10px",
+                      }}
+                    >
+                      Date
+                    </label>
+                    <input
+                      className="inputstyle"
+                      type="date"
+                      name="donorCertificationDate"
+                      value={formatDateForInput(formData.donorCertificationDate)}
+                      onChange={handleChange}
+                      // style={{ width: "69%" }}
+                      required
+                    />
+                    {formData.donorCertificationDate && (
+                      <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.donorCertificationDate)}</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="myb eightth-row"
+              style={{ marginTop: "15px", marginBottom: "20px" }}
+            >
+              <div
+                class="third-row"
+
+                style={{ marginBottom: "10px", padding: "10px" }}
+              >
+                <div class="" style={{ borderBottom: "1px solid black" }}>
+                  <h5 style={{ fontWeight: "bold", fontSize: "15px" }}>
+                    Collector Certification
+                  </h5>
+                </div>
+                <p style={{ fontSize: "12px" }}>
+                  {" "}
+                  I certify that the specimen identified on this form is that
+                  provided to me by the donor providing the certification above,
+                  that it bears the identification as set forth above and that it
+                  has been collected in accordance with the instructions provided.
+                </p>
+                <div class="" className="donorConcentToTest">
+                  {/* //style={{ display: "flex" }}> */}
+                  <div className="donor">
+                    {/* GCAA LIC No */}
+                    <label
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: "bold",
+                        // width: "60px",
+                      }}
+                    >
+                      Name{" "}
+                    </label>
+                    <input
+                      className="inputstyle"
+                      type="text"
+                      name="collectorCertificationName"
+                      value={formData.collectorCertificationName}
+                      placeholder=""
+                      onChange={handleChange}
+                      style={{
+                        margin: "0px",
+                        //  width: "150px"
+                      }}
+                      required
+                    />
+                  </div>
+                  <div className="donor" >
+                    {/* GCAA LIC No */}
+                    <label
+                      style={{
+                        // width: "80px",
+                        fontSize: "14px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Signature{" "}
+                    </label>
+                    <input
+                      className="inputstyle"
+                      type="text"
+                      name="collectorCertificationSignature"
+                      value=""
+                      placeholder=""
+                      onClick={() => { openSignaturePad(); setIsCollectorCerificationOpen(true) }}
+                      onChange={handleChange}
+                      style={{
+                        // width: "152px", 
+                        margin: "0px", cursor: "pointer",
+                        backgroundImage: `url(${formData.collectorCertificationSignature})`,
+                        backgroundSize: "contain",
+                        backgroundRepeat: "no-repeat",
+                        backgroundPosition: "center", height: "30px"
+                      }}
+
+                    />
+                  </div>
+                  {isSignaturePadOpen && collectorCertificationOpen && (
+                    pad("collectorCertificationSignature")
+                  )}
+                  <div className="donor" >
+                    <label
+                      style={{
+                        // width: "25px",
+                        fontSize: "14px",
+                        fontWeight: "bold",
+                        // marginLeft: "10px",
+                        // marginRight: "10px",
+                      }}
+                    >
+                      Date
+                    </label>
+                    <input
+                      className="inputstyle"
+                      type="date"
+                      name="collectorCertificationDate"
+                      value={formatDateForInput(formData.collectorCertificationDate)}
+                      onChange={handleChange}
+                      // style={{ width: "69%" }}
+                      required
+                    />
+                    {formData.collectorCertificationDate && (
+                      <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.collectorCertificationDate)}</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="last-row">
+              <div class="part1" style={{ padding: "10px", border: "1px solid black", height: "149px", marginBottom: "20px", }}><h5 style={{ fontWeight: "bold", fontSize: "15px" }}>
+                Received at Laboratory:
+              </h5> <div className="donor" style={{ marginLeft: "5px" }}>
                   {/* GCAA LIC No */}
                   <label
-                    className="remarks"
                     style={{
-                      //// width: "130px",
+                      // width: "130px",
                       fontSize: "13px",
                       fontWeight: "bold",
                     }}
                   >
-                    Remarks / Drug Test Result
-                  </label>
-                  <input
-
-                    className="inputstyle remarksinput"
-                    type="text"
-                    name="adulterationRemarks"
-                    value={formData.adulterationRemarks}
-                    placeholder=""
-                    onChange={handleChange}
-                    style={{
-                      width: "50%",
-                      margin: "0px", height: "5px"
-                    }}
-                  required={!isBreathOnly}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div style={{ overflowX: "auto" }}>
-
-            <table
-              style={{
-                borderCollapse: "collapse",
-                width: "100%",
-                border: "1px solid black",
-              }}
-            >
-              <thead>
-                <tr>
-                  <th
-                    colSpan="6"
-                    style={{ border: "1px solid black", padding: "8px" }}
-                  >
-                    Laboratory Tests (Please tick tests required)
-                  </th>
-                  <th
-                    colSpan="1"
-                    style={{ border: "1px solid black", padding: "8px" }}
-                  ></th>
-                  <th
-                    colSpan="1"
-                    style={{ border: "1px solid black", padding: "8px" }}
-                  >
-                    Screen
-                  </th>
-                  <th
-                    colSpan="1"
-                    style={{ border: "1px solid black", padding: "8px" }}
-                  >
-                    Confirm
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  ["", "screen", "confirm", "", "Methamphetamine"],
-                  ["Alcohol", "", "", "Cocaine", "Morphine"],
-                  ["Amphetamines", "", "", "Ketamine", "Network Rail Std"],
-                  [
-                    "Benzodiazepines",
-                    "",
-                    "",
-                    "Maritime Std",
-                    "Opiates",
-                  ],
-                  ,
-                  ["Buprenorphine", "", "", "MDMA", "SSRI"],
-                  ["Blood", "", "", "Methadone", "TCA"],
-                  ["Other (Please Specify)", "", "", "", "THC"],
-                ].map(([leftTest, a, b, rightTest, c], index) => (
-                  <tr key={index}>
-                    <td style={{ border: "1px solid black", padding: "8px" }}>
-                      {leftTest}
-                    </td>
-                    <td style={{ border: "1px solid black", padding: "8px" }}>
-                      {a}
-                      {index !== 0 && (<input
-                        type="checkbox"
-                        name={`${leftTest.split(" ")[0]}Screen`}
-                        checked={formData[`${leftTest.split(" ")[0]}Screen`] || false}
-                        onChange={handleChange}
-                      />)}
-                    </td>
-                    <td style={{ border: "1px solid black", padding: "8px" }}>
-                      {b}
-                      {index !== 0 && (<input
-                        type="checkbox"
-                        name={`${leftTest.split(" ")[0]}Confirm`}
-                        checked={formData[`${leftTest.split(" ")[0]}Confirm`] || false}
-                        onChange={handleChange}
-                      />)}
-                    </td>
-                    <td style={{ border: "1px solid black", padding: "8px" }}>
-                      {rightTest}
-                    </td>
-                    <td style={{ border: "1px solid black", padding: "8px" }}>
-                      {a}
-                      {index !== 0 && index !== 7 && (<input
-                        type="checkbox"
-                        name={`${rightTest.split(" ")[0]}Screen`}
-                        checked={formData[`${rightTest.split(" ")[0]}Screen`] || false}
-                        onChange={handleChange}
-                      />)}
-                    </td>
-                    <td style={{ border: "1px solid black", padding: "8px" }}>
-                      {b}
-                      {index !== 0 && index !== 7 && (<input
-                        type="checkbox"
-                        name={`${rightTest.split(" ")[0]}Confirm`}
-                        checked={formData[`${rightTest.split(" ")[0]}Confirm`] || false}
-                        onChange={handleChange}
-                      />)}
-                    </td>
-                    <td style={{ border: "1px solid black", padding: "8px" }}>
-                      {c}
-                    </td>
-                    <td
-                      style={{ border: "1px solid black", padding: "8px" }}
-                    >{<input
-                      type="checkbox"
-                      name={`${c.split(" ")[0]}Screen`}
-                      checked={formData[`${c.split(" ")[0]}Screen`] || false}
-                      onChange={handleChange}
-                    />}</td>
-                    <td
-                      style={{ border: "1px solid black", padding: "8px" }}
-                    >{<input
-                      type="checkbox"
-                      name={`${c.split(" ")[0]}Confirm`}
-                      checked={formData[`${c.split(" ")[0]}Confirm`] || false}
-                      onChange={handleChange}
-                    />}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div class="myb seventh-row">
-            <div
-              class="third-row"
-              style={{ marginBottom: "10px", padding: "10px" }}
-            >
-              <div class="" style={{ borderBottom: "1px solid black" }}>
-                <h5 style={{ fontWeight: "bold", fontSize: "15px" }}>
-                  DONOR CONSENT TO TEST AND SPECIFIC DECLARATION
-                </h5>
-              </div>
-              <p style={{ fontSize: "12px" }}>
-                {" "}
-                I certify that the specimens accompanying this form are my own
-                and were provided by me to the collector. The specimens were
-                split and sealed with tamper-proof seals in my presence and the
-                information provided on this form and on the labels is correct.
-                I consent to the specimens being submitted to a laboratory for
-                testing. I understand the results of the test will only be made
-                available to the organisation requesting the test or their
-                authorised representatives.
-                <span style={{ fontWeight: "bold", fontSize: "13px" }}>
-                  I am satisfied that the test has been completed in line with
-                  stated process.
-                </span>
-              </p>
-              <div className="donorConcentToTest">
-                <div className="donor">
-                  {/* GCAA LIC No */}
-                  <label
-                    style={{
-                      fontSize: "14px",
-                      fontWeight: "bold",
-                      // width: "60px",
-                    }}
-                  >
-                    Name{" "}
+                    Initials:{" "}
                   </label>
                   <input
                     className="inputstyle"
                     type="text"
-                    name="donorName"
-                    value={formData.donorName}
+                    name="recieveInitial"
+                    value={formData.recieveInitial}
+                    placeholder=""
                     onChange={handleChange}
-                    placeholder="Enter Donor's Name"
-                    required
+                    style={{ width: "102px", margin: "0px", height: "5px" }}
                   />
                 </div>
-                <div className="donor" >
+                <div className="donor" style={{ marginLeft: "5px" }}>
                   {/* GCAA LIC No */}
                   <label
                     style={{
-                      // width: "80px",
-                      fontSize: "14px",
+                      // width: "130px",
+                      fontSize: "13px",
                       fontWeight: "bold",
                     }}
                   >
-                    Signature{" "}
+                    Name:{" "}
                   </label>
                   <input
                     className="inputstyle"
                     type="text"
-                    name="donorCertificationSignature"
-                    value=""
+                    name="recieveName"
+                    value={formData.recieveName}
                     placeholder=""
                     onChange={handleChange}
-                    onClick={() => { openSignaturePad(); setIsDonorConcentOpen(true) }}
-                    style={{
-                      // width: "152px",
-                      // marginLeft: "30px",
-                      cursor: "pointer",
-                      backgroundImage: `url(${formData.donorCertificationSignature})`,
-                      backgroundSize: "contain",
-                      backgroundRepeat: "no-repeat",
-                      backgroundPosition: "center", height: "30px"
-                    }}
-
+                    style={{ width: "102px", margin: "0px", height: "5px" }}
                   />
                 </div>
-                {isSignaturePadOpen && donorConcentOpen && (
-                  pad("donorCertificationSignature")
-                )}
-                <div className="donor" >
+                <div className="donor" style={{ marginLeft: "5px" }}>
+                  {/* GCAA LIC No */}
                   <label
                     style={{
-                      // width: "25px",
-                      fontSize: "14px",
+                      // width: "130px",
+                      fontSize: "13px",
                       fontWeight: "bold",
-                      // marginLeft: "10px",
-                      // marginRight: "10px",
                     }}
                   >
-                    Date
+                    Date:{" "}
                   </label>
                   <input
                     className="inputstyle"
                     type="date"
-                    name="donorCertificationDate"
-                    value={formatDateForInput(formData.donorCertificationDate)}
+                    name="recieveDate"
+                    value={formatDateForInput(formData.recieveDate)}
+                    placeholder=""
                     onChange={handleChange}
-                    // style={{ width: "69%" }}
-                    required
+                    style={{ width: "102px", margin: "0px", height: "5px" }}
                   />
-                  {formData.donorCertificationDate && (
-                    <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.donorCertificationDate)}</div>
+                  {formData.recieveDate && (
+                    <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.recieveDate)}</div>
                   )}
                 </div>
               </div>
-            </div>
-          </div>
-          <div
-            class="myb eightth-row"
-            style={{ marginTop: "15px", marginBottom: "20px" }}
-          >
-            <div
-              class="third-row"
-
-              style={{ marginBottom: "10px", padding: "10px" }}
-            >
-              <div class="" style={{ borderBottom: "1px solid black" }}>
-                <h5 style={{ fontWeight: "bold", fontSize: "15px" }}>
-                  Collector Certification
-                </h5>
-              </div>
-              <p style={{ fontSize: "12px" }}>
-                {" "}
-                I certify that the specimen identified on this form is that
-                provided to me by the donor providing the certification above,
-                that it bears the identification as set forth above and that it
-                has been collected in accordance with the instructions provided.
-              </p>
-              <div class="" className="donorConcentToTest">
-                {/* //style={{ display: "flex" }}> */}
-                <div className="donor">
-                  {/* GCAA LIC No */}
-                  <label
-                    style={{
-                      fontSize: "14px",
-                      fontWeight: "bold",
-                      // width: "60px",
-                    }}
-                  >
-                    Name{" "}
-                  </label>
-                  <input
-                    className="inputstyle"
-                    type="text"
-                    name="collectorCertificationName"
-                    value={formData.collectorCertificationName}
-                    placeholder=""
-                    onChange={handleChange}
-                    style={{
-                      margin: "0px",
-                      //  width: "150px"
-                    }}
-                    required
-                  />
-                </div>
-                <div className="donor" >
-                  {/* GCAA LIC No */}
-                  <label
-                    style={{
-                      // width: "80px",
-                      fontSize: "14px",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    Signature{" "}
-                  </label>
-                  <input
-                    className="inputstyle"
-                    type="text"
-                    name="collectorCertificationSignature"
-                    value=""
-                    placeholder=""
-                    onClick={() => { openSignaturePad(); setIsCollectorCerificationOpen(true) }}
-                    onChange={handleChange}
-                    style={{
-                      // width: "152px", 
-                      margin: "0px", cursor: "pointer",
-                      backgroundImage: `url(${formData.collectorCertificationSignature})`,
-                      backgroundSize: "contain",
-                      backgroundRepeat: "no-repeat",
-                      backgroundPosition: "center", height: "30px"
-                    }}
-
-                  />
-                </div>
-                {isSignaturePadOpen && collectorCertificationOpen && (
-                  pad("collectorCertificationSignature")
-                )}
-                <div className="donor" >
-                  <label
-                    style={{
-                      // width: "25px",
-                      fontSize: "14px",
-                      fontWeight: "bold",
-                      // marginLeft: "10px",
-                      // marginRight: "10px",
-                    }}
-                  >
-                    Date
-                  </label>
-                  <input
-                    className="inputstyle"
-                    type="date"
-                    name="collectorCertificationDate"
-                    value={formatDateForInput(formData.collectorCertificationDate)}
-                    onChange={handleChange}
-                    // style={{ width: "69%" }}
-                    required
-                  />
-                  {formData.collectorCertificationDate && (
-                    <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.collectorCertificationDate)}</div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="last-row">
-            <div class="part1" style={{ padding: "10px", border: "1px solid black", height: "149px", marginBottom: "20px", }}><h5 style={{ fontWeight: "bold", fontSize: "15px" }}>
-              Received at Laboratory:
-            </h5> <div className="donor" style={{ marginLeft: "5px" }}>
-                {/* GCAA LIC No */}
-                <label
-                  style={{
-                    // width: "130px",
-                    fontSize: "13px",
-                    fontWeight: "bold",
-                  }}
-                >
-                  Initials:{" "}
-                </label>
-                <input
-                  className="inputstyle"
-                  type="text"
-                  name="recieveInitial"
-                  value={formData.recieveInitial}
-                  placeholder=""
-                  onChange={handleChange}
-                  style={{ width: "102px", margin: "0px", height: "5px" }}
-                />
-              </div>
-              <div className="donor" style={{ marginLeft: "5px" }}>
-                {/* GCAA LIC No */}
-                <label
-                  style={{
-                    // width: "130px",
-                    fontSize: "13px",
-                    fontWeight: "bold",
-                  }}
-                >
-                  Name:{" "}
-                </label>
-                <input
-                  className="inputstyle"
-                  type="text"
-                  name="recieveName"
-                  value={formData.recieveName}
-                  placeholder=""
-                  onChange={handleChange}
-                  style={{ width: "102px", margin: "0px", height: "5px" }}
-                />
-              </div>
-              <div className="donor" style={{ marginLeft: "5px" }}>
-                {/* GCAA LIC No */}
-                <label
-                  style={{
-                    // width: "130px",
-                    fontSize: "13px",
-                    fontWeight: "bold",
-                  }}
-                >
-                  Date:{" "}
-                </label>
-                <input
-                  className="inputstyle"
-                  type="date"
-                  name="recieveDate"
-                  value={formatDateForInput(formData.recieveDate)}
-                  placeholder=""
-                  onChange={handleChange}
-                  style={{ width: "102px", margin: "0px", height: "5px" }}
-                />
-              {formData.recieveDate && (
-                <div style={{ fontSize: "10px", marginTop: "4px", color: "#555" }}>DD/MM/YY: {formatDate(formData.recieveDate)}</div>
-              )}
-              </div>
-            </div>
-            <div class="part2" style={{ border: "1px solid black", height: "150px", marginBottom: "20px", }}><h5 style={{ fontWeight: "bold", padding: "7px", paddingLeft: "0px", fontSize: "15px" }}>
-              Specimen bottle seals intact
-            </h5><div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-                <label
-                  style={{
-                    // marginRight: "10px",
-                    // width: "50px",
-                    fontSize: "14px",
-                  }}
-                >
-                  Yes
-                  <input
-                    className="radioyesno"
-                    type="radio"
-                    name="specimenBottle"
-                    value="Yes"
-                    checked={formData.specimenBottle === 'Yes'}
-                    onChange={handleChange}
-                  />
-                </label>
-                <label
-                  style={{
-                    // marginRight: "10px",
-                    // width: "50px",
-                    fontSize: "14px",
-                  }}
-                >
-                  No
-                  <input
-                    className="radioyesno"
-                    type="radio"
-                    name="specimenBottle"
-                    value="No"
-                    checked={formData.specimenBottle === 'No'}
-                    onChange={handleChange}
-                  />
-                </label>
-                <span
-                  style={{
-                    // marginLeft: "auto",
-                    // width: "110px",
-                    width: "100%",
-                    marginLeft: "0px",
-                    fontSize: "14px",
-                    cursor: "pointer",
-                    color: "green", // Add color to indicate clickable text
-                  }}
-                  onClick={() => handleAddComment("specimenBottleComment")} // Handle add comment
-                  title={formData.specimenBottleComment} // Display the comment on hover
-                >
-                  {formData.specimenBottleComment ? "update comment" : "add comment"}
-                </span>
-              </div>
-              {/* Display comment below, if available */}
-              {formData.specimenBottleComment && (
-                <div
-                  style={{
-                    fontSize: "12px",
-                    color: "gray",
-                    marginTop: "5px",
-                    paddingLeft: "10px",
-                  }}
-                >
-                  Comment: {formData.specimenBottleComment}
-                </div>
-              )}
-            </div>
-            <div class="part3" style={{ border: "1px solid black", height: "150px", marginBottom: "20px" }}>
-              <h5 style={{ fontWeight: "bold", padding: "7px", paddingLeft: "0px", fontSize: "15px" }}>
-                Fatal Flaw
+              <div class="part2" style={{ border: "1px solid black", height: "150px", marginBottom: "20px", }}><h5 style={{ fontWeight: "bold", padding: "7px", paddingLeft: "0px", fontSize: "15px" }}>
+                Specimen bottle seals intact
               </h5><div
                 style={{
                   display: "flex",
@@ -3026,71 +2960,145 @@ function Screen4Details() {
                   justifyContent: "center",
                 }}
               >
-                <label
-                  style={{
-                    // marginRight: "10px",
-                    // width: "50px",
-                    fontSize: "14px",
-                  }}
-                >
-                  Yes
-                  <input
-                    className="radioyesno"
-                    type="radio"
-                    name="fatalFlaws"
-                    value="Yes"
-                    checked={formData.fatalFlaws === 'Yes'}
-                    onChange={handleChange}
-                  />
-                </label>
-                <label
-                  style={{
-                    // marginRight: "10px",
-                    // width: "50px",
-                    fontSize: "14px",
-                  }}
-                >
-                  No
-                  <input
-                    className="radioyesno"
-                    type="radio"
-                    name="fatalFlaws"
-                    value="No"
-                    checked={formData.fatalFlaws === 'No'}
-                    onChange={handleChange}
-                  />
-                </label>
-                <span
-                  style={{
-                    // marginLeft: "auto",
-                    // width: "110px",
-                    width: "100%",
-                    marginLeft: "0px",
-                    fontSize: "14px",
-                    cursor: "pointer",
-                    color: "green", // Add color to indicate clickable text
-                  }}
-                  onClick={() => handleAddComment("fatalFlawsComment")} // Handle add comment
-                  title={formData.fatalFlawsComment} // Display the comment on hover
-                >
-                  {formData.fatalFlawsComment ? "update comment" : "add comment"}
-                </span>
-              </div>
-              {/* Display comment below, if available */}
-              {formData.fatalFlawsComment && (
-                <div
-                  style={{
-                    fontSize: "12px",
-                    color: "gray",
-                    marginTop: "5px",
-                    paddingLeft: "10px",
-                  }}
-                >
-                  Comment: {formData.fatalFlawsComment}
+                  <label
+                    style={{
+                      // marginRight: "10px",
+                      // width: "50px",
+                      fontSize: "14px",
+                    }}
+                  >
+                    Yes
+                    <input
+                      className="radioyesno"
+                      type="radio"
+                      name="specimenBottle"
+                      value="Yes"
+                      checked={formData.specimenBottle === 'Yes'}
+                      onChange={handleChange}
+                    />
+                  </label>
+                  <label
+                    style={{
+                      // marginRight: "10px",
+                      // width: "50px",
+                      fontSize: "14px",
+                    }}
+                  >
+                    No
+                    <input
+                      className="radioyesno"
+                      type="radio"
+                      name="specimenBottle"
+                      value="No"
+                      checked={formData.specimenBottle === 'No'}
+                      onChange={handleChange}
+                    />
+                  </label>
+                  <span
+                    style={{
+                      // marginLeft: "auto",
+                      // width: "110px",
+                      width: "100%",
+                      marginLeft: "0px",
+                      fontSize: "14px",
+                      cursor: "pointer",
+                      color: "green", // Add color to indicate clickable text
+                    }}
+                    onClick={() => handleAddComment("specimenBottleComment")} // Handle add comment
+                    title={formData.specimenBottleComment} // Display the comment on hover
+                  >
+                    {formData.specimenBottleComment ? "update comment" : "add comment"}
+                  </span>
                 </div>
-              )}
+                {/* Display comment below, if available */}
+                {formData.specimenBottleComment && (
+                  <div
+                    style={{
+                      fontSize: "12px",
+                      color: "gray",
+                      marginTop: "5px",
+                      paddingLeft: "10px",
+                    }}
+                  >
+                    Comment: {formData.specimenBottleComment}
+                  </div>
+                )}
+              </div>
+              <div class="part3" style={{ border: "1px solid black", height: "150px", marginBottom: "20px" }}>
+                <h5 style={{ fontWeight: "bold", padding: "7px", paddingLeft: "0px", fontSize: "15px" }}>
+                  Fatal Flaw
+                </h5><div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <label
+                    style={{
+                      // marginRight: "10px",
+                      // width: "50px",
+                      fontSize: "14px",
+                    }}
+                  >
+                    Yes
+                    <input
+                      className="radioyesno"
+                      type="radio"
+                      name="fatalFlaws"
+                      value="Yes"
+                      checked={formData.fatalFlaws === 'Yes'}
+                      onChange={handleChange}
+                    />
+                  </label>
+                  <label
+                    style={{
+                      // marginRight: "10px",
+                      // width: "50px",
+                      fontSize: "14px",
+                    }}
+                  >
+                    No
+                    <input
+                      className="radioyesno"
+                      type="radio"
+                      name="fatalFlaws"
+                      value="No"
+                      checked={formData.fatalFlaws === 'No'}
+                      onChange={handleChange}
+                    />
+                  </label>
+                  <span
+                    style={{
+                      // marginLeft: "auto",
+                      // width: "110px",
+                      width: "100%",
+                      marginLeft: "0px",
+                      fontSize: "14px",
+                      cursor: "pointer",
+                      color: "green", // Add color to indicate clickable text
+                    }}
+                    onClick={() => handleAddComment("fatalFlawsComment")} // Handle add comment
+                    title={formData.fatalFlawsComment} // Display the comment on hover
+                  >
+                    {formData.fatalFlawsComment ? "update comment" : "add comment"}
+                  </span>
+                </div>
+                {/* Display comment below, if available */}
+                {formData.fatalFlawsComment && (
+                  <div
+                    style={{
+                      fontSize: "12px",
+                      color: "gray",
+                      marginTop: "5px",
+                      paddingLeft: "10px",
+                    }}
+                  >
+                    Comment: {formData.fatalFlawsComment}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
 
           </fieldset>
 

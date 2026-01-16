@@ -259,6 +259,20 @@
   margin-top: 15px;
 }
 
+.alcohol-radio-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+.please-tick-label {
+  color: #e5e7eb;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 /* Signature Input */
 .signature-input {
   height: 80px;

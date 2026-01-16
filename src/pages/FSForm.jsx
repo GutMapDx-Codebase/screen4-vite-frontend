@@ -685,29 +685,32 @@ function Screen4ChainOfCustodyForm() {
               <h3>RESIDUAL MOUTH ALCOHOL DECLARATION</h3>
               <p>Have you in the last 20 minutes smoked and/or consumed an alcoholic drink or used a product containing alcohol such as mouthwash?</p>
               
-              <div className="radio-group horizontal">
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    name="alcohoDeclaration"
-                    value="Yes"
-                    checked={formData.alcohoDeclaration === 'Yes'}
-                    onChange={handleChange}
-                  />
-                  <span className="radio-custom"></span>
-                  Yes
-                </label>
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    name="alcohoDeclaration"
-                    value="No"
-                    checked={formData.alcohoDeclaration === 'No'}
-                    onChange={handleChange}
-                  />
-                  <span className="radio-custom"></span>
-                  No
-                </label>
+              <div className="alcohol-radio-wrapper">
+                <span className="please-tick-label">Please tick</span>
+                <div className="radio-group horizontal">
+                  <label className="radio-label">
+                    <input
+                      type="radio"
+                      name="alcohoDeclaration"
+                      value="Yes"
+                      checked={formData.alcohoDeclaration === 'Yes'}
+                      onChange={handleChange}
+                    />
+                    <span className="radio-custom"></span>
+                    Yes
+                  </label>
+                  <label className="radio-label">
+                    <input
+                      type="radio"
+                      name="alcohoDeclaration"
+                      value="No"
+                      checked={formData.alcohoDeclaration === 'No'}
+                      onChange={handleChange}
+                    />
+                    <span className="radio-custom"></span>
+                    No
+                  </label>
+                </div>
               </div>
               {isError && isError === 'alcohoDeclaration' && (
                 <p className="error-message">Please answer RESIDUAL MOUTH ALCOHOL DECLARATION</p>
