@@ -38,9 +38,10 @@ const JobRequests = () => {
 
   // pagination
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(6); // Dynamic page size
   const [totalPages, setTotalPages] = useState(0);
   const [totalItems, setTotalItems] = useState(0);
-  const limit = 10;
+
 
   // ✅ Client ke liye hamesha "Completed" tab set karo
   useEffect(() => {
@@ -337,15 +338,15 @@ const JobRequests = () => {
 
       // ✅ CLIENT FIX: Hardcoded token and always "completed" status
       if (currentToken === "clientdgf45sdgf89756dfgdhgdf") {
-        url = `${baseUrl}/getjobrequests?id=${clientId}&status=completed&page=${pageNumber}&limit=${limit}&token=clientdgf45sdgf89756dfgdhgdf&search=${encodeURIComponent(query)}`;
+        url = `${baseUrl}/getjobrequests?id=${clientId}&status=completed&page=${pageNumber}&limit=${pageSize}&token=clientdgf45sdgf89756dfgdhgdf&search=${encodeURIComponent(query)}`;
         console.log("🔍 Client API Call:", url);
       }
 
       // ✅ COLLECTOR PORTAL (token added with pagination)
-      else if (currentToken === "collectorsdrfg@78967daghf#wedhjgasjdlsh6kjsdg") {
+      else if (currentToken === "collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg") {
         const statusParam = currentTab.toLowerCase();
         const collectorToken = "collectorgfdgdfg548745gdfgdfg789dfg"; // same as backend route
-        url = `${baseUrl}/getjobsbycollector/${collectorId}?status=${statusParam}&token=${collectorToken}&page=${pageNumber}&limit=${limit}&search=${encodeURIComponent(query)}`;
+        url = `${baseUrl}/getjobsbycollector/${collectorId}?status=${statusParam}&token=${collectorToken}&page=${pageNumber}&limit=${pageSize}&search=${encodeURIComponent(query)}`;
 
         console.log("🔍 Collector API Call:", url);
         const response = await fetch(url);
@@ -359,31 +360,77 @@ const JobRequests = () => {
           count: data.count,
           dataLength: data.data?.length,
           totalPages: data.totalPages,
-          currentPage: data.currentPage
+          currentPage: data.currentPage,
+          hasSuccess: data.success !== undefined
         });
 
-        const calculatedTotal = data.total || data.count || data.data?.length || 0;
-        const calculatedPages = data.totalPages || Math.ceil(calculatedTotal / limit);
+        // ✅ FIXED: Better pagination handling for collector
+        // Backend should return: { success: true, data: [], total: number, totalPages: number, currentPage: number }
+        // Or: { data: [], total: number, totalPages: number, currentPage: number }
+        // Or: { data: [], count: number }
+        const jobsData = data.data || data || [];
+        let calculatedTotal = 0;
+        let calculatedPages = 1;
+        let currentPageNum = pageNumber;
 
-        console.log("📊 Pagination Debug - Calculated Values:", {
+        if (data.success !== undefined) {
+          // Response has success field (standard format)
+          calculatedTotal = data.total || data.count || 0;
+          calculatedTotal = data.total || data.count || 0;
+          calculatedPages = data.totalPages || (calculatedTotal > 0 ? Math.ceil(calculatedTotal / pageSize) : 1);
+          currentPageNum = data.currentPage || pageNumber;
+        } else if (data.total !== undefined || data.count !== undefined) {
+          // Response has total/count but no success field
+          calculatedTotal = data.total || data.count || 0;
+          calculatedPages = data.totalPages || (calculatedTotal > 0 ? Math.ceil(calculatedTotal / pageSize) : 1);
+          currentPageNum = data.currentPage || pageNumber;
+        } else if (Array.isArray(data.data)) {
+          // Response is just an array or has data array
+          calculatedTotal = data.data.length;
+          calculatedPages = calculatedTotal > 0 ? Math.ceil(calculatedTotal / pageSize) : 1;
+          currentPageNum = pageNumber;
+        } else if (Array.isArray(data)) {
+          // Response is directly an array
+          calculatedTotal = data.length;
+          calculatedPages = calculatedTotal > 0 ? Math.ceil(calculatedTotal / pageSize) : 1;
+          currentPageNum = pageNumber;
+        }
+
+        // ✅ FIXED: Better fallback - if total is 0 but we have data, estimate total
+        if (calculatedTotal === 0 && jobsData.length > 0) {
+          if (jobsData.length === pageSize) {
+            // Got full page, assume there are more
+            calculatedTotal = (pageNumber * pageSize) + 1;
+          } else {
+            // Less than limit means last page
+            calculatedTotal = ((pageNumber - 1) * pageSize) + jobsData.length;
+          }
+          calculatedPages = Math.ceil(calculatedTotal / pageSize);
+        }
+
+        console.log("📊 Pagination Debug - Final Calculated Values:", {
           totalItems: calculatedTotal,
           totalPages: calculatedPages,
-          currentPage: data.currentPage || pageNumber,
-          limit: limit
+          currentPage: currentPageNum,
+          limit: pageSize,
+          dataLength: jobsData.length,
+          backendTotal: data.total,
+          backendCount: data.count,
+          backendTotalPages: data.totalPages
         });
 
-        setClient(data.data || []);
-        setFilteredClients(data.data || []);
+        setClient(jobsData);
+        setFilteredClients(jobsData);
         setTotalItems(calculatedTotal);
         setTotalPages(calculatedPages);
-        setPage(data.currentPage || pageNumber);
+        setPage(currentPageNum);
         setLoading(false);
         return; // Early return for collector
       }
 
       // ✅ ADMIN FLOW
       else {
-        url = `${baseUrl}/getjobrequests?id=${clientId}&status=${currentTab.toLowerCase()}&page=${pageNumber}&limit=${limit}&token=${encodeURIComponent(currentToken.toString())}&search=${encodeURIComponent(query)}`;
+        url = `${baseUrl}/getjobrequests?id=${clientId}&status=${currentTab.toLowerCase()}&page=${pageNumber}&limit=${pageSize}&token=${encodeURIComponent(currentToken.toString())}&search=${encodeURIComponent(query)}`;
       }
 
       // ✅ Common fetch for Admin and Client
@@ -394,18 +441,53 @@ const JobRequests = () => {
 
       const data = await response.json();
 
+      console.log("📊 Admin/Client API Response:", {
+        success: data.success,
+        total: data.total,
+        totalPages: data.totalPages,
+        currentPage: data.currentPage,
+        dataLength: data.data?.length,
+        hasData: !!data.data
+      });
+
       if (!data.success) throw new Error(data.message || "API returned error");
 
-      setClient(data.data || []);
-      setFilteredClients(data.data || []);
-      setTotalPages(data.totalPages || 1);
-      setTotalItems(data.total || 0);
-      setPage(data.currentPage || 1);
+      // ✅ FIXED: Better pagination handling for Admin/Client
+      // Backend should return: { success: true, data: [], total: number, totalPages: number, currentPage: number }
+      const jobsData = data.data || [];
+
+      // ✅ FIXED: Better fallback logic for pagination
+      // If backend doesn't return total, try to calculate from data length
+      // But only if we got a full page (limit items), otherwise use data length
+      let totalItemsCount = data.total || 0;
+      if (totalItemsCount === 0 && jobsData.length > 0) {
+        // If we got a full page, there might be more items
+        if (jobsData.length === pageSize) {
+          // Estimate: assume there are more pages
+          totalItemsCount = (pageNumber * pageSize) + 1; // At least one more item
+        } else {
+          // Less than limit means this is the last page
+          totalItemsCount = ((pageNumber - 1) * pageSize) + jobsData.length;
+        }
+      }
+
+      const totalPagesCount = data.totalPages || (totalItemsCount > 0 ? Math.ceil(totalItemsCount / pageSize) : 1);
+      const currentPageNum = data.currentPage || pageNumber;
+
+      setClient(jobsData);
+      setFilteredClients(jobsData);
+      setTotalPages(totalPagesCount);
+      setTotalItems(totalItemsCount);
+      setPage(currentPageNum);
 
       console.log("✅ Data fetched successfully:", {
-        totalItems: data.total,
-        currentPage: data.currentPage,
-        jobsCount: data.data?.length
+        totalItems: totalItemsCount,
+        totalPages: totalPagesCount,
+        currentPage: currentPageNum,
+        jobsCount: jobsData.length,
+        limit: pageSize,
+        backendTotal: data.total,
+        backendTotalPages: data.totalPages
       });
 
     } catch (err) {
@@ -427,9 +509,15 @@ const JobRequests = () => {
     } else {
       fetchScreen4Data(page, selectedTab, searchQuery);
     }
-  }, [page, selectedTab, searchQuery]);
+  }, [page, selectedTab, searchQuery, pageSize]);
 
   const handlePageChange = (newPage) => {
+    console.log("🔄 Page Change Triggered:", {
+      currentPage: page,
+      newPage: newPage,
+      totalItems: totalItems,
+      totalPages: totalPages
+    });
     setPage(newPage);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -1059,17 +1147,45 @@ const JobRequests = () => {
               {/* Collector Details Modal */}
               <CollectorDetailsModal />
 
-              {/* Pagination */}
-              <div className="pagination-section">
-                <Pagination
-                  current={page}
-                  total={totalItems}
-                  pageSize={limit}
-                  onChange={handlePageChange}
-                  showSizeChanger={false}
-                  className="custom-pagination"
-                />
-              </div>
+              {/* Pagination - Show if there are items or multiple pages */}
+              {(() => {
+                const shouldShowPagination = totalItems > 0; // Always show if we have data to allow pageSize change
+                console.log("📄 Pagination Render Check:", {
+                  totalItems,
+                  totalPages,
+                  currentPage: page,
+                  limit: pageSize,
+                  shouldShowPagination,
+                  filteredClientsLength: filteredClients.length
+                });
+
+                return shouldShowPagination ? (
+                  <div className="pagination-section">
+                    <Pagination
+                      current={page}
+                      total={totalItems}
+                      pageSize={pageSize}
+                      onChange={(page, size) => {
+                        if (size !== pageSize) {
+                          setPageSize(size);
+                          setPage(1); // Reset to first page on size change
+                        } else {
+                          handlePageChange(page);
+                        }
+                      }}
+                      onShowSizeChange={(current, size) => {
+                        setPageSize(size);
+                        setPage(1);
+                      }}
+                      showSizeChanger={true}
+                      pageSizeOptions={['6', '12', '36', '50', '100']}
+                      showQuickJumper={false}
+                      showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} items`}
+                      className="custom-pagination"
+                    />
+                  </div>
+                ) : null;
+              })()}
             </>
           ) : (
             <div className="empty-state">
