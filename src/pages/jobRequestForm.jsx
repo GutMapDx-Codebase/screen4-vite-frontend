@@ -11,142 +11,143 @@ import "./css/Practitioner.css";
 
 function JobRequestForm() {
   const [isloading, setIsLoading] = useState(false);
-  const [clientDetails,setClientDetails] = useState()
-    const practitionerId = Cookies.get('id')
+  const [clientDetails, setClientDetails] = useState()
+  const practitionerId = Cookies.get('id')
   const [currentSignatureField, setCurrentSignatureField] = useState("");
   const [allCollectors, setAllCollectors] = useState([]);
-    const token = Cookies.get("Token")
-      const { id } = useParams();
+  const token = Cookies.get("Token")
+  const { id } = useParams();
   const openSignaturePad2 = (fieldName) => {
     setCurrentSignatureField(fieldName);
     setIsSignaturePadOpen(true);
     setTimeout(initializeCanvas, 0);
   };
-      const fetchCustomerDetails = async (email) => {
-      const selectedValue = email;
-  
-      const emailMatch = selectedValue.match(/\(([^)]+)\)/); // extract email
-      const selectedEmail = emailMatch ? emailMatch[1] : null;
-  
-      setFormData((prev) => ({
-        ...prev,
-        customer: selectedValue,
-      }));
-  
-      if (!selectedEmail) return;
-  
-      try {
-        const res = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/getcustomerbyemail?email=${selectedEmail}`
-        );
-        const data = await res.json();
-        setClientDetails(data);
-      } catch (err) {
-        console.error("Failed to fetch customer details:", err);
-      }
-    };
-  // Modify fetchScreen4Data to properly handle populated data
+  const fetchCustomerDetails = async (email) => {
+    const selectedValue = email;
 
+    const emailMatch = selectedValue.match(/\(([^)]+)\)/); // extract email
+    const selectedEmail = emailMatch ? emailMatch[1] : null;
 
-  // Modify fetchScreen4Data to properly handle populated data
-// ✅ Modified fetchScreen4Data function
-const fetchScreen4Data = async () => {
-  try {
-    if (!id) return null;
-    
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getjobrequest/${id}`);
-    if (!response.ok) {
-      throw new Error("Failed to fetch job request data");
+    setFormData((prev) => ({
+      ...prev,
+      customer: selectedValue,
+    }));
+
+    if (!selectedEmail) return;
+
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/getcustomerbyemail?email=${selectedEmail}`
+      );
+      const data = await res.json();
+      setClientDetails(data);
+    } catch (err) {
+      console.error("Failed to fetch customer details:", err);
     }
-    
-    const result = await response.json();
-    console.log("Fetched data:", result); // Debug log
-    
-    if (result.success && result.data) {
-      const jobData = result.data;
-      
-      // ✅ Check if customerId is populated or just ID
-      const customerName = jobData.customerId && typeof jobData.customerId === 'object' 
-        ? jobData.customerId.name 
-        : "Customer";
-      
-      const customerEmail = jobData.customerId && typeof jobData.customerId === 'object' 
-        ? jobData.customerId.email 
-        : "";
+  };
+  // Modify fetchScreen4Data to properly handle populated data
 
-      // Set form data with all fields from backend
-      setFormData({
-        ...jobData,
-        _id: jobData._id,
-        jobReferenceNo: jobData.jobReferenceNo || "",
-        dateAndTimeOfCollection: jobData.dateAndTimeOfCollection || "",
-        location: jobData.location || "",
-        customer: customerName, // ✅ Use extracted customer name
-        customerEmail: customerEmail,
-        customerId: jobData.customerId?._id || jobData.customerId || "", // Handle both populated and ID
-        nameOfOnsiteContact: jobData.nameOfOnsiteContact || "",
-        contactOfTelephoneNo: jobData.contactOfTelephoneNo || "",
-        numberOfDonors: jobData.numberOfDonors || "",
-        TypeOfTest: jobData.TypeOfTest || "",
-        callOutType: jobData.callOutType || "",
-        reasonForTest: jobData.reasonForTest || "",
-        collectorid: jobData.collectors?.map(c => c.collectorsId?._id || c.collectorsId) || [],
-        date: jobData.date || "",
-        collectionOfficerName: jobData.collectionOfficerName || "",
-        arrivalTime: jobData.arrivalTime || "",
-        departureTime: jobData.departureTime || "",
-        waitingTime: jobData.waitingTime || "",
-        mileage: jobData.mileage || "",
-        samplesMailed: jobData.samplesMailed || "",
-        breathAlcoholTestsCompleted: jobData.breathAlcoholTestsCompleted || "",
-        drugTestsCompleted: jobData.drugTestsCompleted || "",
-        nonZeroBreathAlcoholTests: jobData.nonZeroBreathAlcoholTests || "",
-        nonNegativeSamples: jobData.nonNegativeSamples || "",
-        notes: jobData.notes || "",
-        facilities: {
-          privateSecureRoom: jobData.facilities?.privateSecureRoom || false,
-          wcFacilities: jobData.facilities?.wcFacilities || false,
-          handWashing: jobData.facilities?.handWashing || false,
-          securedWindows: jobData.facilities?.securedWindows || false,
-          emergencyExits: jobData.facilities?.emergencyExits || false,
-          translatorRequired: jobData.facilities?.translatorRequired || false,
-        },
-        onsiteSignature: jobData.onsiteSignature || "",
-        officerSignature: jobData.officerSignature || "",
-        isAccepted: jobData.isAccepted || false
-      });
 
-      // ✅ Set client details if customer data exists and is populated
-      if (jobData.customerId && typeof jobData.customerId === 'object') {
-        setClientDetails({
-          ...jobData.customerId,
-          cutOffLevels: jobData.customerId.cutOffLevels || "",
-          drugKitType: jobData.customerId.drugKitType || "",
-          secondBreathTestRequired: jobData.customerId.secondBreathTestRequired || "No",
-          nonNegativeSamplesToLab: jobData.customerId.nonNegativeSamplesToLab || "Yes",
-          laboratoryAddress: jobData.customerId.laboratoryAddress || "",
-          sampleDeliveryMethod: jobData.customerId.sampleDeliveryMethod || "Courier"
+  // Modify fetchScreen4Data to properly handle populated data
+  // ✅ Modified fetchScreen4Data function
+  const fetchScreen4Data = async () => {
+    try {
+      if (!id) return null;
+
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getjobrequest/${id}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch job request data");
+      }
+
+      const result = await response.json();
+      console.log("Fetched data:", result); // Debug log
+
+      if (result.success && result.data) {
+        const jobData = result.data;
+
+        // ✅ Check if customerId is populated or just ID
+        const customerName = jobData.customerId && typeof jobData.customerId === 'object'
+          ? jobData.customerId.name
+          : "Customer";
+
+        const customerEmail = jobData.customerId && typeof jobData.customerId === 'object'
+          ? jobData.customerId.email
+          : "";
+
+        // Set form data with all fields from backend
+        setFormData({
+          ...jobData,
+          _id: jobData._id,
+          jobReferenceNo: jobData.jobReferenceNo || "",
+          dateAndTimeOfCollection: jobData.dateAndTimeOfCollection || "",
+          location: jobData.location || "",
+          companyName: jobData.companyName || jobData.company || "", // ✅ Added companyName fetch with fallback
+          customer: customerName, // ✅ Use extracted customer name
+          customerEmail: customerEmail,
+          customerId: jobData.customerId?._id || jobData.customerId || "", // Handle both populated and ID
+          nameOfOnsiteContact: jobData.nameOfOnsiteContact || "",
+          contactOfTelephoneNo: jobData.contactOfTelephoneNo || "",
+          numberOfDonors: jobData.numberOfDonors || "",
+          TypeOfTest: jobData.TypeOfTest || "",
+          callOutType: jobData.callOutType || "",
+          reasonForTest: jobData.reasonForTest || "",
+          collectorid: jobData.collectors?.map(c => c.collectorsId?._id || c.collectorsId) || [],
+          date: jobData.date || "",
+          collectionOfficerName: jobData.collectionOfficerName || "",
+          arrivalTime: jobData.arrivalTime || "",
+          departureTime: jobData.departureTime || "",
+          waitingTime: jobData.waitingTime || "",
+          mileage: jobData.mileage || "",
+          samplesMailed: jobData.samplesMailed || "",
+          breathAlcoholTestsCompleted: jobData.breathAlcoholTestsCompleted || "",
+          drugTestsCompleted: jobData.drugTestsCompleted || "",
+          nonZeroBreathAlcoholTests: jobData.nonZeroBreathAlcoholTests || "",
+          nonNegativeSamples: jobData.nonNegativeSamples || "",
+          notes: jobData.notes || "",
+          facilities: {
+            privateSecureRoom: jobData.facilities?.privateSecureRoom || false,
+            wcFacilities: jobData.facilities?.wcFacilities || false,
+            handWashing: jobData.facilities?.handWashing || false,
+            securedWindows: jobData.facilities?.securedWindows || false,
+            emergencyExits: jobData.facilities?.emergencyExits || false,
+            translatorRequired: jobData.facilities?.translatorRequired || false,
+          },
+          onsiteSignature: jobData.onsiteSignature || "",
+          officerSignature: jobData.officerSignature || "",
+          isAccepted: jobData.isAccepted || false
         });
-        // Preload locations so location select has onsite contact info
-        if (Array.isArray(jobData.customerId.hqAddress)) {
-          setLocations(jobData.customerId.hqAddress);
+
+        // ✅ Set client details if customer data exists and is populated
+        if (jobData.customerId && typeof jobData.customerId === 'object') {
+          setClientDetails({
+            ...jobData.customerId,
+            cutOffLevels: jobData.customerId.cutOffLevels || "",
+            drugKitType: jobData.customerId.drugKitType || "",
+            secondBreathTestRequired: jobData.customerId.secondBreathTestRequired || "No",
+            nonNegativeSamplesToLab: jobData.customerId.nonNegativeSamplesToLab || "Yes",
+            laboratoryAddress: jobData.customerId.laboratoryAddress || "",
+            sampleDeliveryMethod: jobData.customerId.sampleDeliveryMethod || "Courier"
+          });
+          // Preload locations so location select has onsite contact info
+          if (Array.isArray(jobData.customerId.hqAddress)) {
+            setLocations(jobData.customerId.hqAddress);
+          }
         }
+      } else {
+        throw new Error("Invalid data received from server");
       }
-    } else {
-      throw new Error("Invalid data received from server");
+    } catch (error) {
+      console.error("Error fetching job request:", error);
+      message.error("Failed to load job request details");
     }
-  } catch (error) {
-    console.error("Error fetching job request:", error);
-    message.error("Failed to load job request details");
-  }
-};
-      useEffect(() => {
-        fetchScreen4Data();
-      }, [id]);
-        const formatDateTimeLocal = (isoString) => {
-      if (!isoString) return '';
-      return new Date(isoString).toISOString().slice(0, 16); // this is enough!
-    };
+  };
+  useEffect(() => {
+    fetchScreen4Data();
+  }, [id]);
+  const formatDateTimeLocal = (isoString) => {
+    if (!isoString) return '';
+    return new Date(isoString).toISOString().slice(0, 16); // this is enough!
+  };
   const [formData, setFormData] = useState({
     jobReferenceNo: "",
     dateAndTimeOfCollection: "",
@@ -154,6 +155,7 @@ const fetchScreen4Data = async () => {
     customer: "",
     customerEmail: "",
     customerId: "", // Add customerId field
+    companyName: "", // Added Company Name field
     nameOfOnsiteContact: "",
     contactOfTelephoneNo: "",
     numberOfDonors: "",
@@ -215,10 +217,10 @@ const fetchScreen4Data = async () => {
     const token = Cookies.get("Token");
     if (
       !token ||
-      (token !== "dskgfsdgfkgsdfkjg35464154845674987dsf@53" 
-       &&
+      (token !== "dskgfsdgfkgsdfkjg35464154845674987dsf@53"
+        &&
         token !== "collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg"
-       &&
+        &&
         token !== "clientdgf45sdgf89756dfgdhgdf")
     ) {
       navigate("/");
@@ -333,7 +335,7 @@ const fetchScreen4Data = async () => {
   }, [formData.location, locations]);
 
 
-  
+
   const handleAddComment = (field) => {
     const comment = prompt("Enter your comment:");
     if (comment) {
@@ -360,31 +362,31 @@ const fetchScreen4Data = async () => {
   // };
 
   // ✅ Generate Unique Job Reference Number (S4/xxxx format)
-const generateUniqueJobRef = async () => {
-  try {
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getreferenceno`);
-    const existingRefs = await response.json();
+  const generateUniqueJobRef = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getreferenceno`);
+      const existingRefs = await response.json();
 
-    const existingSet = new Set(existingRefs.map(ref => ref.jobReferenceNo));
+      const existingSet = new Set(existingRefs.map(ref => ref.jobReferenceNo));
 
-    // keep generating until unique
-    let uniqueRef;
-    do {
-      const randomNumber = Math.floor(10000 + Math.random() * 90000); // 5-digit code
-      uniqueRef = `S4/${randomNumber}`;
-    } while (existingSet.has(uniqueRef));
+      // keep generating until unique
+      let uniqueRef;
+      do {
+        const randomNumber = Math.floor(10000 + Math.random() * 90000); // 5-digit code
+        uniqueRef = `S4/${randomNumber}`;
+      } while (existingSet.has(uniqueRef));
 
-    return uniqueRef;
-  } catch (error) {
-    console.error("Error generating job reference:", error);
-    return `S4/${Math.floor(10000 + Math.random() * 90000)}`; // fallback
-  }
-};
+      return uniqueRef;
+    } catch (error) {
+      console.error("Error generating job reference:", error);
+      return `S4/${Math.floor(10000 + Math.random() * 90000)}`; // fallback
+    }
+  };
 
 
 
-  const fetchjobreferenceno = async () =>{
-       const setJobRef = async () => {
+  const fetchjobreferenceno = async () => {
+    const setJobRef = async () => {
       const ref = await generateUniqueJobRef();
       console.log('called')
       setFormData(prev => ({ ...prev, jobReferenceNo: ref }));
@@ -395,17 +397,17 @@ const generateUniqueJobRef = async () => {
     }
   }
   useEffect(() => {
- if(!id){
-     const setJobRef = async () => {
-      const ref = await generateUniqueJobRef();
-      console.log('called')
-      setFormData(prev => ({ ...prev, jobReferenceNo: ref }));
-    };
+    if (!id) {
+      const setJobRef = async () => {
+        const ref = await generateUniqueJobRef();
+        console.log('called')
+        setFormData(prev => ({ ...prev, jobReferenceNo: ref }));
+      };
 
-    if (!formData.jobReferenceNo) {
-      setJobRef();
+      if (!formData.jobReferenceNo) {
+        setJobRef();
+      }
     }
- }
   }, [!id && !formData.jobReferenceNo]);
 
 
@@ -721,10 +723,10 @@ const generateUniqueJobRef = async () => {
 
   // const handleChange = async (e) => {
   //   const { name, value, type, checked } = e.target;
-  
+
   //   setFormData((prevData) => {
   //     let updatedData;
-  
+
   //     // Handle the case where the input is a checkbox in the facilities object
   //     if (name in prevData.facilities) {
   //       updatedData = {
@@ -749,12 +751,12 @@ const generateUniqueJobRef = async () => {
   //         [name]: type === "checkbox" ? checked : value.toString(),
   //       };
   //     }
-  
+
   //     console.log(updatedData); // Logs the updated state immediately
   //     return updatedData;
   //   });
   // };
- 
+
   const handleCollectorChange = (selectedCollectorIds) => {
     handleChange({
       target: {
@@ -795,15 +797,15 @@ const generateUniqueJobRef = async () => {
   };
 
   const handleSubmit = async (e) => {
-  setIsLoading(true);
+    setIsLoading(true);
     e.preventDefault();
     try {
-      const url = formData._id 
+      const url = formData._id
         ? `${import.meta.env.VITE_API_BASE_URL}/updatejobrequest/${formData._id}`  // Update API
         : `${import.meta.env.VITE_API_BASE_URL}/addscreenforjobrequestform`;  // Create API
-  
+
       const method = formData._id ? "PUT" : "POST"; // Use PUT for update, POST for new form
-  
+
       const response = await fetch(url, {
         method: method,
         headers: {
@@ -811,9 +813,9 @@ const generateUniqueJobRef = async () => {
         },
         body: JSON.stringify(formData),
       });
-  
+
       const result = await response.json();
-  
+
       if (response.ok) {
         const baseMsg = formData._id ? "Form updated successfully!" : "Form submitted successfully!";
         message.success(baseMsg);
@@ -823,7 +825,7 @@ const generateUniqueJobRef = async () => {
       } else {
         message.error(result.message || "Failed to process form.");
       }
-  
+
       // Reset form after submission
       setFormData({
         jobReferenceNo: "",
@@ -874,25 +876,25 @@ const generateUniqueJobRef = async () => {
     }
     setIsLoading(false);
 
-    
+
   };
   // const handleAccept = async (e) => {
   //   setIsLoading(true);
   //   e.preventDefault();
-    
+
   //   console.log("Sending data:", { practitionerId }); // Debugging
-    
+
   //   try {
   //     const url = `${import.meta.env.VITE_API_BASE_URL}/jobrequestAccept/${id}`;
-      
+
   //     const response = await fetch(url, {
   //       method: "POST",
   //       headers: { "Content-Type": "application/json" },
   //       body: JSON.stringify({acceptedBy: practitionerId }) // ✅ Ensure correct JSON structure
   //     });
-      
+
   //     const result = await response.json();
-      
+
   //     if (response.ok) {
   //       message.success("Form Accepted!");
   //     } else {
@@ -906,63 +908,63 @@ const generateUniqueJobRef = async () => {
   //   }
   //   setIsLoading(false);
   // };
-  
-const handleAccept = async (e) => {
-  setIsLoading(true);
-  e.preventDefault();
-  
-  try {
-    const url = `${import.meta.env.VITE_API_BASE_URL}/jobrequestAccept/${id}`;
-    
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ acceptedBy: practitionerId })
-    });
-    
-    const result = await response.json();
-    
-    if (response.ok) {
-      message.success("Job Accepted Successfully!");
-      
-      // ✅ CHANGE: Redirect to COC form with collector ID
-      setTimeout(() => {
-        navigate(`/jobrequests`);
-      }, 1000);
-      
-    } else {
-      message.error(result.message || "Failed to accept job.");
+
+  const handleAccept = async (e) => {
+    setIsLoading(true);
+    e.preventDefault();
+
+    try {
+      const url = `${import.meta.env.VITE_API_BASE_URL}/jobrequestAccept/${id}`;
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ acceptedBy: practitionerId })
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        message.success("Job Accepted Successfully!");
+
+        // ✅ CHANGE: Redirect to COC form with collector ID
+        setTimeout(() => {
+          navigate(`/jobrequests`);
+        }, 1000);
+
+      } else {
+        message.error(result.message || "Failed to accept job.");
+      }
+    } catch (error) {
+      console.error("Error: ", error);
+      message.error("Unable to accept due to server error.");
     }
-  } catch (error) {
-    console.error("Error: ", error);
-    message.error("Unable to accept due to server error.");
-  }
-  setIsLoading(false);
-};
-  
+    setIsLoading(false);
+  };
+
 
 
   // const handleCustomerChange = async (e) => {
   //   const selectedValue = e.target.value;
-  
+
   //   const emailMatch = selectedValue.match(/\(([^)]+)\)/); // extract email from "Ali (ali@gmail.com)"
   //   const selectedEmail = emailMatch ? emailMatch[1] : null;
-  
+
   //   setFormData((prev) => ({
   //     ...prev,
   //     customer: selectedValue,
   //     customerEmail: selectedEmail, // Store the email separately if needed
   //   }));
-  
+
   //   if (!selectedEmail) return;
-  
+
   //   try {
   //     const res = await fetch(
   //       `${import.meta.env.VITE_API_BASE_URL}/getcustomerbyemail?email=${selectedEmail}`
   //     );
   //     const data = await res.json();
   //     setClientDetails(data)
-  
+
   //     if (data && Array.isArray(data.hqAddress)) {
   //       setLocations(data.hqAddress);
   //     } else {
@@ -1019,7 +1021,7 @@ const handleAccept = async (e) => {
     <>
       {/* <Navbar /> */}
       <div
-      className="jobrequestformwrapper"
+        className="jobrequestformwrapper"
         style={{
           // display: "flex",
           // justifyContent: "center",
@@ -1046,32 +1048,32 @@ const handleAccept = async (e) => {
           }}
         >
           <Tooltip title="Back">
-      <div
-        onClick={() => navigate('/jobrequests')}
-        style={{
-          cursor: 'pointer',
-          display: 'inline-block',
-          padding: '5px',
-          borderRadius: '4px',
-          transition: 'background-color 0.3s ease',
-        }}
-        className="back-btn"
-      >
-        <img
-        className="backbtnimg"
-          src="/backbtn.png"
-          alt="Back"
-          style={{ width: '20px', marginTop: '25px' }}
-        />
-      </div>
-    </Tooltip>
+            <div
+              onClick={() => navigate('/jobrequests')}
+              style={{
+                cursor: 'pointer',
+                display: 'inline-block',
+                padding: '5px',
+                borderRadius: '4px',
+                transition: 'background-color 0.3s ease',
+              }}
+              className="back-btn"
+            >
+              <img
+                className="backbtnimg"
+                src="/backbtn.png"
+                alt="Back"
+                style={{ width: '20px', marginTop: '25px' }}
+              />
+            </div>
+          </Tooltip>
           <h2
-          className="jobrequestformtitle"
+            className="jobrequestformtitle"
             style={{
               textAlign: "center",
               color: "black",
               padding: "10px",
-              
+
             }}
           >
             REQUEST - COLLECTION OFFICER & TIMESHEET
@@ -1109,10 +1111,10 @@ const handleAccept = async (e) => {
             />
           </div>
           <hr></hr>
-        
+
           {!id ? <div className="donor">
             <label>Customer</label>
-           
+
             {/* <select
   className="inputstyle"
   name="customer"
@@ -1129,19 +1131,19 @@ const handleAccept = async (e) => {
               ))}
             </select> */}
             <select
-  className="inputstyle"
-  name="customerId"
-  value={formData.customerId}
-  onChange={handleCustomerChange}
-  required
->
-  <option value="" disabled>Select a customer</option>
-  {customers.map((cust) => (
-    <option key={cust._id} value={cust._id}>
-      {cust.name} ({cust.email})
-    </option>
-  ))}
-</select>
+              className="inputstyle"
+              name="customerId"
+              value={formData.customerId}
+              onChange={handleCustomerChange}
+              required
+            >
+              <option value="" disabled>Select a customer</option>
+              {customers.map((cust) => (
+                <option key={cust._id} value={cust._id}>
+                  {cust.name} ({cust.email})
+                </option>
+              ))}
+            </select>
 
           </div> : <div className="donor">
             <label>Customer</label>
@@ -1152,85 +1154,80 @@ const handleAccept = async (e) => {
               value={formData.customer}
               onChange={handleChange}
               readOnly={token !== "dskgfsdgfkgsdfkjg35464154845674987dsf@53"}
-              // required
+            // required
             />
           </div>}
-<hr />
-          {/* <div className="donor">
-            <label>Collector</label>
-            <select
-              className="inputstyle"
-              name="collectorid"
-              value={formData.collectorid || ""}
-              onChange={handleChange}
-              required
-            >
-              <option value="" disabled>
-                Select a collector
-              </option>
-              {allCollectors.map((collector) => (
-                <option key={collector.id} value={collector._id}>
-                  {collector.name} ({collector.email})
-                </option>
-              ))}
-            </select>
-          </div> */}
-<div className="donor">
-      <label>Collectors</label>
-      <Space direction="vertical" style={{ width: "100%" }}>
-        <Checkbox.Group
-          name="collectorid"
-          value={formData.collectorid} // Bind selected collector ids
-          onChange={handleCollectorChange} // Handle changes when checkboxes are selected/deselected
-        >
-          {allCollectors.map((collector) => (
-            <Checkbox key={collector._id} value={collector._id}>
-              {collector.name} ({collector.email})
-            </Checkbox>
-          ))}
-        </Checkbox.Group>
-      </Space>
-    </div>
+          <hr />
+
+          <div className="donor">
+            <label>Collectors</label>
+            <Space direction="vertical" style={{ width: "100%" }}>
+              <Checkbox.Group
+                name="collectorid"
+                value={formData.collectorid} // Bind selected collector ids
+                onChange={handleCollectorChange} // Handle changes when checkboxes are selected/deselected
+              >
+                {allCollectors.map((collector) => (
+                  <Checkbox key={collector._id} value={collector._id}>
+                    {collector.name} ({collector.email})
+                  </Checkbox>
+                ))}
+              </Checkbox.Group>
+            </Space>
+          </div>
 
 
           <hr></hr>
-          {!id ? <>
-          
-          
-            <div className="donor">
-            <label >Location </label>
-            
-        <select
-          className="inputstyle"
-          name="location"
-          value={formData.location}
-          onChange={handleChange}
-          required
-        >
-          <option value="" disabled>
-            Select a location
-          </option>
-          {locations.map((loc, idx) => (
-            <option key={idx} value={loc.address}>
-              {loc.address} {loc.contactEmail && `(${loc.contactEmail})`}
-            </option>
-          ))}
-        </select>
-          </div></>:
-          <>
-           <div className="donor">
-            <label>Location </label>
+          <div className="donor">
+            <label>Company Name</label>
             <input
               className="inputstyle"
               type="text"
-              name="location"
-              value={formData.location}
-              placeholder="Enter Location"
+              name="companyName"
+              value={formData.companyName}
+              placeholder="Enter Company Name"
               onChange={handleChange}
-              readOnly={token !== "dskgfsdgfkgsdfkjg35464154845674987dsf@53"}
             />
-          </div></>}
+          </div>
           <hr></hr>
+          {!id ? <>
+
+
+            <div className="donor">
+              <label >Location </label>
+
+              <select
+                className="inputstyle"
+                name="location"
+                value={formData.location}
+                onChange={handleChange}
+                required
+              >
+                <option value="" disabled>
+                  Select a location
+                </option>
+                {locations.map((loc, idx) => (
+                  <option key={idx} value={loc.address}>
+                    {loc.address} {loc.contactEmail && `(${loc.contactEmail})`}
+                  </option>
+                ))}
+              </select>
+            </div></> :
+            <>
+              <div className="donor">
+                <label>Location </label>
+                <input
+                  className="inputstyle"
+                  type="text"
+                  name="location"
+                  value={formData.location}
+                  placeholder="Enter Location"
+                  onChange={handleChange}
+                  readOnly={token !== "dskgfsdgfkgsdfkjg35464154845674987dsf@53"}
+                />
+              </div></>}
+          <hr></hr>
+
           <div className="donor">
             <label>Name of Onsite Contact</label>
             <input
@@ -1287,10 +1284,10 @@ const handleAccept = async (e) => {
               <option value="Breath Alcohol Test only">Breath Alcohol Test only</option>
               <option value="Breath Alcohol and Urine Drug Test">Breath Alcohol and Urine Drug Test</option>
               <option value="Breath Alcohol and Oral Fluid Drug Test">
-              Breath Alcohol and Oral Fluid Drug Test
+                Breath Alcohol and Oral Fluid Drug Test
               </option>
               <option value="Urine Drug Test only">
-              Urine Drug Test only
+                Urine Drug Test only
               </option>
 
               <option value="Oral Fluid Drug Test only">Oral Fluid Drug Test only</option>
@@ -1321,11 +1318,11 @@ const handleAccept = async (e) => {
               onChange={handleChange}
 
             />
-          
+
           </div>
           <hr></hr>
 
-        
+
 
           <h4 className="heading">The Onsite contact must:</h4>
           <ul className="ulitems">
@@ -1342,45 +1339,45 @@ const handleAccept = async (e) => {
 
           <table border="1">
             <tbody>
-             
+
               <tr>
                 <td colSpan="1">
-                  <strong  className="heading">CUSTOMER</strong>
+                  <strong className="heading">CUSTOMER</strong>
                 </td>
                 <td>{formData.customer}</td>
               </tr>
               <tr>
                 <td>
-                  <strong  className="heading">ALCOHOL – Customer Cut Off Level</strong>
+                  <strong className="heading">ALCOHOL – Customer Cut Off Level</strong>
                 </td>
                 <td>{clientDetails?.cutOffLevels}</td>
               </tr>
-           
-                     <tr>
-  <td><strong className="heading">Second Breath Test Required?</strong></td>
-  <td>
 
-    {clientDetails?.secondBreathTestRequired}
-  </td>
-</tr>
+              <tr>
+                <td><strong className="heading">Second Breath Test Required?</strong></td>
+                <td>
 
-<tr>
-  <td><strong className="heading">Drugs (Kit Type)</strong></td>
-  <td>
-  
-    {clientDetails?.drugKitType}
-  </td>
-</tr>
+                  {clientDetails?.secondBreathTestRequired}
+                </td>
+              </tr>
 
-<tr>
-  <td><strong className="heading">Non-Negative Samples to Lab?</strong></td>
-  <td>
-    
-    {clientDetails?.nonNegativeSamplesToLab}
-  </td>
-</tr>
+              <tr>
+                <td><strong className="heading">Drugs (Kit Type)</strong></td>
+                <td>
 
-             
+                  {clientDetails?.drugKitType}
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong className="heading">Non-Negative Samples to Lab?</strong></td>
+                <td>
+
+                  {clientDetails?.nonNegativeSamplesToLab}
+                </td>
+              </tr>
+
+
               <tr>
                 <td colSpan="2">
                   <strong className="heading">ADDITIONAL INFORMATION</strong>
@@ -1401,28 +1398,28 @@ const handleAccept = async (e) => {
                 </td>
               </tr>
 
-  
+
               <tr>
                 <td>
                   <strong className="heading">LABORATORY ADDRESS</strong>
                 </td>
                 <td>
-                 {clientDetails?.laboratoryAddress}
+                  {clientDetails?.laboratoryAddress}
                 </td>
               </tr>
 
-             
+
               <tr>
                 <td>
                   <strong className="heading">SAMPLES BACK TO LAB</strong>
                 </td>
                 <td>
-             
+
                   {clientDetails?.sampleDeliveryMethod}
                 </td>
               </tr>
 
-              
+
               <tr>
                 <td colSpan="2">
                   <strong className="heading">SUPERVISION/CONTROL</strong>
@@ -1469,12 +1466,12 @@ const handleAccept = async (e) => {
             TIMESHEET (Collection Officer to complete, Onsite Contact to sign)
           </h4>
 
-        
-<form onSubmit={handleSubmit}>
+
+          <form onSubmit={handleSubmit}>
             <table border="1" className="customTable">
               <tbody>
                 <tr colSpan="2">
-                <td>Date</td>
+                  <td>Date</td>
                   <td>
                     <input
                       type="date"
@@ -1507,7 +1504,7 @@ const handleAccept = async (e) => {
                   </td>
                 </tr>
                 <tr>
-                <td>Departure Time</td>
+                  <td>Departure Time</td>
                   <td>
                     <input
                       type="time"
@@ -1526,10 +1523,10 @@ const handleAccept = async (e) => {
                       value={formData.waitingTime}
                       onChange={handleChange}
                     />
-                  </td>                  
+                  </td>
                 </tr>
                 <tr>
-                <td>Date & Time Samples Mailed</td>
+                  <td>Date & Time Samples Mailed</td>
                   <td className="DateTimeSamplesMailed">
                     <input
                       type="datetime-local"
@@ -1562,7 +1559,7 @@ const handleAccept = async (e) => {
                   </td>
                 </tr>
                 <tr>
-                <td>Number of Drug Tests Completed</td>
+                  <td>Number of Drug Tests Completed</td>
                   <td>
                     <input
                       type="number"
@@ -1584,7 +1581,7 @@ const handleAccept = async (e) => {
                   </td>
                 </tr>
                 <tr>
-                <td>Number of Non-Negative Samples Sent to Laboratory</td>
+                  <td>Number of Non-Negative Samples Sent to Laboratory</td>
                   <td>
                     <input
                       type="number"
@@ -1679,62 +1676,66 @@ const handleAccept = async (e) => {
                 </tr>
                 <tr>
                   <td colSpan="2">
-                    <strong  className="heading">COLLECTION OFFICER SIGNATURE</strong>
+                    <strong className="heading">COLLECTION OFFICER SIGNATURE</strong>
                   </td>
                 </tr>
                 <tr>
                   <td>Onsite Contact Signature</td>
                   <td>
                     <div class="">
-                
-                     <input
-                    className="inputstyle"
-                    type="text"
-                    name="onsiteSignature"
-                    value=""//{formData.onsiteSignature}
-                    placeholder=""
-                    onClick={() => openSignaturePad2("onsiteSignature")}
-                    onChange={handleChange}
-                    style={{ width: "152px", margin: "0px",cursor: "pointer",
-                      backgroundImage: `url(${formData.onsiteSignature})`,
-                      backgroundSize: "contain",
-                      backgroundRepeat: "no-repeat",
-                      backgroundPosition: "center",height:"30px" }}
-         
-                  />
-                </div>
-              
-      {isSignaturePadOpen && pad(currentSignatureField)}
+
+                      <input
+                        className="inputstyle"
+                        type="text"
+                        name="onsiteSignature"
+                        value=""//{formData.onsiteSignature}
+                        placeholder=""
+                        onClick={() => openSignaturePad2("onsiteSignature")}
+                        onChange={handleChange}
+                        style={{
+                          width: "152px", margin: "0px", cursor: "pointer",
+                          backgroundImage: `url(${formData.onsiteSignature})`,
+                          backgroundSize: "contain",
+                          backgroundRepeat: "no-repeat",
+                          backgroundPosition: "center", height: "30px"
+                        }}
+
+                      />
+                    </div>
+
+                    {isSignaturePadOpen && pad(currentSignatureField)}
 
                   </td>
-                 
+
                 </tr>
-              <tr> <td>Collection Officer Signature</td>
+                <tr> <td>Collection Officer Signature</td>
                   <td>
                     <div class="">
-                 
-                    <input
-                    className="inputstyle"
-                    type="text"
-                    name="officerSignature"
-                    value=""
-                    placeholder=""
-                    onClick={() => openSignaturePad2("officerSignature")}
-                    onChange={handleChange}
-                    style={{ width: "152px", margin: "0px",cursor: "pointer",
-                      backgroundImage: `url(${formData.officerSignature})`,
-                      backgroundSize: "contain",
-                      backgroundRepeat: "no-repeat",
-                      backgroundPosition: "center",height:"30px" }}
-         
-                  />
-                </div>
-            {isSignaturePadOpen && pad(currentSignatureField)}
+
+                      <input
+                        className="inputstyle"
+                        type="text"
+                        name="officerSignature"
+                        value=""
+                        placeholder=""
+                        onClick={() => openSignaturePad2("officerSignature")}
+                        onChange={handleChange}
+                        style={{
+                          width: "152px", margin: "0px", cursor: "pointer",
+                          backgroundImage: `url(${formData.officerSignature})`,
+                          backgroundSize: "contain",
+                          backgroundRepeat: "no-repeat",
+                          backgroundPosition: "center", height: "30px"
+                        }}
+
+                      />
+                    </div>
+                    {isSignaturePadOpen && pad(currentSignatureField)}
 
                   </td></tr>
               </tbody>
             </table>
-</form>
+          </form>
           <div className="note">
             <strong className="heading">** CO to NOTE **:</strong>
             <ul>
@@ -1748,7 +1749,7 @@ const handleAccept = async (e) => {
             </p>
           </div>
 
-        {/* {!isloading ? <button
+          {/* {!isloading ? <button
         className="createjob2"
             type="submit"
             style={{
@@ -1767,52 +1768,52 @@ const handleAccept = async (e) => {
           </button> : <div style={{width:"100%",display: "flex",justifyContent:"center"}}><img src="/empty.gif" style={{width:"130px",}}/></div>} */}
 
 
- { !isloading ? 
-         (token ==="dskgfsdgfkgsdfkjg35464154845674987dsf@53" || formData?.isAccepted ? <button
-            type="submit"
-            className="createjob2"
-            onClick={handleSubmit}
-            style={{
-              width: "100%",
-              padding: "10px",
-              background: "#80c209",
-            //   background: "#80c209",
-              color: "#fff",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-              fontSize: "16px",
-            }}
-          >
-            {formData._id  ? "Update" : "Create"}
-          </button> : 
+          {!isloading ?
+            (token === "dskgfsdgfkgsdfkjg35464154845674987dsf@53" || formData?.isAccepted ? <button
+              type="submit"
+              className="createjob2"
+              onClick={handleSubmit}
+              style={{
+                width: "100%",
+                padding: "10px",
+                background: "#80c209",
+                //   background: "#80c209",
+                color: "#fff",
+                border: "none",
+                borderRadius: "5px",
+                cursor: "pointer",
+                fontSize: "16px",
+              }}
+            >
+              {formData._id ? "Update" : "Create"}
+            </button> :
 
-          // {
-            // accepted ?
-            <button
-            className="createjob2"
-            type="submit"
-            onClick={handleAccept}
-            style={{
-              width: "100%",
-              padding: "10px",
-              background: "#80c209",
-            //   background: "#80c209",
-              color: "#fff",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-              fontSize: "16px",
-            }}
-          >
-            Accept
-          </button>
-          //  : null
-        // }
-          ) : <div style={{width:"100%",display: "flex",justifyContent:"center"}}><img src="/empty.gif" style={{width:"130px",}}/></div>}
+              // {
+              // accepted ?
+              <button
+                className="createjob2"
+                type="submit"
+                onClick={handleAccept}
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  background: "#80c209",
+                  //   background: "#80c209",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "5px",
+                  cursor: "pointer",
+                  fontSize: "16px",
+                }}
+              >
+                Accept
+              </button>
+              //  : null
+              // }
+            ) : <div style={{ width: "100%", display: "flex", justifyContent: "center" }}><img src="/empty.gif" style={{ width: "130px", }} /></div>}
 
-        </form>
-      </div>
+        </form >
+      </div >
     </>
   );
 }

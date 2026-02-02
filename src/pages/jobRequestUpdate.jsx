@@ -15,94 +15,97 @@ function JobRequestDetails() {
   const contextRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isError, setIsError] = useState(false);
-    const [isloading, setIsLoading] = useState(false);
+  const [isloading, setIsLoading] = useState(false);
   // const [formData, setFormData] = useState({ donorSignature: "" });
   const [isSignaturePadOpen, setIsSignaturePadOpen] = useState(false);
-  const [clientDetails,setClientDetails] = useState()
+  const [clientDetails, setClientDetails] = useState()
   const [donorOpen, setIsDonorOpen] = useState(false);
   const [donorConcentOpen, setIsDonorConcentOpen] = useState(false);
   const [collectorOpen, setIsCollectorOpen] = useState(false);
   const [collectorCertificationOpen, setIsCollectorCerificationOpen] =
     useState(false);
 
-    const [accepted,setAccepted] = useState(false)
-    const { id } = useParams();
-   
-    const formatDateTimeLocal = (isoString) => {
-      if (!isoString) return '';
-      return new Date(isoString).toISOString().slice(0, 16); 
-    };
-    
-    const formatDateOnly = (isoString) => {
-      if (!isoString) return '';
-      return new Date(isoString).toISOString().split('T')[0]; 
-    };
-    
-    useEffect(() => {
-      const fetchScreen4Data = async () => {
-        try {
-          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getjobrequest/${id}`);
-    
-          if (!response.ok) {
-            throw new Error("Failed to fetch job request data");
-          }
-    
-          const data = await response.json();
-          setAccepted(data.isAccepted)
-    
-          if (data.data) {
-            setFormData(data.data); 
-          } else {
-            throw new Error("Job request not found");
-          }
-        } catch (error) {
-          console.log(error.message);
+  const [accepted, setAccepted] = useState(false)
+  const { id } = useParams();
+
+  const formatDateTimeLocal = (isoString) => {
+    if (!isoString) return '';
+    return new Date(isoString).toISOString().slice(0, 16);
+  };
+
+  const formatDateOnly = (isoString) => {
+    if (!isoString) return '';
+    return new Date(isoString).toISOString().split('T')[0];
+  };
+
+  useEffect(() => {
+    const fetchScreen4Data = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getjobrequest/${id}`);
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch job request data");
         }
-      };
-    
-      fetchScreen4Data();
-    }, [id]);
 
-     useEffect(() => {
-         const token = Cookies.get("Token");
-         if (
-           !token ||
-           (token !== "dskgfsdgfkgsdfkjg35464154845674987dsf@53" 
-            &&
-             token !== "collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg"
-            &&
-             token !== "clientdgf45sdgf89756dfgdhgdf")
-         ) {
-           navigate("/");
-           return;
-         }
-       }, [navigate]);
+        const data = await response.json();
+        setAccepted(data.isAccepted)
 
-    // useEffect(() => {
-    //     const fetchScreen4Data = async () => {
-    //       try {
-    //         const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getjobrequest/${id}`);
-      
-    //         if (!response.ok) {
-    //           throw new Error("Failed to fetch job request data");
-    //         }
-      
-    //         const data = await response.json();
-    //         setAccepted(data.isAccepted)
-      
-    //         if (data.data) {
-    //           setFormData(data.data); // ✅ Set form data directly from API response
-    //         } else {
-    //           throw new Error("Job request not found");
-    //         }
-    //       } catch (error) {
-    //         console.log(error.message);
-    //       }
-    //     };
-      
-    //     fetchScreen4Data();
-    //   }, [id]); 
-      
+        if (data.data) {
+          setFormData({
+            ...data.data,
+            companyName: data.data.companyName || data.data.company || ""
+          });
+        } else {
+          throw new Error("Job request not found");
+        }
+      } catch (error) {
+        console.log(error.message);
+      }
+    };
+
+    fetchScreen4Data();
+  }, [id]);
+
+  useEffect(() => {
+    const token = Cookies.get("Token");
+    if (
+      !token ||
+      (token !== "dskgfsdgfkgsdfkjg35464154845674987dsf@53"
+        &&
+        token !== "collectorsdrfg&78967daghf#wedhjgasjdlsh6kjsdg"
+        &&
+        token !== "clientdgf45sdgf89756dfgdhgdf")
+    ) {
+      navigate("/");
+      return;
+    }
+  }, [navigate]);
+
+  // useEffect(() => {
+  //     const fetchScreen4Data = async () => {
+  //       try {
+  //         const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/getjobrequest/${id}`);
+
+  //         if (!response.ok) {
+  //           throw new Error("Failed to fetch job request data");
+  //         }
+
+  //         const data = await response.json();
+  //         setAccepted(data.isAccepted)
+
+  //         if (data.data) {
+  //           setFormData(data.data); // ✅ Set form data directly from API response
+  //         } else {
+  //           throw new Error("Job request not found");
+  //         }
+  //       } catch (error) {
+  //         console.log(error.message);
+  //       }
+  //     };
+
+  //     fetchScreen4Data();
+  //   }, [id]); 
+
 
   const handleAddComment = (field) => {
     const comment = prompt("Enter your comment:");
@@ -213,7 +216,7 @@ function JobRequestDetails() {
     setIsSignaturePadOpen(true);
     setTimeout(initializeCanvas, 0);
   };
-  
+
 
   const closeSignaturePad = (mydata) => {
     setIsSignaturePadOpen(false);
@@ -321,6 +324,7 @@ function JobRequestDetails() {
     jobReferenceNo: "",
     dateAndTimeOfCollection: "",
     location: "",
+    companyName: "", // ✅ Added companyName field
     customer: "",
     nameOfOnsiteContact: "",
     contactOfTelephoneNo: "",
@@ -363,17 +367,17 @@ function JobRequestDetails() {
   });
   // useEffect(async () => {
   //   const selectedValue = formData.customer; // Assuming this is the selected value from the dropdown
-    
+
   //     const emailMatch = selectedValue.match(/\(([^)]+)\)/); // extract email from "Ali (ali@gmail.com)"
   //     const selectedEmail = emailMatch ? emailMatch[1] : null;
-    
+
   //     setFormData((prev) => ({
   //       ...prev,
   //       customer: selectedValue,
   //     }));
-    
+
   //     if (!selectedEmail) return;
-    
+
   //     try {
   //       const res = await fetch(
   //         `${import.meta.env.VITE_API_BASE_URL}/getcustomerbyemail?email=${selectedEmail}`
@@ -388,17 +392,17 @@ function JobRequestDetails() {
   useEffect(() => {
     const fetchCustomerDetails = async () => {
       const selectedValue = formData.customer;
-  
+
       const emailMatch = selectedValue.match(/\(([^)]+)\)/); // extract email
       const selectedEmail = emailMatch ? emailMatch[1] : null;
-  
+
       setFormData((prev) => ({
         ...prev,
         customer: selectedValue,
       }));
-  
+
       if (!selectedEmail) return;
-  
+
       try {
         const res = await fetch(
           `${import.meta.env.VITE_API_BASE_URL}/getcustomerbyemail?email=${selectedEmail}`
@@ -409,11 +413,11 @@ function JobRequestDetails() {
         console.error("Failed to fetch customer details:", err);
       }
     };
-  
+
     fetchCustomerDetails(); // call the async function inside
-  
+
   }, [formData.customer]);
-  
+
   const getFormattedDate = () => {
     const today = new Date();
     const options = { day: "numeric", month: "long", year: "numeric" };
@@ -451,16 +455,16 @@ function JobRequestDetails() {
 
 
 
-const handleSubmit = async (e) => {
-  setIsLoading(true);
+  const handleSubmit = async (e) => {
+    setIsLoading(true);
     e.preventDefault();
     try {
-      const url = formData._id 
+      const url = formData._id
         ? `${import.meta.env.VITE_API_BASE_URL}/updatejobrequest/${formData._id}`  // Update API
         : `${import.meta.env.VITE_API_BASE_URL}/addscreenforjobrequestform`;  // Create API
-  
+
       const method = formData._id ? "PUT" : "POST"; // Use PUT for update, POST for new form
-  
+
       const response = await fetch(url, {
         method: method,
         headers: {
@@ -468,9 +472,9 @@ const handleSubmit = async (e) => {
         },
         body: JSON.stringify(formData),
       });
-  
+
       const result = await response.json();
-  
+
       if (response.ok) {
         const baseMsg = formData._id ? "Form updated successfully!" : "Form submitted successfully!";
         message.success(baseMsg);
@@ -480,7 +484,7 @@ const handleSubmit = async (e) => {
       } else {
         message.error(result.message || "Failed to process form.");
       }
-  
+
       // Reset form after submission
       setFormData({
         jobReferenceNo: "",
@@ -531,27 +535,27 @@ const handleSubmit = async (e) => {
     }
     setIsLoading(false);
 
-    
+
   };
-  
+
 
   const handleAccept = async (e) => {
     setIsLoading(true);
     e.preventDefault();
-    
+
     console.log("Sending data:", { practitionerId }); // Debugging
-    
+
     try {
       const url = `${import.meta.env.VITE_API_BASE_URL}/jobrequestAccept/${id}`;
-      
+
       const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({acceptedBy: practitionerId }) // ✅ Ensure correct JSON structure
+        body: JSON.stringify({ acceptedBy: practitionerId }) // ✅ Ensure correct JSON structure
       });
-      
+
       const result = await response.json();
-      
+
       if (response.ok) {
         message.success("Form Accepted!");
       } else {
@@ -566,12 +570,12 @@ const handleSubmit = async (e) => {
     setIsLoading(false);
   };
 
- 
+
   return (
     <>
       {/* <Navbar /> */}
       <div
-      className="jobrequestformwrapper"
+        className="jobrequestformwrapper"
         style={{
           // display: "flex",
           // justifyContent: "center",
@@ -584,9 +588,9 @@ const handleSubmit = async (e) => {
           background: "#80c209",
         }}
       >
-        
+
         <div
-        className="jobrequestform"
+          className="jobrequestform"
           // onSubmit={handleSubmit}
           style={{
             // marginTop: "1110px",
@@ -598,27 +602,27 @@ const handleSubmit = async (e) => {
             width: "900px",
           }}
         > <Tooltip title="Back">
-        <div
-          onClick={() => navigate('/jobrequests')}
-          style={{
-            cursor: 'pointer',
-            display: 'inline-block',
-            padding: '5px',
-            borderRadius: '4px',
-            transition: 'background-color 0.3s ease',
-          }}
-          className="back-btn"
-        >
-          <img
-          className="backbtnimg"
-            src="/backbtn.png"
-            alt="Back"
-            style={{ width: '20px', marginTop: '25px' }}
-          />
-        </div>
-      </Tooltip>
+            <div
+              onClick={() => navigate('/jobrequests')}
+              style={{
+                cursor: 'pointer',
+                display: 'inline-block',
+                padding: '5px',
+                borderRadius: '4px',
+                transition: 'background-color 0.3s ease',
+              }}
+              className="back-btn"
+            >
+              <img
+                className="backbtnimg"
+                src="/backbtn.png"
+                alt="Back"
+                style={{ width: '20px', marginTop: '25px' }}
+              />
+            </div>
+          </Tooltip>
           <h2
-          className="jobrequestformtitle"
+            className="jobrequestformtitle"
             style={{
               textAlign: "center",
               color: "#80c209",
@@ -643,7 +647,7 @@ const handleSubmit = async (e) => {
               onChange={handleChange}
               placeholder="S4/"
               readOnly={token !== "dskgfsdgfkgsdfkjg35464154845674987dsf@53"}
-              //   required
+            //   required
             />
           </div>
           <hr />
@@ -661,7 +665,7 @@ const handleSubmit = async (e) => {
               onChange={handleChange}
               placeholder="Enter Donor's Email"
               readOnly={token !== "dskgfsdgfkgsdfkjg35464154845674987dsf@53"}
-              //   required
+            //   required
             />
           </div>
           <hr></hr>
@@ -678,7 +682,7 @@ const handleSubmit = async (e) => {
               value={formData.customer}
               onChange={handleChange}
               readOnly={token !== "dskgfsdgfkgsdfkjg35464154845674987dsf@53"}
-              // required
+            // required
             />
           </div>
           <hr></hr>
@@ -695,7 +699,20 @@ const handleSubmit = async (e) => {
             />
           </div>
           <hr></hr>
-          
+          <div className="donor">
+            <label>Company Name</label>
+            <input
+              className="inputstyle"
+              type="text"
+              name="companyName" // ✅ Added companyName input
+              value={formData.companyName}
+              placeholder="Enter Company Name"
+              onChange={handleChange}
+              readOnly={token !== "dskgfsdgfkgsdfkjg35464154845674987dsf@53"}
+            />
+          </div>
+          <hr></hr>
+
           <div className="donor">
             <label>Name of Onsite Contact</label>
             <input
@@ -705,7 +722,7 @@ const handleSubmit = async (e) => {
               value={formData.nameOfOnsiteContact}
               onChange={handleChange}
               readOnly={token !== "dskgfsdgfkgsdfkjg35464154845674987dsf@53"}
-              // required
+            // required
             />
           </div>
           <hr></hr>
@@ -718,12 +735,12 @@ const handleSubmit = async (e) => {
               value={formData.contactOfTelephoneNo}
               onChange={handleChange}
               readOnly={token !== "dskgfsdgfkgsdfkjg35464154845674987dsf@53"}
-              // required
+            // required
             />
           </div>
           <hr></hr>
-         
-         
+
+
           {/* <div className="donor">
             <label>Call-out Type</label>
             <select
@@ -791,7 +808,7 @@ const handleSubmit = async (e) => {
               name="numberOfDonors"
               value={formData.numberOfDonors}
               onChange={handleChange}
-              // required
+            // required
             />
           </div>
           <hr></hr>
@@ -824,7 +841,7 @@ const handleSubmit = async (e) => {
           </ul>
 
 
-          
+
 
           <h4 className="heading">CUSTOMER SPECIFIC INFORMATION – Workplace</h4>
 
@@ -1023,7 +1040,7 @@ const handleSubmit = async (e) => {
             </tbody>
           </table> */}
 
-<table border="1">
+          <table border="1">
             <tbody>
               {/* CUSTOMER SECTION */}
               <tr>
@@ -1052,10 +1069,10 @@ const handleSubmit = async (e) => {
                   />
                 </td>
               </tr> */}
-                     <tr>
-  <td><strong className="heading">Second Breath Test Required?</strong></td>
-  <td>
-    {/* <label>
+              <tr>
+                <td><strong className="heading">Second Breath Test Required?</strong></td>
+                <td>
+                  {/* <label>
       <input
         type="radio"
         name="secondBreathTestRequired"
@@ -1073,14 +1090,14 @@ const handleSubmit = async (e) => {
         onChange={(e) => setClient({ ...client, secondBreathTestRequired: e.target.value })}
       /> No
     </label> */}
-    {clientDetails?.secondBreathTestRequired}
-  </td>
-</tr>
+                  {clientDetails?.secondBreathTestRequired}
+                </td>
+              </tr>
 
-<tr>
-  <td><strong className="heading">Drugs (Kit Type)</strong></td>
-  <td>
-    {/* <select
+              <tr>
+                <td><strong className="heading">Drugs (Kit Type)</strong></td>
+                <td>
+                  {/* <select
       value={client.drugKitType}
       onChange={(e) => setClient({ ...client, drugKitType: e.target.value })}
     >
@@ -1088,14 +1105,14 @@ const handleSubmit = async (e) => {
       <option value="Urine">Urine (POCT 10 Panel cup / BtL)</option>
       <option value="Oral Fluid">Oral Fluid (POCT 9NR / Oral-Eze BtL)</option>
     </select> */}
-    {clientDetails?.drugKitType}
-  </td>
-</tr>
+                  {clientDetails?.drugKitType}
+                </td>
+              </tr>
 
-<tr>
-  <td><strong className="heading">Non-Negative Samples to Lab?</strong></td>
-  <td>
-    {/* <label>
+              <tr>
+                <td><strong className="heading">Non-Negative Samples to Lab?</strong></td>
+                <td>
+                  {/* <label>
       <input
         type="radio"
         name="nonNegativeSamplesToLab"
@@ -1113,9 +1130,9 @@ const handleSubmit = async (e) => {
         onChange={(e) => setClient({ ...client, nonNegativeSamplesToLab: e.target.value })}
       /> No
     </label> */}
-    {clientDetails?.nonNegativeSamplesToLab}
-  </td>
-</tr>
+                  {clientDetails?.nonNegativeSamplesToLab}
+                </td>
+              </tr>
 
               {/* ADDITIONAL INFORMATION (STATIC TEXT) */}
               <tr>
@@ -1217,213 +1234,213 @@ const handleSubmit = async (e) => {
             TIMESHEET (Collection Officer to complete, Onsite Contact to sign)
           </h4>
 
-         
-            <table border="1">
-              <tbody>
-                <tr>
-                  <td>Date</td>
-                  <td>
-                    <input
-                      type="date"
-                      name="date"
-                      // value={formatDateTimeLocal(formData.date)}
-                      value={formatDateOnly(formData.date)}
-                      onChange={handleChange}
-                    />
-                  </td>
-                </tr>
-                <tr>
+
+          <table border="1">
+            <tbody>
+              <tr>
+                <td>Date</td>
+                <td>
+                  <input
+                    type="date"
+                    name="date"
+                    // value={formatDateTimeLocal(formData.date)}
+                    value={formatDateOnly(formData.date)}
+                    onChange={handleChange}
+                  />
+                </td>
+              </tr>
+              <tr>
                 <td>Collection Officer's Name</td>
-                  <td>
-                    <input
-                      type="text"
-                      name="collectionOfficerName"
-                      value={formData.collectionOfficerName}
-                      onChange={handleChange}
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td>Arrival Time</td>
-                  <td>
-                    <input
-                      type="time"
-                      name="arrivalTime"
-                      value={formData.arrivalTime}
-                      onChange={handleChange}
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td>Waiting Time</td>
-                  <td>
-                    <input
-                      type="text"
-                      name="waitingTime"
-                      value={formData.waitingTime}
-                      onChange={handleChange}
-                    />
-                  </td>
-                </tr>
-                <tr>
+                <td>
+                  <input
+                    type="text"
+                    name="collectionOfficerName"
+                    value={formData.collectionOfficerName}
+                    onChange={handleChange}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td>Arrival Time</td>
+                <td>
+                  <input
+                    type="time"
+                    name="arrivalTime"
+                    value={formData.arrivalTime}
+                    onChange={handleChange}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td>Waiting Time</td>
+                <td>
+                  <input
+                    type="text"
+                    name="waitingTime"
+                    value={formData.waitingTime}
+                    onChange={handleChange}
+                  />
+                </td>
+              </tr>
+              <tr>
                 <td>Date & Time Samples Mailed</td>
-                  <td>
-                    <input
-                      type="datetime-local"
-                      name="samplesMailed"
-                      value={formData.samplesMailed}
-                      onChange={handleChange}
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td>Mileage</td>
-                  <td>
-                    <input
-                      type="number"
-                      name="mileage"
-                      value={formData.mileage}
-                      onChange={handleChange}
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td>Number of Breath Alcohol Tests Completed</td>
-                  <td>
-                    <input
-                      type="number"
-                      name="breathAlcoholTestsCompleted"
-                      value={formData.breathAlcoholTestsCompleted}
-                      onChange={handleChange}
-                    />
-                  </td>
-                </tr>
-                <tr>
+                <td>
+                  <input
+                    type="datetime-local"
+                    name="samplesMailed"
+                    value={formData.samplesMailed}
+                    onChange={handleChange}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td>Mileage</td>
+                <td>
+                  <input
+                    type="number"
+                    name="mileage"
+                    value={formData.mileage}
+                    onChange={handleChange}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td>Number of Breath Alcohol Tests Completed</td>
+                <td>
+                  <input
+                    type="number"
+                    name="breathAlcoholTestsCompleted"
+                    value={formData.breathAlcoholTestsCompleted}
+                    onChange={handleChange}
+                  />
+                </td>
+              </tr>
+              <tr>
                 <td>Number of Drug Tests Completed</td>
-                  <td>
-                    <input
-                      type="number"
-                      name="drugTestsCompleted"
-                      value={formData.drugTestsCompleted}
-                      onChange={handleChange}
-                    />
-                  </td>
-                </tr>
-                <tr>
-                  <td>Number of ‘Non Zero’ Breath Alcohol Tests</td>
-                  <td>
-                    <input
-                      type="number"
-                      name="nonZeroBreathAlcoholTests"
-                      value={formData.nonZeroBreathAlcoholTests}
-                      onChange={handleChange}
-                    />
-                  </td>
-                </tr>
-                <tr>
+                <td>
+                  <input
+                    type="number"
+                    name="drugTestsCompleted"
+                    value={formData.drugTestsCompleted}
+                    onChange={handleChange}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td>Number of ‘Non Zero’ Breath Alcohol Tests</td>
+                <td>
+                  <input
+                    type="number"
+                    name="nonZeroBreathAlcoholTests"
+                    value={formData.nonZeroBreathAlcoholTests}
+                    onChange={handleChange}
+                  />
+                </td>
+              </tr>
+              <tr>
                 <td>Number of Non-Negative Samples Sent to Laboratory</td>
-                  <td>
+                <td>
+                  <input
+                    type="number"
+                    name="nonNegativeSamples"
+                    value={formData.nonNegativeSamples}
+                    onChange={handleChange}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <td colSpan="2">
+                  <strong className="heading">ONSITE CONTACT SIGNATURE</strong>
+                </td>
+              </tr>
+              <tr>
+                <td>Notes (e.g. travel/donor/facility issues)</td>
+                <td colSpan="1">
+                  <textarea
+                    name="notes"
+                    value={formData.notes}
+                    onChange={handleChange}
+                  ></textarea>
+                </td>
+              </tr>
+              <tr>
+                <td colSpan="2">
+                  <strong className="heading ">Facilities Check (tick box)</strong>
+                </td>
+              </tr>
+              <tr className="facilitiesCheck">
+                <td colSpan="2">
+                  <label>
                     <input
-                      type="number"
-                      name="nonNegativeSamples"
-                      value={formData.nonNegativeSamples}
+                      type="checkbox"
+                      name="privateSecureRoom"
+                      checked={formData.facilities.privateSecureRoom}
                       onChange={handleChange}
                     />
-                  </td>
-                </tr>
-                <tr>
-                  <td colSpan="2">
-                    <strong className="heading">ONSITE CONTACT SIGNATURE</strong>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Notes (e.g. travel/donor/facility issues)</td>
-                  <td colSpan="1">
-                    <textarea
-                      name="notes"
-                      value={formData.notes}
+                    Private & Secure Room / Collection Area
+                  </label>
+                  <br />
+                  <label>
+                    <input
+                      type="checkbox"
+                      name="wcFacilities"
+                      checked={formData.facilities.wcFacilities}
                       onChange={handleChange}
-                    ></textarea>
-                  </td>
-                </tr>
-                <tr>
-                  <td colSpan="2">
-                    <strong className="heading ">Facilities Check (tick box)</strong>
-                  </td>
-                </tr>
-                <tr className="facilitiesCheck">
-                  <td colSpan="2">
-                    <label>
-                      <input
-                        type="checkbox"
-                        name="privateSecureRoom"
-                        checked={formData.facilities.privateSecureRoom}
-                        onChange={handleChange}
-                      />
-                      Private & Secure Room / Collection Area
-                    </label>
-                    <br />
-                    <label>
-                      <input
-                        type="checkbox"
-                        name="wcFacilities"
-                        checked={formData.facilities.wcFacilities}
-                        onChange={handleChange}
-                      />
-                      Suitable WC Facilities, +1 Door Access/Egress
-                    </label>
-                    <br />
-                    <label>
-                      <input
-                        type="checkbox"
-                        name="handWashing"
-                        checked={formData.facilities.handWashing}
-                        onChange={handleChange}
-                      />
-                      Suitable Hand Washing Facilities
-                    </label>
-                    <br />
-                    <label>
-                      <input
-                        type="checkbox"
-                        name="securedWindows"
-                        checked={formData.facilities.securedWindows}
-                        onChange={handleChange}
-                      />
-                      Secured Windows if at Ground Level
-                    </label>
-                    <br />
-                    <label>
-                      <input
-                        type="checkbox"
-                        name="emergencyExits"
-                        checked={formData.facilities.emergencyExits}
-                        onChange={handleChange}
-                      />
-                      Onsite Emergency Exits / Assembly Points
-                    </label>
-                    <br />
-                    <label>
-                      <input
-                        type="checkbox"
-                        name="translatorRequired"
-                        checked={formData.facilities.translatorRequired}
-                        onChange={handleChange}
-                      />
-                      Translator (if required)
-                    </label>
-                  </td>
-                </tr>
-                <tr>
-                  <td colSpan="2">
-                    <strong className="heading">COLLECTION OFFICER SIGNATURE</strong>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Onsite Contact Signature</td>
-                  <td>
+                    />
+                    Suitable WC Facilities, +1 Door Access/Egress
+                  </label>
+                  <br />
+                  <label>
+                    <input
+                      type="checkbox"
+                      name="handWashing"
+                      checked={formData.facilities.handWashing}
+                      onChange={handleChange}
+                    />
+                    Suitable Hand Washing Facilities
+                  </label>
+                  <br />
+                  <label>
+                    <input
+                      type="checkbox"
+                      name="securedWindows"
+                      checked={formData.facilities.securedWindows}
+                      onChange={handleChange}
+                    />
+                    Secured Windows if at Ground Level
+                  </label>
+                  <br />
+                  <label>
+                    <input
+                      type="checkbox"
+                      name="emergencyExits"
+                      checked={formData.facilities.emergencyExits}
+                      onChange={handleChange}
+                    />
+                    Onsite Emergency Exits / Assembly Points
+                  </label>
+                  <br />
+                  <label>
+                    <input
+                      type="checkbox"
+                      name="translatorRequired"
+                      checked={formData.facilities.translatorRequired}
+                      onChange={handleChange}
+                    />
+                    Translator (if required)
+                  </label>
+                </td>
+              </tr>
+              <tr>
+                <td colSpan="2">
+                  <strong className="heading">COLLECTION OFFICER SIGNATURE</strong>
+                </td>
+              </tr>
+              <tr>
+                <td>Onsite Contact Signature</td>
+                <td>
                   <div >
-{/*                   
+                    {/*                   
                      <input
                     className="inputstyle"
                     type="text"
@@ -1439,35 +1456,37 @@ const handleSubmit = async (e) => {
                       backgroundPosition: "center",height:"30px" }}
          
                   /> */}
-                   <input
-                    className="inputstyle"
-                    type="text"
-                    name="onsiteSignature"
-                    value=""//{formData.onsiteSignature}
-                    placeholder=""
-                    onClick={() => openSignaturePad2("onsiteSignature")}
-                    onChange={handleChange}
-                    style={{ width: "152px", margin: "0px",cursor: "pointer",
-                      backgroundImage: `url(${formData.onsiteSignature})`,
-                      backgroundSize: "contain",
-                      backgroundRepeat: "no-repeat",
-                      backgroundPosition: "center",height:"30px" }}
-         
-                  />
-                </div>
-                {/* {isSignaturePadOpen && isSignaturePadOpen && pad(currentSignatureField) && (
+                    <input
+                      className="inputstyle"
+                      type="text"
+                      name="onsiteSignature"
+                      value=""//{formData.onsiteSignature}
+                      placeholder=""
+                      onClick={() => openSignaturePad2("onsiteSignature")}
+                      onChange={handleChange}
+                      style={{
+                        width: "152px", margin: "0px", cursor: "pointer",
+                        backgroundImage: `url(${formData.onsiteSignature})`,
+                        backgroundSize: "contain",
+                        backgroundRepeat: "no-repeat",
+                        backgroundPosition: "center", height: "30px"
+                      }}
+
+                    />
+                  </div>
+                  {/* {isSignaturePadOpen && isSignaturePadOpen && pad(currentSignatureField) && (
       pad("onsiteSignature")
       )} */}
-      {isSignaturePadOpen && pad(currentSignatureField)}
+                  {isSignaturePadOpen && pad(currentSignatureField)}
 
-                  </td>
-                 
-                </tr>
-                <tr>
+                </td>
+
+              </tr>
+              <tr>
                 <td>Collection Officer Signature</td>
-                  <td>
-                  
-                     <input
+                <td>
+
+                  <input
                     className="inputstyle"
                     type="text"
                     name="officerSignature"
@@ -1475,18 +1494,20 @@ const handleSubmit = async (e) => {
                     placeholder=""
                     onClick={() => openSignaturePad2("officerSignature")}
                     onChange={handleChange}
-                    style={{ width: "152px", margin: "0px",cursor: "pointer",
+                    style={{
+                      width: "152px", margin: "0px", cursor: "pointer",
                       backgroundImage: `url(${formData.officerSignature})`,
                       backgroundSize: "contain",
                       backgroundRepeat: "no-repeat",
-                      backgroundPosition: "center",height:"30px" }}
-         
+                      backgroundPosition: "center", height: "30px"
+                    }}
+
                   />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-       
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
           <div className="note">
             <strong className="heading">** CO to NOTE **:</strong>
             <ul>
@@ -1502,49 +1523,49 @@ const handleSubmit = async (e) => {
 
 
 
-         { !isloading ? 
-         (token ==="dskgfsdgfkgsdfkjg35464154845674987dsf@53" || formData?.isAccepted ? <button
-            type="submit"
-            className="createjob2"
-            onClick={handleSubmit}
-            style={{
-              width: "100%",
-              padding: "10px",
-              background: "#80c209",
-            //   background: "#80c209",
-              color: "#fff",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-              fontSize: "16px",
-            }}
-          >
-            Update
-          </button> : 
+          {!isloading ?
+            (token === "dskgfsdgfkgsdfkjg35464154845674987dsf@53" || formData?.isAccepted ? <button
+              type="submit"
+              className="createjob2"
+              onClick={handleSubmit}
+              style={{
+                width: "100%",
+                padding: "10px",
+                background: "#80c209",
+                //   background: "#80c209",
+                color: "#fff",
+                border: "none",
+                borderRadius: "5px",
+                cursor: "pointer",
+                fontSize: "16px",
+              }}
+            >
+              Update
+            </button> :
 
-          // {
-            // accepted ?
-            <button
-            className="createjob2"
-            type="submit"
-            onClick={handleAccept}
-            style={{
-              width: "100%",
-              padding: "10px",
-              background: "#80c209",
-            //   background: "#80c209",
-              color: "#fff",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-              fontSize: "16px",
-            }}
-          >
-            Accept
-          </button>
-          //  : null
-        // }
-          ) : <div style={{width:"100%",display: "flex",justifyContent:"center"}}><img src="/empty.gif" style={{width:"130px",}}/></div>}
+              // {
+              // accepted ?
+              <button
+                className="createjob2"
+                type="submit"
+                onClick={handleAccept}
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  background: "#80c209",
+                  //   background: "#80c209",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "5px",
+                  cursor: "pointer",
+                  fontSize: "16px",
+                }}
+              >
+                Accept
+              </button>
+              //  : null
+              // }
+            ) : <div style={{ width: "100%", display: "flex", justifyContent: "center" }}><img src="/empty.gif" style={{ width: "130px", }} /></div>}
         </div>
       </div>
     </>

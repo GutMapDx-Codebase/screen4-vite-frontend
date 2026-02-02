@@ -419,10 +419,22 @@ const JobRequests = () => {
           backendTotalPages: data.totalPages
         });
 
+        // ✅ REMOVED REDUNDANT FILTER: The API /getjobsbycollector already returns jobs for this collector.
+        // Trust the backend response.
+
+        console.log("🔒 Collector Jobs (No Client Filter):", {
+          count: jobsData.length,
+          collectorId: collectorId
+        });
+
+        // Recalculate totals based on data (backend should handle pagination, but if not, logic remains)
+        const finalTotal = jobsData.length;
+        const finalPages = finalTotal > 0 ? Math.ceil(finalTotal / pageSize) : 1;
+
         setClient(jobsData);
         setFilteredClients(jobsData);
-        setTotalItems(calculatedTotal);
-        setTotalPages(calculatedPages);
+        setTotalItems(data.total || data.count || finalTotal); // Use backend total if available
+        setTotalPages(data.totalPages || finalPages);
         setPage(currentPageNum);
         setLoading(false);
         return; // Early return for collector
@@ -918,9 +930,11 @@ const JobRequests = () => {
             <div className="title-section">
               <h1 className="page-title">
                 <span className="title-icon">📋</span>
-                Job Requests
+                {currentToken === "clientdgf45sdgf89756dfgdhgdf" ? "COC Forms" : "Job Requests"}
               </h1>
-              <p className="page-subtitle">Manage and track all job requests</p>
+              <p className="page-subtitle">
+                {currentToken === "clientdgf45sdgf89756dfgdhgdf" ? "View and download your Chain of Custody forms" : "Manage and track all job requests"}
+              </p>
               <div className="requests-count">
                 <span className="count-badge">{totalItems || 0}</span>
                 Total {displayTab} Requests
@@ -996,7 +1010,17 @@ const JobRequests = () => {
                   <div
                     key={client._id}
                     className="request-card"
-                    onClick={() => handleClientClick(client._id)}
+                    onClick={() => {
+                      const currentToken = Cookies.get("Token");
+                      // ✅ Client: Click does nothing (row is not clickable for navigation)
+                      if (currentToken === "clientdgf45sdgf89756dfgdhgdf") {
+                        return;
+                      }
+                      handleClientClick(client._id);
+                    }}
+                    style={{
+                      cursor: Cookies.get("Token") === "clientdgf45sdgf89756dfgdhgdf" ? 'default' : 'pointer'
+                    }}
                   >
                     <div className="card-header">
                       <div className="request-info">
@@ -1031,6 +1055,55 @@ const JobRequests = () => {
                             <span className="info-label">Form Status:</span>
                             <span className="info-value" style={{ color: client.refusalForm ? 'red' : client.cocForm ? 'green' : 'orange' }}>
                               {client.refusalForm ? 'Refusal Form Filled' : client.cocForm ? 'COC Form Filled' : 'No Form Filled'}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* ✅ CLIENT ONLY: COC Form Link Row */}
+                        {currentToken === "clientdgf45sdgf89756dfgdhgdf" && (
+                          <div className="info-row" style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                            <span className="info-label" style={{ alignSelf: 'center' }}>COC Form:</span>
+                            <span className="info-value">
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  // Reusing the modal logic from handleClientClick
+                                  const jobDetails = await fetchJobDetailsWithCollectors(client._id);
+                                  if (jobDetails) {
+                                    setSelectedJobDetails(jobDetails);
+                                    setCollectorDetailsModal(true);
+                                    const collectors = Array.isArray(jobDetails.collectors) ? jobDetails.collectors : [];
+                                    const formsEntries = await Promise.all(
+                                      collectors.map(async (c) => {
+                                        const specId = c?.collectorsId?._id || c?.collectorsId || c?._id;
+                                        if (!specId) return [undefined, []];
+                                        const forms = await fetchCollectorCocFormsByCollector(client._id, specId);
+                                        return [specId, forms];
+                                      })
+                                    );
+                                    const formsMap = {};
+                                    formsEntries.forEach(([cid, forms]) => { if (cid) formsMap[cid] = forms; });
+                                    setCollectorCocForms(formsMap);
+                                  }
+                                }}
+                                style={{
+                                  background: 'white',
+                                  color: '#22c55e',
+                                  border: 'none',
+                                  padding: '6px 12px',
+                                  borderRadius: '6px',
+                                  fontWeight: 'bold',
+                                  cursor: 'pointer',
+                                  fontSize: '13px',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '5px'
+                                }}
+                                onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
+                                onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                              >
+                                📄 View COC Forms
+                              </button>
                             </span>
                           </div>
                         )}
@@ -1102,23 +1175,26 @@ const JobRequests = () => {
                                 Job Request
                               </button>
                             )}
-                            <button
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                try {
-                                  const formId = await fetchAcceptedById(client._id);
-                                  const basePath = `/coc-form/${client._id}?collectorId=${collectorId}`;
-                                  navigate(formId ? `${basePath}&formId=${formId}` : basePath);
-                                } catch (err) {
-                                  console.error('Failed to open COC form', err);
-                                  const basePath = `/coc-form/${client._id}?collectorId=${collectorId}`;
-                                  navigate(basePath);
-                                }
-                              }}
-                              className="action-btn secondary"
-                            >
-                              COC Form
-                            </button>
+                            {/* Client ke lie already 'View COC Forms' row add kr dia hai, so hide duplicate button if Client */}
+                            {currentToken !== "clientdgf45sdgf89756dfgdhgdf" && (
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  try {
+                                    const formId = await fetchAcceptedById(client._id);
+                                    const basePath = `/coc-form/${client._id}?collectorId=${collectorId}`;
+                                    navigate(formId ? `${basePath}&formId=${formId}` : basePath);
+                                  } catch (err) {
+                                    console.error('Failed to open COC form', err);
+                                    const basePath = `/coc-form/${client._id}?collectorId=${collectorId}`;
+                                    navigate(basePath);
+                                  }
+                                }}
+                                className="action-btn secondary"
+                              >
+                                COC Form
+                              </button>
+                            )}
                           </div>
                         )}
                       </div>
@@ -1130,15 +1206,18 @@ const JobRequests = () => {
                           {displayTab}
                         </span>
                       </div>
-                      <div className="view-details">
-                        <span
-                          className="view-text"
-                          onClick={(e) => handleViewDetails(client._id, e)}
-                        >
-                          Click to view collector status
-                        </span>
-                        <span className="arrow-icon">→</span>
-                      </div>
+                      {/* ✅ Disable "Click to view" indicator for clients */}
+                      {currentToken !== "clientdgf45sdgf89756dfgdhgdf" && (
+                        <div className="view-details">
+                          <span
+                            className="view-text"
+                            onClick={(e) => handleViewDetails(client._id, e)}
+                          >
+                            Click to view collector status
+                          </span>
+                          <span className="arrow-icon">→</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}

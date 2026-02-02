@@ -418,6 +418,7 @@ function Screen4Details() {
   const [isNewFormInstance, setIsNewFormInstance] = useState(false);
   const [allCocForms, setAllCocForms] = useState([]); // Store all COC forms for this job/collector
   const [jobStatus, setJobStatus] = useState(null); // Track job status for edit restrictions
+  const [jobRequestData, setJobRequestData] = useState(null); // Store job request data for test type checking
   const handleAddComment = (field) => {
     const comment = prompt("Enter your comment:");
     if (comment) {
@@ -724,6 +725,8 @@ function Screen4Details() {
                 jobRequestData = jobResult.data;
                 // Capture job status for permission enforcement
                 setJobStatus(jobResult.data?.status || jobResult.data?.jobStatus || null);
+                // ✅ Store job request data in state for test type checking
+                setJobRequestData(jobResult.data);
               }
             }
           } catch (jobError) {
@@ -801,7 +804,7 @@ function Screen4Details() {
               // Always use job request data for these fields (they should match the job request)
               cocRefNo: selectedForm.cocRefNo || jobRequestData?.jobReferenceNo || "",
               location: jobRequestData?.location || selectedForm.location || "",
-              companyName: jobRequestData?.companyName || jobRequestData?.company || selectedForm.companyName || selectedForm.company || "",
+              companyName: jobRequestData?.companyName || jobRequestData?.customer || jobRequestData?.company || selectedForm.companyName || selectedForm.company || "",
               reasonForTest: jobRequestData?.reasonForTest || selectedForm.reasonForTest || "",
               flight: jobRequestData?.flightVessel || selectedForm.flight || "",
               // ✅ AUTO-POPULATE COLLECTOR NAME if not already set
@@ -817,7 +820,7 @@ function Screen4Details() {
             if (jobRequestData) {
               initialFormData.cocRefNo = nextCocRef || jobRequestData.jobReferenceNo || "";
               initialFormData.location = jobRequestData.location || "";
-              initialFormData.companyName = jobRequestData.companyName || jobRequestData.company || "";
+              initialFormData.companyName = jobRequestData.companyName || jobRequestData.customer || jobRequestData.company || "";
               initialFormData.reasonForTest = jobRequestData.reasonForTest || "";
               initialFormData.flight = jobRequestData.flightVessel || "";
             }
@@ -853,6 +856,7 @@ function Screen4Details() {
   }, [id, location.search]);
 
   console.log('Form Data:', formData);
+
 
 
 
@@ -1186,12 +1190,8 @@ function Screen4Details() {
     return ["completed", "complete", "done", "closed", "finished"].some((flag) => normalized.includes(flag));
   })();
   // Breath-only flow: skip requiring adulteration/drug-test fields
-  const isBreathOnly = Boolean(
-    formData?.BreathAlcoholOnlyTest &&
-    !formData?.DrugsandAlcoholUrineTest &&
-    !formData?.DrugsandAlcoholOralTest &&
-    !formData?.DrugsOnlyTest
-  );
+  // Check if the job request specified "Breath Alcohol" as the test type
+  const isBreathOnly = jobRequestData?.TypeOfTest === "Breath Alcohol";
 
   // Editing rules:
   // - Before first submission (isUpdated !== true): collector (with collectorId in URL) can edit
@@ -1981,123 +1981,128 @@ function Screen4Details() {
               </tbody>
 
             </table>
-            <div className="premium-card" style={{ marginTop: '20px' }}>
-              <div className="declaration-title">Adulteration Check</div>
-              <div className="adulteration-grid">
-                <div className="input-block">
-                  <label>Collection Time</label>
-                  <input
-                    className="premium-input"
-                    type="time"
-                    name="collectionTime"
-                    value={formData.collectionTime}
-                    onChange={handleChange}
-                    required={!isBreathOnly}
-                  />
+            {/* ✅ Only show Adulteration Check section if NOT breath-only test */}
+            {!isBreathOnly && (
+              <div className="premium-card" style={{ marginTop: '20px' }}>
+                <div className="declaration-title">Adulteration Check</div>
+                <div className="adulteration-grid">
+                  <div className="input-block">
+                    <label>Collection Time</label>
+                    <input
+                      className="premium-input"
+                      type="time"
+                      name="collectionTime"
+                      value={formData.collectionTime}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <div className="input-block">
+                    <label>Result Read Time</label>
+                    <input
+                      className="premium-input"
+                      type="time"
+                      name="resultReadTime"
+                      value={formData.resultReadTime}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <div className="input-block">
+                    <label>Lot No.</label>
+                    <input
+                      className="premium-input"
+                      type="text"
+                      name="lotno"
+                      value={formData.lotno}
+                      placeholder="Enter Lot No."
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <div className="input-block">
+                    <label>Exp Date</label>
+                    <input
+                      className="premium-input"
+                      type="date"
+                      name="expDate"
+                      value={formatDateForInput(formData.expDate)}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
                 </div>
-                <div className="input-block">
-                  <label>Result Read Time</label>
-                  <input
-                    className="premium-input"
-                    type="time"
-                    name="resultReadTime"
-                    value={formData.resultReadTime}
-                    onChange={handleChange}
-                    required={!isBreathOnly}
-                  />
+
+                <div className="adulteration-footer-grid">
+                  <div className="input-block">
+                    <label>Temperature 32 - 38˚</label>
+                    <div className="yes-no-group" style={{ padding: '10px' }}>
+                      <label className="yes-no-label">
+                        <input
+                          type="radio"
+                          name="temperature"
+                          value="Yes"
+                          checked={formData.temperature === 'Yes'}
+                          onChange={handleChange}
+                          required
+                        />
+                        Yes
+                      </label>
+                      <label className="yes-no-label">
+                        <input
+                          type="radio"
+                          name="temperature"
+                          value="No"
+                          checked={formData.temperature === 'No'}
+                          onChange={handleChange}
+                        />
+                        No
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="input-block">
+                    <label>Adulteration Test Passed</label>
+                    <div className="yes-no-group" style={{ padding: '10px' }}>
+                      <label className="yes-no-label">
+                        <input
+                          type="radio"
+                          name="adulterationTestPassed"
+                          value="Yes"
+                          checked={formData.adulterationTestPassed === 'Yes'}
+                          onChange={handleChange}
+                          required
+                        />
+                        Yes
+                      </label>
+                      <label className="yes-no-label">
+                        <input
+                          type="radio"
+                          name="adulterationTestPassed"
+                          value="No"
+                          checked={formData.adulterationTestPassed === 'No'}
+                          onChange={handleChange}
+                        />
+                        No
+                      </label>
+                    </div>
+                  </div>
                 </div>
-                <div className="input-block">
-                  <label>Lot No.</label>
+
+                <div className="input-block" style={{ marginTop: '15px' }}>
+                  <label>Remarks / Drug Test Result</label>
                   <input
                     className="premium-input"
                     type="text"
-                    name="lotno"
-                    value={formData.lotno}
-                    placeholder="Enter Lot No."
+                    name="adulterationRemarks"
+                    value={formData.adulterationRemarks}
+                    placeholder="Enter remarks or drug test results"
                     onChange={handleChange}
-                    required={!isBreathOnly}
-                  />
-                </div>
-                <div className="input-block">
-                  <label>Exp Date</label>
-                  <input
-                    className="premium-input"
-                    type="date"
-                    name="expDate"
-                    value={formatDateForInput(formData.expDate)}
-                    onChange={handleChange}
-                    required={!isBreathOnly}
+                    required
                   />
                 </div>
               </div>
-
-              <div className="adulteration-footer-grid">
-                <div className="input-block">
-                  <label>Temperature 32 - 38˚</label>
-                  <div className="yes-no-group" style={{ padding: '10px' }}>
-                    <label className="yes-no-label">
-                      <input
-                        type="radio"
-                        name="temperature"
-                        value="Yes"
-                        checked={formData.temperature === 'Yes'}
-                        onChange={handleChange}
-                      />
-                      Yes
-                    </label>
-                    <label className="yes-no-label">
-                      <input
-                        type="radio"
-                        name="temperature"
-                        value="No"
-                        checked={formData.temperature === 'No'}
-                        onChange={handleChange}
-                      />
-                      No
-                    </label>
-                  </div>
-                </div>
-
-                <div className="input-block">
-                  <label>Adulteration Test Passed</label>
-                  <div className="yes-no-group" style={{ padding: '10px' }}>
-                    <label className="yes-no-label">
-                      <input
-                        type="radio"
-                        name="adulterationTestPassed"
-                        value="Yes"
-                        checked={formData.adulterationTestPassed === 'Yes'}
-                        onChange={handleChange}
-                      />
-                      Yes
-                    </label>
-                    <label className="yes-no-label">
-                      <input
-                        type="radio"
-                        name="adulterationTestPassed"
-                        value="No"
-                        checked={formData.adulterationTestPassed === 'No'}
-                        onChange={handleChange}
-                      />
-                      No
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <div className="input-block" style={{ marginTop: '15px' }}>
-                <label>Remarks / Drug Test Result</label>
-                <input
-                  className="premium-input"
-                  type="text"
-                  name="adulterationRemarks"
-                  value={formData.adulterationRemarks}
-                  placeholder="Enter remarks or drug test results"
-                  onChange={handleChange}
-                  required={!isBreathOnly}
-                />
-              </div>
-            </div>
+            )}
             <div style={{ overflowX: "auto" }}>
 
               <table
